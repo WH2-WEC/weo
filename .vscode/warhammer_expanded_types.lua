@@ -12,10 +12,9 @@
 --# assume global class RECRUITER_MANAGER
 --# assume global class RECRUITER_CHARACTER
 --# assume global class RECRUITER_QUEUED_UNIT
---# assume global class UNIT_ID
 
 --# type global QUEUED_UNIT_RECORD = { 
---# _char: CA_CQI, _unitID: UNIT_ID, _buildTime: number
+--# _char: CA_CQI, _unitID: string, _buildTime: number
 --#}
 
 
