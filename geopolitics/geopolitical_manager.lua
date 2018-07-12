@@ -163,13 +163,20 @@ function geopolitical_manager.evaluate_relations_between(self, target_faction, j
     local target_properties = self:get_faction(target_faction):get_properties()
     local target_obtained_properties = self:get_faction(target_faction):get_obtained_property_list()
     
-    local current_total = 0
+    local current_total = 0 --:number
+    --cycle through inherent properties
     for i = 1, #target_properties do
         local current_property = target_properties[i]
-        if judge:get_preference_for_property(current_property) then
-
-        end
+        local preference = judge:get_preference_for_property(current_property)
+        current_total = current_total + preference
     end
-
+    --cycle through obtained properties
+    for i = 1, #target_obtained_properties do
+        local current_property = target_obtained_properties[i]
+        local preference = judge:get_preference_for_property(current_property)
+        current_total = current_total + preference
+    end
+    --set the relation
+    self:set_relation_value_of_faction_to_faction(target_faction, judging_faction, current_total)
 end
 
