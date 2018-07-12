@@ -17,7 +17,7 @@ require("book_of_grudges/export_helpers__book_of_grudges_consequences")
 --]]
 
 ---[[master recruitment system
-require("mod/RecruiterCharacter")
-require("mod/RecruitmentManager")
+require("recruitment/RecruiterCharacter")
+require("recruitment/RecruitmentManager")
 
 --]]
