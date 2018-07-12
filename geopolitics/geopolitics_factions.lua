@@ -90,7 +90,7 @@ function geopolitic_faction.has_properties_from_region(self, region)
 end
 
 --v function(self: GEOPOLITIC_FACTION, region: string)
-function geopolitic_faction.wipe_properties_from_region(self, region)
+function geopolitic_faction.reset_properties_from_region(self, region)
     self:get_obtained_properties()[region] = nil
 end
 
