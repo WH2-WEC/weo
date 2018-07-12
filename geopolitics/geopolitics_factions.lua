@@ -11,7 +11,9 @@ function geopolitic_faction.new(faction_key)
 
     self._preferences = {} --:map<string, number>
     self._properties = {} --:vector<string>
+    self._obtainedProperties = {} --:map<string, vector<string>>
     self._factionKey = faction_key
+    self._regionChangeFlag = true
 
     return self
 end
@@ -31,6 +33,12 @@ end
 function geopolitic_faction.get_preferences(self)
     return self._preferences
 end
+
+--v function(self: GEOPOLITIC_FACTION) --> map<string, vector<string>>
+function geopolitic_faction.get_obtained_properties(self)
+    return self._obtainedProperties
+end
+
 
 --v function (self: GEOPOLITIC_FACTION, property: string, preference: number) 
 function geopolitic_faction.set_preference_for_property(self, property, preference)
@@ -63,6 +71,31 @@ function geopolitic_faction.remove_property(self, property)
     end
 end
 
+--v function (self: GEOPOLITIC_FACTION, property: string, region_key: string)
+function geopolitic_faction.obtain_property_from_region(self, property, region_key)
+    local properties = self:get_obtained_properties()
+    if properties[region_key] == nil then
+        properties[region_key] = {}
+    end
+    table.insert(properties[region_key], property)
+end
+
+--v function(self: GEOPOLITIC_FACTION, region: string) --> boolean
+function geopolitic_faction.has_properties_from_region(self, region)
+    if self:get_obtained_properties()[region] == nil then
+        return false
+    else
+        return true
+    end
+end
+
+--v function(self: GEOPOLITIC_FACTION, region: string)
+function geopolitic_faction.wipe_properties_from_region(self, region)
+    self:get_obtained_properties()[region] = nil
+end
+
+
+
 --v function (self: GEOPOLITIC_FACTION, property: string) --> boolean
 function geopolitic_faction.has_property(self, property)
     local properties = self:get_properties()
@@ -73,6 +106,24 @@ function geopolitic_faction.has_property(self, property)
     end
     return false
 end
+
+
+--v function(self: GEOPOLITIC_FACTION) --> boolean
+function geopolitic_faction.has_region_changed(self)
+    return self._regionChangeFlag
+end
+
+--v function(self: GEOPOLITIC_FACTION)
+function geopolitic_faction.set_region_changed(self)
+    self._regionChangeFlag = true
+end
+
+--v function(self: GEOPOLITIC_FACTION)
+function geopolitic_faction.reset_region_changed(self)
+    self._regionChangeFlag = false
+end
+
+
 
 return {
     new = geopolitic_faction.new
