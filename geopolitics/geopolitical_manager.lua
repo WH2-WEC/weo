@@ -90,8 +90,30 @@ end
 
 --v function(self: GEOPOLITICAL_MANAGER, faction_key: string) --> map<string, number>
 function geopolitical_manager.get_relations_table_for_faction(self, faction_key)
+    if self._factionRelations[faction_key] == nil then
+        self._factionRelations[faction_key] = {}
+    end
     return self._factionRelations[faction_key]
 end
+
+--v function(self: GEOPOLITICAL_MANAGER, of_faction: string, to_faction: string) --> number
+function geopolitical_manager.get_relation_value_of_faction_to_faction(self, of_faction, to_faction)
+    local relations_table = self:get_relations_table_for_faction(of_faction)
+    --nil case: faction has no set relation to other faction
+    if relations_table[to_faction] == nil then
+        relations_table[to_faction] = 0 
+    end
+    return relations_table[to_faction]
+end
+
+--v function(self: GEOPOLITICAL_MANAGER, of_faction: string, to_faction: string, relation_value: number)
+function geopolitical_manager.set_relation_value_of_faction_to_faction(self, of_faction, to_faction, relation_value)
+    local relations_table = self:get_relations_table_for_faction(of_faction)
+    relations_table[to_faction] = relation_value
+end
+
+
+
 
 
 
@@ -134,10 +156,20 @@ end
 
 
 
---v function(self: GEOPOLITICAL_MANAGER, target_faction: CA_FACTION, judging_faction: CA_FACTION)
+--v function(self: GEOPOLITICAL_MANAGER, target_faction: string, judging_faction: string)
 function geopolitical_manager.evaluate_relations_between(self, target_faction, judging_faction)
+    --TARGET FACTION is RECIEVING A BUNDLE that changes JUDGING FACTION's view of them
+    local judge = self:get_faction(judging_faction)
+    local target_properties = self:get_faction(target_faction):get_properties()
+    local target_obtained_properties = self:get_faction(target_faction):get_obtained_property_list()
+    
+    local current_total = 0
+    for i = 1, #target_properties do
+        local current_property = target_properties[i]
+        if judge:get_preference_for_property(current_property) then
 
-
+        end
+    end
 
 end
 
