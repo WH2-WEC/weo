@@ -50,3 +50,7 @@ function geopolitic_region.has_property(self, property)
     end
     return false
 end
+
+return {
+    new = geopolitic_region.new
+}

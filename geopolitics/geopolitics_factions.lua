@@ -73,3 +73,7 @@ function geopolitic_faction.has_property(self, property)
     end
     return false
 end
+
+return {
+    new = geopolitic_faction.new
+}

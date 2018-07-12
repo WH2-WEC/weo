@@ -109,7 +109,9 @@ function geopolitic_blacklist.can_faction_obtain_property(self, property, factio
 end
 
 
-
+return {
+    init = geopolitic_blacklist.init
+}
 
 
 
