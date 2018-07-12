@@ -39,6 +39,16 @@ function geopolitic_faction.get_obtained_properties(self)
     return self._obtainedProperties
 end
 
+--v function(self: GEOPOLITIC_FACTION) --> vector<string> 
+function geopolitic_faction.get_obtained_property_list(self)
+    local list = {} --:vector<string>
+    for region_name, properties in pairs(self:get_obtained_properties()) do
+        for i = 1, #properties do
+            table.insert(list, properties[i])
+        end
+    end
+    return list
+end
 
 --v function (self: GEOPOLITIC_FACTION, property: string, preference: number) 
 function geopolitic_faction.set_preference_for_property(self, property, preference)
