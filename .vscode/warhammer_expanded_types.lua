@@ -13,6 +13,16 @@
 --# assume global class RECRUITER_CHARACTER
 --# assume global class RECRUITER_QUEUED_UNIT
 
+---Geopolitics system
+--# assume global class GEOPOLITIC_FACTION
+--# assume global class GEOPOLITIC_REGION
+--# assume global class GEOPOLITIC_BRIDGE
+
+
+
+
+
+
 --# type global QUEUED_UNIT_RECORD = { 
 --# _char: CA_CQI, _unitID: string, _buildTime: number
 --#}
