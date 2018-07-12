@@ -96,17 +96,6 @@ function geopolitic_blacklist.set_subculture_permitted_for_property(self, proper
     property_blacklist[subculture] = false
 end
 
---v function(self: GEOPOLITIC_BLACKLIST, property: string, faction_object: CA_FACTION) --> boolean
-function geopolitic_blacklist.can_faction_obtain_property(self, property, faction_object)
-    local subculture = faction_object:subculture()
-    local faction = faction_object:name()
-    --check blacklists and return
-    if self:is_property_blacklisted_for_subculture(property, subculture) or self:is_property_blacklisted_for_faction(property, faction) then
-        return false
-    else
-        return true
-    end
-end
 
 
 return {
