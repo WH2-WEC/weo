@@ -75,7 +75,7 @@ end
 --v function(self: GEOPOLITICAL_MANAGER, faction: string) --> GEOPOLITIC_FACTION
 function geopolitical_manager.get_faction(self, faction)
     if self._factions[faction] == nil then
-
+        self:new_faction(faction)
     end
     return self._factions[faction]
 end
@@ -83,7 +83,7 @@ end
 --v function(self: GEOPOLITICAL_MANAGER, region: string) --> GEOPOLITIC_REGION
 function geopolitical_manager.get_region(self, region)
     if self._regions[region] == nil then
-
+        self:new_region(region)
     end
     return self._regions[region]
 end
@@ -109,6 +109,27 @@ function geopolitical_manager.can_faction_obtain_property(self, property, factio
     end
 end
 
+--takes the faction object for a faction and then assembles its obtained properties based on owned regions respecting the blacklist.
+--v function(self: GEOPOLITICAL_MANAGER, faction: CA_FACTION)
+function geopolitical_manager.assemble_obtained_properties_for_faction(self, faction)
+    local faction_key = faction:name()
+    local region_list = faction:region_list()
+    local geo_faction = self:get_faction(faction_key)
+
+    for i = 0, region_list:num_items() - 1 do
+        local region_name = region_list:item_at(i):name()
+        geo_faction:reset_properties_from_region(region_name)
+        local geo_region = self:get_region(region_name)
+        local region_properties = geo_region:get_properties()
+        for j = 1, #region_properties do
+            local current_property = region_properties[j]
+            if self:can_faction_obtain_property(current_property, faction) then
+                geo_faction:obtain_property_from_region(current_property, region_name)
+            end
+        end
+    end
+    geo_faction:reset_region_changed()
+end
 
 
 
