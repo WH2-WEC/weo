@@ -173,6 +173,7 @@ function geopolitical_manager.assemble_obtained_properties_for_faction(self, fac
             end
         end
     end
+    self:log("assembled obtained properties for faction ["..faction:name().."]")
     geo_faction:reset_region_changed()
 end
 
@@ -201,6 +202,7 @@ function geopolitical_manager.evaluate_relations_between(self, target_faction, j
     end
     --set the relation
     self:set_relation_value_of_faction_to_faction(target_faction, judging_faction, current_total)
+    self:log("Evaluated the relation between target faction ["..target_faction.."] and judging faction ["..judging_faction.."] to be ["..current_total.."]")
 end
 
 
@@ -211,7 +213,6 @@ function geopolitical_manager.evaluate_all_relations_for_faction(self, faction_o
 
     for i = 0, met_list:num_items() - 1 do
         self:evaluate_relations_between(faction_name, met_list:item_at(i):name())
-
     end
 end
 
@@ -230,6 +231,7 @@ for faction_key, bundle_value in pairs(relations_table) do
     end
     cm:apply_effect_bundle(bundle_name, target_faction, 0)
     cm:set_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key, bundle_name)
+    self:log("applied bundle ["..bundle_name.."] to faction ["..target_faction.."] ")
 end
 
 end
