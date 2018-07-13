@@ -6,6 +6,6 @@ require("recruitment/RecruitmentManager")
 
 ---[[geopolitical system
 
-    require("geopolitics/geopolitical_manager")
+    require("geopolitics/geopolitics")
     require("geopolitics/export_helpers__geopolitical_system")
 --]]
