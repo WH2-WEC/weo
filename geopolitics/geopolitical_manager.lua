@@ -251,8 +251,8 @@ function geopolitical_manager.evaluate_relations_between(self, target_faction, j
         current_total = current_total + preference
     end
     --set the relation
+    self:log("Evaluated the relation between target faction ["..target_faction.."] and judging faction ["..judging_faction.."] to be ["..current_total.."]; changed from ["..self:get_relation_value_of_faction_to_faction(target_faction, judging_faction).."] ")
     self:set_relation_value_of_faction_to_faction(target_faction, judging_faction, current_total)
-    self:log("Evaluated the relation between target faction ["..target_faction.."] and judging faction ["..judging_faction.."] to be ["..current_total.."]")
 end
 
 
