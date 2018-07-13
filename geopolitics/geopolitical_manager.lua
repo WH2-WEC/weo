@@ -203,6 +203,21 @@ function geopolitical_manager.evaluate_relations_between(self, target_faction, j
     self:set_relation_value_of_faction_to_faction(target_faction, judging_faction, current_total)
 end
 
+
+--v function(self: GEOPOLITICAL_MANAGER, faction_object: CA_FACTION)
+function geopolitical_manager.evaluate_all_relations_for_faction(self, faction_object)
+    local faction_name = faction_object:name()
+    local met_list = faction_object:factions_met()
+
+    for i = 0, met_list:num_items() - 1 do
+        self:evaluate_relations_between(faction_name, met_list:item_at(i):name())
+
+    end
+end
+
+
+
+
 --v function(self: GEOPOLITICAL_MANAGER, target_faction: string)
 function geopolitical_manager.apply_bundles_for(self, target_faction)
 local relations_table = self:get_relations_table_for_faction(target_faction)
