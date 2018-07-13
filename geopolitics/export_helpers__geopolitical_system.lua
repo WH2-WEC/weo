@@ -9,6 +9,10 @@ core:add_listener(
         local faction_object = context:faction() --:CA_FACTION
         gpm:log("Faction ["..faction_object:name().."] is starting their turn! ")
         local geo_faction = gpm:get_faction(faction_object:name())
+        if faction_object:region_list():num_items() ~= geo_faction:num_regions() then
+           geo_faction:set_region_changed() 
+        end
+
         if geo_faction:has_region_changed() then
             gpm:assemble_obtained_properties_for_faction(faction_object)
         end

@@ -13,7 +13,8 @@ function geopolitic_faction.new(faction_key)
     self._properties = {} --:vector<string>
     self._obtainedProperties = {} --:map<string, vector<string>>
     self._factionKey = faction_key
-    self._regionChangeFlag = true
+    self._numberRegion = 0 --:number
+    self._regionChangeFlag = true --:boolean
 
     return self
 end
@@ -131,6 +132,17 @@ end
 --v function(self: GEOPOLITIC_FACTION)
 function geopolitic_faction.reset_region_changed(self)
     self._regionChangeFlag = false
+end
+
+
+--v function(self: GEOPOLITIC_FACTION, regions: number)
+function geopolitic_faction.set_region_number(self, regions)
+    self._numberRegion = regions
+end
+
+--v function(self: GEOPOLITIC_FACTION) --> number
+function geopolitic_faction.num_regions(self)
+    return self._numberRegion
 end
 
 
