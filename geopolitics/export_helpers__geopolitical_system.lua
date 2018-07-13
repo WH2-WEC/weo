@@ -1,6 +1,6 @@
 cm = get_cm(); events = get_events(); gpm = _G.gpm;
 
-
+--- this listener contains the core loop powering the mod
 core:add_listener(
     "GeopoliticsTurnStart",
     "FactionTurnStart",
@@ -22,7 +22,7 @@ core:add_listener(
     end,
     true)
 
-
+--this flags for region changes
 core:add_listener(
     "GeopoliticsRegionOwnershipChangeOccupied",
     "GarrisonOccupiedEvent",
@@ -38,6 +38,7 @@ core:add_listener(
     end,
     true)
 
+--this also flags for region changes
 core:add_listener(
     "GeopoliticsRegionOwnershipChangeConfederation",
     "FactionJoinsConfederation",

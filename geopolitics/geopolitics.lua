@@ -18,6 +18,20 @@ local function GPLOG(text)
     popLog :close()
 end
 
+--v function()
+local function GPSESSIONLOG()
+    if not __write_output_to_logfile then
+        return;
+    end
+    local logTimeStamp = os.date("%d, %m %Y %X")
+    --# assume logTimeStamp: string
+
+    local popLog = io.open("warhammer_expanded_log.txt","w+")
+    popLog :write("NEW LOG ["..logTimeStamp.."] \n")
+    popLog :flush()
+    popLog :close() 
+end
+GPSESSIONLOG()
 
 --MOD SUBOBJECTS
     
