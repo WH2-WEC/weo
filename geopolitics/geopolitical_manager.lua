@@ -2,6 +2,23 @@
 contains the subobjects of the factions, regions, and blacklist blacklist that are used to evaluate the system.
 --]]
 
+--v function(text: string | number | boolean | CA_CQI)
+local function GPLOG(text)
+	ftext = "GEOPOLITICS" 
+
+    if not __write_output_to_logfile then
+      return;
+    end
+
+  local logText = tostring(text)
+  local logContext = tostring(ftext)
+  local logTimeStamp = os.date("%d, %m %Y %X")
+  local popLog = io.open("warhammer_expanded_log.txt","a")
+  --# assume logTimeStamp: string
+  popLog :write("LE:  [".. logTimeStamp .. "]:  "..logText .. "  \n")
+  popLog :flush()
+  popLog :close()
+end
 
 local geopolitic_blacklist = require("geopolitics/geopolitics_blacklists")
 local geopolitic_faction = require("geopolitics/geopolitics_factions")
@@ -30,6 +47,12 @@ function geopolitical_manager.init()
     --This is a map<WHO BUNDLES ARE APPLIED TO, map<THE FACTION THE BUNDLE CONCERNS, QUANTITY OF THE BUNDLE>>
     _G.gpm = self
 end
+
+--v function(self: GEOPOLITICAL_MANAGER, text: any)
+function geopolitical_manager.log(self, text)
+    GPLOG(tostring(text))
+end
+
 
 --v function(self: GEOPOLITICAL_MANAGER) --> GEOPOLITIC_BLACKLIST
 function geopolitical_manager.blacklist(self)
@@ -180,3 +203,18 @@ function geopolitical_manager.evaluate_relations_between(self, target_faction, j
     self:set_relation_value_of_faction_to_faction(target_faction, judging_faction, current_total)
 end
 
+--v function(self: GEOPOLITICAL_MANAGER, target_faction: string)
+function geopolitical_manager.apply_bundles_for(self, target_faction)
+local relations_table = self:get_relations_table_for_faction(target_faction)
+
+for faction_key, bundle_value in pairs(relations_table) do
+    local bundle_name_raw = "wec_geopolitics_"..faction_key.."_"..tostring(bundle_value)
+    local bundle_name = string.gsub(bundle_name_raw, "-", "n")
+    if not cm:get_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key) == nil then
+        cm:remove_effect_bundle(cm:get_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key), target_faction)
+    end
+    cm:apply_effect_bundle(bundle_name, target_faction, 0)
+    cm:set_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key, bundle_name)
+end
+
+end
