@@ -1,6 +1,6 @@
 --v function(text: any)
 local function LOG(text)
-	ftext = "LESCRIPT"
+	ftext = "LESCRIPT" --:string
 
     if not __write_output_to_logfile then
       return;
