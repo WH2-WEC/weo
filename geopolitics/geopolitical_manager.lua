@@ -23,7 +23,7 @@ end
 local geopolitic_blacklist = require("geopolitics/geopolitics_blacklists")
 local geopolitic_faction = require("geopolitics/geopolitics_factions")
 local geopolitic_region = require("geopolitics/geopolitics_regions")
-
+local geopolitic_loader = require("geopolitics/geopolitics_loader")
 
 
 
@@ -42,6 +42,7 @@ function geopolitical_manager.init()
     self._factions = {} --:map<string, GEOPOLITIC_FACTION>
     self._regions = {} --:map<string, GEOPOLITIC_REGION>
     self._blacklist = geopolitic_blacklist.init()
+    self._propertyLoader = geopolitic_loader.init()
     
     self._factionRelations = {} --:map<string, map<string, number>>
     --This is a map<WHO BUNDLES ARE APPLIED TO, map<THE FACTION THE BUNDLE CONCERNS, QUANTITY OF THE BUNDLE>>
@@ -59,6 +60,12 @@ function geopolitical_manager.blacklist(self)
     return self._blacklist
 end
 
+--v function(self: GEOPOLITICAL_MANAGER) --> GEOPOLITIC_LOADER
+function geopolitical_manager.loader(self)
+    return self._propertyLoader
+end
+
+
 --v function(self: GEOPOLITICAL_MANAGER) --> map<string, GEOPOLITIC_FACTION>
 function geopolitical_manager.get_factions(self)
     return self._factions
@@ -72,13 +79,31 @@ end
 --v function(self: GEOPOLITICAL_MANAGER, faction_key: string)
 function geopolitical_manager.new_faction(self, faction_key)
     if not self._factions[faction_key] == nil then
-        --LOG("ERROR: there is already a faction object for this faction!")
+        self:log("ERROR: new_faction called but there is already a faction object for this faction!")
         return
     end
-    local faction = geopolitic_faction.new(faction_key)
+    local geo_faction = geopolitic_faction.new(faction_key)
     --we give all factions a property equal to their name to simplify some relations.
-    faction:add_property(faction_key)
-    self._factions[faction_key] = faction
+    geo_faction:add_property(faction_key)
+    --now we want to find the defaults for this faction from the loader.
+    local subculture = cm:get_faction(faction_key):subculture()
+    --add default properties
+    local subculture_properties = self:loader():get_default_properties_for_subculture(subculture)
+    local faction_properties = self:loader():get_default_properties_for_faction(faction_key)
+    for i = 1, #subculture_properties do
+        geo_faction:add_property(subculture_properties[i])
+    end
+    for i = 1, #faction_properties do
+        geo_faction:add_property(faction_properties[i])
+    end
+    --add default preferences
+    local subculture_preferences = self:loader():get_default_preferences_for_subculture(subculture)
+    local faction_preferences = self:loader():get_default_preferences_for_faction(faction_key)
+
+
+
+
+    self._factions[faction_key] = geo_faction
 end
 
 --v function(self: GEOPOLITICAL_MANAGER, region_key: string)
@@ -174,6 +199,7 @@ function geopolitical_manager.assemble_obtained_properties_for_faction(self, fac
         end
     end
     self:log("assembled obtained properties for faction ["..faction:name().."]")
+    geo_faction:set_region_number(region_list:num_items())
     geo_faction:reset_region_changed()
 end
 
@@ -235,3 +261,6 @@ for faction_key, bundle_value in pairs(relations_table) do
 end
 
 end
+
+
+geopolitical_manager.init()
