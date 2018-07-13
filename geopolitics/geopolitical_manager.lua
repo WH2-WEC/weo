@@ -55,6 +55,18 @@ function geopolitical_manager.log(self, text)
 end
 
 
+--v function(self: GEOPOLITICAL_MANAGER) --> map<string, map<string, number>>
+function geopolitical_manager.save(self)
+    return self._factionRelations
+end
+
+--v function(self: GEOPOLITICAL_MANAGER, savetable: map<string, map<string, number>>)
+function geopolitical_manager.load(self, savetable)
+    self._factionRelations = savetable
+end
+
+
+
 --v function(self: GEOPOLITICAL_MANAGER) --> GEOPOLITIC_BLACKLIST
 function geopolitical_manager.blacklist(self)
     return self._blacklist
@@ -99,10 +111,12 @@ function geopolitical_manager.new_faction(self, faction_key)
     --add default preferences
     local subculture_preferences = self:loader():get_default_preferences_for_subculture(subculture)
     local faction_preferences = self:loader():get_default_preferences_for_faction(faction_key)
-
-
-
-
+    for property, preference in pairs(subculture_preferences) do
+        geo_faction:set_preference_for_property(property, preference)
+    end
+    for property, preference in pairs(faction_preferences) do
+        geo_faction:set_preference_for_property(property, preference)
+    end
     self._factions[faction_key] = geo_faction
 end
 
@@ -112,10 +126,20 @@ function geopolitical_manager.new_region(self, region_key)
         --LOG("ERROR: there is already a faction object for this faction!")
         return
     end
-    local region = geopolitic_faction.new(region_key)
+    local geo_region = geopolitic_faction.new(region_key)
     --we give all regions a property equal to their name to simplify some relations.
-    region:add_property(region_key)
-    self._factions[region_key] = region
+    geo_region:add_property(region_key)
+    --add the default properties of that region
+    local region_properties = self:loader():get_default_properties_for_region(region_key)
+    local region_grouped_properties = self:loader():get_default_group_properties_for_region(region_key)
+    for i = 1, #region_properties do 
+        geo_region:add_property(region_properties[i])
+    end
+    for i = 1, #region_grouped_properties do
+        geo_region:add_property(region_grouped_properties[i])
+    end
+
+    self._factions[region_key] = geo_region
 end
 
 
@@ -247,20 +271,34 @@ end
 
 --v function(self: GEOPOLITICAL_MANAGER, target_faction: string)
 function geopolitical_manager.apply_bundles_for(self, target_faction)
-local relations_table = self:get_relations_table_for_faction(target_faction)
-
-for faction_key, bundle_value in pairs(relations_table) do
-    local bundle_name_raw = "wec_geopolitics_"..faction_key.."_"..tostring(bundle_value)
-    local bundle_name = string.gsub(bundle_name_raw, "-", "n")
-    if not cm:get_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key) == nil then
-        cm:remove_effect_bundle(cm:get_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key), target_faction)
+    local relations_table = self:get_relations_table_for_faction(target_faction)
+    for faction_key, bundle_value in pairs(relations_table) do
+        local bundle_name_raw = "wec_geopolitics_"..faction_key.."_"..tostring(bundle_value)
+        local bundle_name = string.gsub(bundle_name_raw, "-", "n")
+        if not cm:get_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key) == nil then
+            cm:remove_effect_bundle(cm:get_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key), target_faction)
+        end
+        cm:apply_effect_bundle(bundle_name, target_faction, 0)
+        cm:set_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key, bundle_name)
+        self:log("applied bundle ["..bundle_name.."] to faction ["..target_faction.."] ")
     end
-    cm:apply_effect_bundle(bundle_name, target_faction, 0)
-    cm:set_saved_value("geopolitics_last_bundle_"..target_faction.."_"..faction_key, bundle_name)
-    self:log("applied bundle ["..bundle_name.."] to faction ["..target_faction.."] ")
-end
-
 end
 
 
 geopolitical_manager.init()
+
+cm:add_saving_game_callback( function(context)
+    if not not _G.gpm then
+        local gpm = _G.gpm
+        local geopolitics_save_table = gpm:save()
+        cm:save_named_value("geopolitics_save_table", geopolitics_save_table, context)
+    end
+end)
+
+cm:add_loading_game_callback( function(context)
+    if not not _G.gpm then
+        local gpm = _G.gpm
+        local geopolitics_save_table = cm:load_named_value("geopolitics_table_table", {}, context)
+        gpm:load(geopolitics_save_table)
+    end
+end)

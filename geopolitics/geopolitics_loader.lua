@@ -40,7 +40,7 @@ function geopolitic_loader.get_default_properties_for_faction(self, faction)
 end
 
 --v function(self: GEOPOLITIC_LOADER, region: string) --> vector<string>
-function geopolitic_loader.get_defaults_for_region(self, region)
+function geopolitic_loader.get_default_properties_for_region(self, region)
     if self._regionDefaults[region] == nil then
         self._regionDefaults[region] = {}
     end
@@ -48,7 +48,7 @@ function geopolitic_loader.get_defaults_for_region(self, region)
 end
 
 --v function(self: GEOPOLITIC_LOADER, region: string) --> vector<string>
-function geopolitic_loader.get_group_defaults_for_region(self, region)
+function geopolitic_loader.get_default_group_properties_for_region(self, region)
     local group = self._regionToRegionGroup[region]
     if group == nil then
         return {}
