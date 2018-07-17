@@ -1,6 +1,6 @@
 events = get_events(); cm = get_cm(); rm = _G.rm;
 
-local function setup_rm_listeners()
+
 
 core:add_listener(
     "RecruiterManagerOnRecruitOptionClicked",
@@ -90,4 +90,3 @@ core:add_listener(
                 rm:set_current_character(character:cqi())
             end,
             true)
-end
