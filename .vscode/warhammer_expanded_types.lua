@@ -18,7 +18,7 @@
 --# assume global class GEOPOLITIC_REGION
 --# assume global class GEOPOLITIC_BLACKLIST
 --# assume global class GEOPOLITICAL_MANAGER
-
+--# assume global class GEOPOLITIC_LOADER
 
 
 
