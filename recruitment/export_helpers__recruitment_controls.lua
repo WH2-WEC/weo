@@ -20,8 +20,6 @@ core:add_listener(
             rm:current_character():add_unit_to_queue(unitID)
             --run the checks on that character with the updated queue quantities.
             rm:check_unit_on_character(unitID)
-            --now, enforce the checks on that unit again.
-            rm:current_character():enforce_unit_restriction(unitID)
         end
     end,
     true);
@@ -42,8 +40,6 @@ core:add_listener(
                     for unitID, _ in pairs(queue_counts) do
                         --check the units again. This eventually calls a get on the queue counts, which will trigger a queue re-evaluation
                         rm:check_unit_on_character(unitID)
-                        --enforce the changes.
-                        rm:current_character():enforce_unit_restriction(unitID)
                     end
                 end, 0.1)
             end
@@ -104,8 +100,6 @@ core:add_listener(
                 cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
                     --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
                     rm:check_all_units_on_character() 
-                    --enforce restrictions for all units with an entry, this should ensure restrictions get picked up correctly.
-                    rm:current_character():enforce_all_restrictions()
                 end, 0.1)
             end,
             true

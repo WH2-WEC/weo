@@ -602,6 +602,7 @@ function recruiter_manager.check_unit_on_character(self, unitID)
     self:log("Checking unit ["..unitID.."] on currently selected character")
     local restrict = self:do_checks_for_unit(unitID)
     self:current_character():set_unit_restriction(unitID, restrict)
+    self:current_character():enforce_unit_restriction(unitID)
 end
 
 --v function(self: RECRUITER_MANAGER)
@@ -610,6 +611,7 @@ function recruiter_manager.check_all_units_on_character(self)
     for unitID, _ in pairs(self:get_unit_checks()) do
         self:check_unit_on_character(unitID)
     end
+    self:current_character():enforce_all_restrictions()
 end
 
 
