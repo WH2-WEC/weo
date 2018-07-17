@@ -1,6 +1,6 @@
 
 ---[[master recruitment system
-require("recruitment/RecruitmentManager")
+require("recruitment/RecruitmentControls")
 require("recruitment/export_helpers__recruitment_controls")
 --]]
 
