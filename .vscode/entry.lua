@@ -1,6 +1,5 @@
 
 ---[[master recruitment system
-require("recruitment/RecruiterCharacter")
 require("recruitment/RecruitmentManager")
 --]]
 
