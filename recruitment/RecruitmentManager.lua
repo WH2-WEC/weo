@@ -65,6 +65,12 @@ function recruiter_manager.current_character(self)
     return self:get_character_by_cqi(self:current_cqi())
 end
 
+--v function(self: RECRUITER_MANAGER, cqi:CA_CQI)
+function recruiter_manager.set_current_character(self, cqi)
+    self._currentCharacter = cqi
+end
+
+
 --unit checks framework
 
 --v function(self: RECRUITER_MANAGER) --> map<string, vector<(function(rm: RECRUITER_MANAGER) --> bool)>>

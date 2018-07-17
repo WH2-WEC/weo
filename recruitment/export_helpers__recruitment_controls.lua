@@ -76,4 +76,18 @@ core:add_listener(
             rm:get_character_by_cqi(char_cqi):set_queue_stale()
         end,
         true)
+
+        core:add_listener(
+            "RecruiterManagerOnCharacterSelected",
+            "CharacterSelected",
+            function(context)
+            return context:character():faction():is_human() and context:character():has_military_force()
+            end,
+            function(context)
+                rm:log("Human Character Selected by player!")
+                local character = context:character()
+                --# assume character: CA_CHAR
+                rm:set_current_character(character:cqi())
+            end,
+            true)
 end
