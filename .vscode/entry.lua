@@ -1,7 +1,7 @@
 
 ---[[master recruitment system
-require("recruitment/RecruiterCharacter")
 require("recruitment/RecruitmentManager")
+require("recruitment/export_helpers__recruitment_controls")
 --]]
 
 ---[[geopolitical system

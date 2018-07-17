@@ -2,7 +2,7 @@
 --Log script to text
 --v function(text: string | number | boolean | CA_CQI)
 local function GPLOG(text)
-    ftext = "GEOPOLITICS" 
+    local ftext = "GEOPOLITICS" 
 
     if not __write_output_to_logfile then
         return;
