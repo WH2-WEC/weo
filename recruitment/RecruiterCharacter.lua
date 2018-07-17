@@ -80,16 +80,16 @@ end
 
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.add_unit_to_army(self, unitID)
-    if self:get_army_counts()[unitID] == nil then
-        self:get_army_counts()[unitID] = 0 
+    if self._armyCounts[unitID] == nil then
+        self._armyCounts[unitID] = 0 
     end
     self._armyCounts[unitID] = self:get_army_counts()[unitID] + 1;
 end
 
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.add_unit_to_queue(self, unitID)
-    if self:get_queue_counts()[unitID] == nil then
-        self:get_queue_counts()[unitID] = 0 
+    if self._queueCounts[unitID] == nil then
+        self._queueCounts[unitID] = 0 
     end
     self._queueCounts[unitID] = self:get_queue_counts()[unitID] + 1;
 end
@@ -104,4 +104,66 @@ end
 function recruiter_character.refresh_queue(self)
 --TODO
 self:set_queue_fresh()
+end
+
+--v function(self:RECRUITER_CHARACTER, unitID: string) --> number
+function recruiter_character.get_unit_count_in_army(self, unitID)
+    if self:get_army_counts()[unitID] == nil then
+        self._armyCounts[unitID] = 0
+    end
+    return self:get_army_counts()[unitID]
+end
+
+--v function(self:RECRUITER_CHARACTER, unitID: string) --> number
+function recruiter_character.get_unit_count_in_queue(self, unitID)
+    if self:get_queue_counts()[unitID] == nil then
+        self._queueCounts[unitID] = 0
+    end
+    if self:is_queue_stale() then
+        return 0 
+    end
+    return self:get_queue_counts()[unitID]
+end
+
+
+--checks for stale information, refreshes it, then returns the count
+--v function(self: RECRUITER_CHARACTER, unitID: string) --> number
+function recruiter_character.get_unit_count(self, unitID)
+    if self:is_queue_stale() then
+        self:refresh_queue()
+    end
+    --will not provide any information about the queue if the queue is stale and the queue refresh fails.
+    local queue_count = self:get_unit_count_in_queue(unitID)
+    if self:is_army_stale() then
+        self:refresh_army() 
+    end
+    local army_count = self:get_unit_count_in_army(unitID)
+    return army_count + queue_count
+end
+
+
+--v function(self: RECRUITER_CHARACTER, unitID: string, restricted: boolean)
+function recruiter_character.set_unit_restriction(self, unitID, restricted)
+    self._restrictedUnits[unitID] = restricted
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string) --> boolean
+function recruiter_character.is_unit_restricted(self, unitID)
+    if self:get_unit_restrictions()[unitID] == nil then
+        self._restrictedUnits[unitID] = false
+    end
+    return self:get_unit_restrictions()[unitID]
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string)
+function recruiter_character.enforce_unit_restriction(self, unitID)
+
+
+end
+
+--v function(self: RECRUITER_CHARACTER)
+function recruiter_character.enforce_all_restrictions(self)
+    for unit, restriction in pairs(self:get_unit_restrictions()) do
+        self:enforce_unit_restriction(unit)
+    end
 end

@@ -40,6 +40,7 @@ Methods:
     evaluate_queue_count
     set_unit_restricted
     reset_restrictions
-    enforce_restrictions
+    enforce_restriction_for_unit
+    enforce_all_restrictions
 
 
