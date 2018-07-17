@@ -111,14 +111,14 @@ end
 
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.wipe_queue(self)
-    for unit, quantity in pairs(self:get_queue_counts()) do
+    for unit, _ in pairs(self:get_queue_counts()) do
         self._queueCounts[unit] = 0
     end
 end
 
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.wipe_army(self)
-    for unit, quantity in pairs(self:get_army_counts()) do
+    for unit, _ in pairs(self:get_army_counts()) do
         self._armyCounts[unit] = 0
     end
 end
@@ -224,13 +224,54 @@ end
 
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.enforce_unit_restriction(self, unitID)
+    self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] ")
+    local localRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local1", "unit_list", "listview", "list_clip", "list_box"};
+    local localUnitList = find_uicomponent_from_table(core:get_ui_root(), localRecruitmentTable);
+    if is_uicomponent(localUnitList) then
+        local unitCard = find_uicomponent(localUnitList, unitID);	
+        if is_uicomponent(unitCard) then
+            if self:is_unit_restricted(unitID) == true then
+                self:log("Locking Unit Card ["..unitID.."]")
+                unitCard:SetInteractive(false)
+                --unitCard:SetVisible(false)
+            else
+                self:log("Unlocking! Unit Card ["..unitID.."]")
+                unitCard:SetInteractive(true)
+               -- unitCard:SetVisible(true)
+            end
+        else 
+            self:log("Unit Card isn't a component!")
+        end
+    else
+        self:log("WARNING: Could not find the component for the unit list!. Is the panel closed?")
+    end
 
+    local globalRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "global", "unit_list", "listview", "list_clip", "list_box"};
+    local globalUnitList = find_uicomponent_from_table(core:get_ui_root(), globalRecruitmentTable);
+    if is_uicomponent(globalUnitList) then
+        local unitCard = find_uicomponent(globalUnitList, unitID);	
+        if is_uicomponent(unitCard) then
+            if self:is_unit_restricted(unitID) then
+                self:log("Locking Unit Card ["..unitID.."]")
+                unitCard:SetInteractive(false)
+              --  unitCard:SetVisible(false)
+            else
+                self:log("Unlocking! Unit Card ["..unitID.."]")
+                unitCard:SetInteractive(true)
+               -- unitCard:SetVisible(true)
+            end
+        else 
+            self:log("Unit Card isn't a component!")
+        end
+    else
+        self:log("WARNING: Could not find the component for the global recruitment list!. Is the panel closed? Does the Player not have global recruitment?")
+    end 
 
 end
 
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.enforce_all_restrictions(self)
-    for unit, restriction in pairs(self:get_unit_restrictions()) do
+    for unit, _ in pairs(self:get_unit_restrictions()) do
         self:enforce_unit_restriction(unit)
     end
 end
