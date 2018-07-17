@@ -21,6 +21,20 @@
 --# assume global class GEOPOLITIC_LOADER
 
 
+--provinces
+--# assume global class PROVINCE_MANAGER
+--# assume global class PROVINCE
+
+
+
+
+
+
+
+
+
+
+
 
 
 --# type global QUEUED_UNIT_RECORD = { 

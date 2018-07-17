@@ -647,6 +647,15 @@ end
 --v function(self: GEOPOLITICAL_MANAGER, of_faction: string, to_faction: string, relation_value: number)
 function geopolitical_manager.set_relation_value_of_faction_to_faction(self, of_faction, to_faction, relation_value)
     local relations_table = self:get_relations_table_for_faction(of_faction)
+    --handle values over the maximum and minimum values
+    if relation_value > 150 then
+        relation_value = 150
+        self:log("lowered relation value to maximum")
+    end
+    if relation_value < -150 then
+        relation_value = -150 
+        self:log("raised relation value to minimum")
+    end
     relations_table[to_faction] = relation_value
 end
 
