@@ -2,6 +2,10 @@ events = get_events(); cm = get_cm(); rm = _G.rm;
 
 rm:error_checker()
 rm:add_character_quantity_limit_for_unit("wh_main_emp_inf_swordsmen", 2)
+rm:add_unit_to_group("wh_dlc04_emp_inf_free_company_militia_0", "testing_group")
+rm:add_unit_to_group("wh_main_emp_inf_spearmen_0", "testing_group")
+rm:add_character_quantity_limit_for_group("testing_group", 3)
+--add unit added to queue listener
 core:add_listener(
     "RecruiterManagerOnRecruitOptionClicked",
     "ComponentLClickUp",
@@ -23,6 +27,7 @@ core:add_listener(
         end
     end,
     true);
+    --add queued unit clicked listener
     core:add_listener(
         "RecruiterManagerOnQueuedUnitClicked",
         "ComponentLClickUp",
@@ -45,6 +50,7 @@ core:add_listener(
             end
         end,
         true);
+    --add character moved listener
     core:add_listener(
         "RecruiterManagerPlayerCharacterMoved",
         "CharacterFinishedMoving",
@@ -60,11 +66,12 @@ core:add_listener(
             rm:get_character_by_cqi(character:cqi()):set_queue_stale()
         end,
         true)
+    --add unit trained listener
     core:add_listener(
         "RecruiterManagerPlayerFactionRecruitedUnit",
         "UnitTrained",
         function(context)
-            return context:unit():faction():is_human() and rm:has_character(context:character():cqi())
+            return context:unit():faction():is_human() and rm:has_character(context:unit():force_commander():command_queue_index())
         end,
         function(context)
             local unit = context:unit()
@@ -75,7 +82,7 @@ core:add_listener(
             rm:get_character_by_cqi(char_cqi):set_queue_stale()
         end,
         true)
-
+        --add character selected listener
         core:add_listener(
             "RecruiterManagerOnCharacterSelected",
             "CharacterSelected",
@@ -90,6 +97,7 @@ core:add_listener(
                 rm:set_current_character(character:cqi()) 
             end,
             true)
+        --add recruit panel open listener
         core:add_listener(
             "RecruiterManagerOnRecruitPanelOpened",
             "PanelOpenedCampaign",
@@ -104,3 +112,36 @@ core:add_listener(
             end,
             true
         )
+
+        --add disbanded listener
+        core:add_listener(
+            "RecruiterManagerUnitDisbanded",
+            "UnitDisbanded",
+            function(context)
+                return context:unit():faction():is_human() and rm:has_character(context:unit():force_commander():cqi())
+            end,
+            function(context)
+                rm:log("Human character disbanded a unit!")
+                local unit = context:unit()
+                --# assume unit: CA_UNIT
+                rm:get_character_by_cqi(unit:force_commander():cqi()):remove_unit_from_army(unit:unit_key())
+                rm:check_unit_on_character(unit:unit_key())
+            end,
+            true);
+        --add merged listener
+        core:add_listener(
+            "RecruiterManagerUnitMerged",
+            "UnitMergedAndDestroyed",
+            function(context)
+                return context:new_unit():faction():is_human() and rm:has_character(context:new_unit():force_commander():cqi())
+            end,
+            function(context)
+                local unit = context:new_unit():unit_key() --:string
+                local cqi = context:new_unit():force_commander():cqi() --:CA_CQI
+                rm:get_character_by_cqi(cqi):set_army_stale()
+                cm:callback(function()
+                    rm:check_unit_on_character(unit)
+                end, 0.5)
+            end,
+            true)
+

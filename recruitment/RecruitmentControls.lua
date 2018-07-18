@@ -41,9 +41,14 @@ function recruiter_manager.init()
     }) --# assume self: RECRUITER_MANAGER
     self._recruiterCharacters = {} --:map<CA_CQI, RECRUITER_CHARACTER>
     self._currentCharacter = nil --:CA_CQI
-
+    --quantity based limits
     self._characterUnitLimits = {} --:map<string, number>
-    
+    --unit groupings membership
+    self._unitToGroupNames = {} --:map<string, vector<string>>
+    self._groupToUnits = {} --:map<string, vector<string>>
+    --unit group quantity limits
+    self._groupUnitLimits = {} --:map<string, number>
+    --check infrastructure
     self._unitChecks = {} --:map<string, vector<(function(rm: RECRUITER_MANAGER) --> boolean)>>
     
     _G.rm = self
@@ -62,8 +67,10 @@ function recruiter_manager.error_checker(self)
         --output("safeCall start");
         local status, result = pcall(func)
         if not status then
-            self:log(tostring(result), "ERROR CHECKER")
-            self:log(debug.traceback(), "ERROR CHECKER");
+            self:log("********ERROR DETECTED***********")
+            self:log(tostring(result))
+            self:log(debug.traceback());
+            
         end
         --output("safeCall end");
         return result;
@@ -343,6 +350,12 @@ function recruiter_character.add_unit_to_army(self, unitID)
 end
 
 --v function(self: RECRUITER_CHARACTER, unitID: string)
+function recruiter_character.remove_unit_from_army(self, unitID)
+    self._armyCounts[unitID] = self:get_army_counts()[unitID] - 1;
+    self:log("Removed unit ["..unitID.."] to the army of ["..tostring(self:cqi()).."]")
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.add_unit_to_queue(self, unitID)
     if self._queueCounts[unitID] == nil then
         self._queueCounts[unitID] = 0 
@@ -560,6 +573,47 @@ function recruiter_manager.set_current_character(self, cqi)
     self._currentCharacter = cqi
 end
 
+--unit grouping assignments--
+-----------------------------
+--v function(self: RECRUITER_MANAGER) --> map<string, vector<string>>
+function recruiter_manager.get_unit_group_names(self)
+    return self._unitToGroupNames
+end
+
+--v function(self: RECRUITER_MANAGER) --> map<string, vector<string>>
+function recruiter_manager.get_unit_groups(self)
+    return self._groupToUnits
+end
+
+--v function(self: RECRUITER_MANAGER, unitID: string) -->vector<string>
+function recruiter_manager.get_groups_for_unit(self, unitID)
+    return self:get_unit_group_names()[unitID]
+end
+
+
+--v function(self: RECRUITER_MANAGER, groupID: string) --> vector<string>
+function recruiter_manager.get_units_in_group(self, groupID)
+    return self:get_unit_groups()[groupID]
+end
+
+
+--v function(self: RECRUITER_MANAGER, unitID: string, groupID: string)
+function recruiter_manager.give_unit_group(self, unitID, groupID)
+    if self:get_groups_for_unit(unitID) == nil then
+        self._unitToGroupNames[unitID] = {}
+    end
+    table.insert(self:get_groups_for_unit(unitID), groupID) 
+end
+
+--v function(self: RECRUITER_MANAGER, unitID: string, groupID: string)
+function recruiter_manager.place_unit_in_group(self, unitID, groupID)
+    if self:get_units_in_group(groupID) == nil then
+        self:log("Creating a new group ["..groupID.."]")
+        self._groupToUnits[groupID] = {}
+    end
+    table.insert(self:get_units_in_group(groupID), unitID)
+end
+
 
 --unit checks framework
 
@@ -598,25 +652,105 @@ function recruiter_manager.do_checks_for_unit(self, unitID)
 end
 
 --v function(self: RECRUITER_MANAGER, unitID: string)
+function recruiter_manager.check_unit_on_individual_character_for_loop(self, unitID)
+    --this helper function is a smaller version of the below that avoids repetitive operations, preventing a potentially infinite loop.
+    self:log("Checking unit ["..unitID.."] on currently selected character")
+    local restrict = self:do_checks_for_unit(unitID)
+    self:current_character():set_unit_restriction(unitID, restrict)
+end
+
+
+--the full verbose version of checking an indivual unit and their groups.
+--v function(self: RECRUITER_MANAGER, unitID: string)
 function recruiter_manager.check_unit_on_character(self, unitID)
     self:log("Checking unit ["..unitID.."] on currently selected character")
     local restrict = self:do_checks_for_unit(unitID)
     self:current_character():set_unit_restriction(unitID, restrict)
     self:current_character():enforce_unit_restriction(unitID)
+    for i = 1, #self:get_groups_for_unit(unitID) do
+        for j = 1, #self:get_units_in_group(self:get_groups_for_unit(unitID)[i]) do
+            if not self:get_units_in_group(self:get_groups_for_unit(unitID)[i])[j] == unitID then
+                self:check_unit_on_individual_character_for_loop(self:get_units_in_group(self:get_groups_for_unit(unitID)[i])[j])
+            end
+        end
+    end
 end
+
+
 
 --v function(self: RECRUITER_MANAGER)
 function recruiter_manager.check_all_units_on_character(self)
     self:log("Checking all units with checks for currently selected character")
     for unitID, _ in pairs(self:get_unit_checks()) do
-        self:check_unit_on_character(unitID)
+        self:check_unit_on_individual_character_for_loop(unitID)
     end
     self:current_character():enforce_all_restrictions()
 end
 
 
---quantity limits
 
+--group quantity limits
+--v function(self: RECRUITER_MANAGER) --> map<string, number>
+function recruiter_manager.get_group_quantity_limits(self)
+    return self._groupUnitLimits
+end
+
+--v function(self: RECRUITER_MANAGER, groupID: string) -->number
+function recruiter_manager.quantity_limit_for_group(self,groupID)
+    if self:get_group_quantity_limits()[groupID] == nil then
+        self._groupUnitLimits[groupID] = 999
+    end
+    return self:get_group_quantity_limits()[groupID]
+end
+
+
+--v function(self: RECRUITER_MANAGER, groupID: string, quantity: number)
+function recruiter_manager.add_group_check(self, groupID, quantity)
+    local check = function(rm --:RECRUITER_MANAGER
+    )
+        local total = 0 --:number
+        for i = 1, #rm:get_units_in_group(groupID) do
+            total = total + self:current_character():get_unit_count(rm:get_units_in_group(groupID)[i])
+        end
+        local result = total >= rm:quantity_limit_for_group(groupID)
+        rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
+        return result
+    end
+    for i = 1, #self:get_units_in_group(groupID) do
+        self:add_check_to_unit(self:get_units_in_group(groupID)[i], check)
+    end
+end
+
+
+
+--publically available function
+--v function(self: RECRUITER_MANAGER, unitID: string, groupID: string)
+function recruiter_manager.add_unit_to_group(self, unitID, groupID)
+    if not (is_string(unitID) and is_string(groupID)) then
+        self:log("ERROR: add_unit_to_group called but unitID and groupID must be a string!")
+        return
+    end
+    self:place_unit_in_group(unitID, groupID)
+    self:give_unit_group(unitID, groupID)
+    self:log("Added unit ["..unitID.."] to group ["..groupID.."]")
+end
+
+--v function(self: RECRUITER_MANAGER, groupID: string, quantity: number)
+function recruiter_manager.add_character_quantity_limit_for_group(self, groupID, quantity)
+    if not is_string(groupID) then
+        return
+    end
+    if not is_number(quantity) then
+        return
+    end
+    self:log("registering a limit for group ["..groupID.."] of ["..quantity.."]")
+    self._groupUnitLimits[groupID] = quantity
+    self:add_group_check(groupID, quantity)
+end
+
+
+--quantity limits--
+-------------------
 --v function(self: RECRUITER_MANAGER) --> map<string, number>
 function recruiter_manager.get_quantity_limits(self)
     return self._characterUnitLimits
@@ -644,9 +778,17 @@ function recruiter_manager.add_quantity_check(self, unitID)
 end
 
 
-
+--public function
 --v function(self: RECRUITER_MANAGER, unitID: string, quantity: number) 
 function recruiter_manager.add_character_quantity_limit_for_unit(self, unitID, quantity)
+    if not is_string(unitID) then
+        self:log("ERROR: add_character_quantity_limit_for_unit called but the unitID was not a string!")
+        return
+    end
+    if not is_number(quantity) then
+        self:log("ERROR: add_character_quantity_limit_for_unit but the quantity was not an integer!")
+        return
+    end
     self:log("Registering a character quantity limit for unit ["..unitID.."] and quantity ["..quantity.."] ")
     self._characterUnitLimits[unitID] = quantity
     self:add_quantity_check(unitID)
