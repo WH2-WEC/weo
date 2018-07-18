@@ -51,7 +51,10 @@ function recruiter_manager.init()
     --unit group quantity limits
     self._groupUnitLimits = {} --:map<string, number>
     --check infrastructure
-    self._unitChecks = {} --:map<string, vector<(function(rm: RECRUITER_MANAGER) --> boolean)>>
+    self._unitChecks = {} --:map<string, vector<(function(rm: RECRUITER_MANAGER) --> (boolean, string))>>
+
+    --ui
+    self._UIGroupNames = {} --:map<string, string>
     --place instance in _G. 
     _G.rm = self
 end
@@ -252,7 +255,7 @@ function recruiter_character.new(manager, cqi)
     self._armyCounts = {} --:map<string, number> --stores the current number of each unit in the army
     self._queueCounts = {} --:map<string, number> --stores the current number of each unit in the queue
     self._restrictedUnits = {} --:map<string, boolean> -- stores the units currently restricted for the character
-
+    self._UIStrings = {} --:map<string, string> --stores the string to explain why a unit is locked.
     self._staleQueueFlag = true --:boolean -- flags for the queue needing to be refreshed entirely.
     self._staleArmyFlag = true --:boolean --flags for the army needing to be refreshed entirely.
     
@@ -293,6 +296,28 @@ end
 --v function(self: RECRUITER_CHARACTER) --> map<string, boolean>
 function recruiter_character.get_unit_restrictions(self)
     return self._restrictedUnits
+end
+
+--ui--
+------
+
+--get the ui strngs map
+--v function(self: RECRUITER_CHARACTER) --> map<string, string>
+function recruiter_character.get_ui_strings(self)
+    return self._UIStrings
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string) --> string
+function recruiter_character.get_ui_string_for_unit(self, unitID)
+    if self:get_ui_strings()[unitID] == nil then
+        self._UIStrings[unitID] = ""
+    end
+    return self:get_ui_strings()[unitID]
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string, UIstring: string)
+function recruiter_character.set_ui_string_for_unit(self, unitID, UIstring)
+    self._UIStrings[unitID] = UIstring
 end
 
 
@@ -511,11 +536,13 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
             if self:is_unit_restricted(unitID) == true then
                 self:log("Locking Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(false)
+                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
                 --unitCard:SetVisible(false)
             else
             --otherwise, set the card clickable
                 self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(true)
+                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
                 -- unitCard:SetVisible(true)
             end
         else 
@@ -536,10 +563,12 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
             if self:is_unit_restricted(unitID) then
                 self:log("Locking Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(false)
+                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
                 --  unitCard:SetVisible(false)
             else
                 self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(true)
+                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
                 -- unitCard:SetVisible(true)
             end
         else 
@@ -692,18 +721,39 @@ function recruiter_manager.place_unit_in_group(self, unitID, groupID)
     table.insert(self:get_units_in_group(groupID), unitID)
 end
 
+--group ui names--
+------------------
+--v function(self: RECRUITER_MANAGER) --> map<string, string>
+function recruiter_manager.get_group_ui_names(self)
+    return self._UIGroupNames
+end
+
+--v function(self: RECRUITER_MANAGER, groupID: string) --> string
+function recruiter_manager.get_ui_name_for_group(self, groupID)
+    if self:get_group_ui_names()[groupID] == nil then
+        self._UIGroupNames[groupID] = groupID
+    end
+    return self:get_group_ui_names()[groupID]
+end
+
+--v function(self: RECRUITER_MANAGER, groupID: string, UIname: string)
+function recruiter_manager.set_ui_name_for_group(self, groupID, UIname)
+    self._UIGroupNames[groupID] = UIname
+end
+
+
 
 --unit checks framework--
 -------------------------
 
 --get the map of units to their list of checks
---v function(self: RECRUITER_MANAGER) --> map<string, vector<(function(rm: RECRUITER_MANAGER) --> bool)>>
+--v function(self: RECRUITER_MANAGER) --> map<string, vector<(function(rm: RECRUITER_MANAGER) --> (boolean, string))>>
 function recruiter_manager.get_unit_checks(self)
     return self._unitChecks
 end
 
 --get the list of checks for a specific unit
---v function(self: RECRUITER_MANAGER, unitID: string) --> vector<(function(rm: RECRUITER_MANAGER) --> bool)>
+--v function(self: RECRUITER_MANAGER, unitID: string) --> vector<(function(rm: RECRUITER_MANAGER) --> (boolean, string))>
 function recruiter_manager.get_checks_for_unit(self, unitID)
     if self:get_unit_checks()[unitID] == nil then
         self._unitChecks[unitID] = {}
@@ -712,7 +762,7 @@ function recruiter_manager.get_checks_for_unit(self, unitID)
 end
 
 --add a function to check a specific unit
---v function(self: RECRUITER_MANAGER, unitID: string, check:(function(rm: RECRUITER_MANAGER) --> bool))
+--v function(self: RECRUITER_MANAGER, unitID: string, check:(function(rm: RECRUITER_MANAGER) --> (boolean, string)))
 function recruiter_manager.add_check_to_unit(self, unitID, check)
     if self:get_unit_checks()[unitID] == nil then
         --if the unit doesn't have any checks yet, we need to initialize the list
@@ -722,22 +772,23 @@ function recruiter_manager.add_check_to_unit(self, unitID, check)
 end
 
 --carry out the checking functions for a unit
---v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
+--v function(self: RECRUITER_MANAGER, unitID: string) --> (boolean, string)
 function recruiter_manager.do_checks_for_unit(self, unitID)
     self:log("Doing checks for ["..unitID.."] ")
     --start looping through the list of checks for the unit. 
     --we want to mimic doing an 'or' statement except for a vector: 
     --if any condition on the list is true this function returns true
     for i = 1, #self:get_checks_for_unit(unitID) do
-        if self:get_checks_for_unit(unitID)[i](self) then
+        local result, UIstring = self:get_checks_for_unit(unitID)[i](self)
+        if result then
             --if our check returns true, end the function and return that true
             self:log("A check resulted in a restriction for ["..unitID.."]")
-            return true
+            return true, UIstring
         end
     end
     --if no checks succeeded, return the false
     self:log("All checks cleared with no restriction for ["..unitID.."]")
-    return false
+    return false, ""
 end
 
 --run checks for a unit and set the restriction.
@@ -745,8 +796,9 @@ end
 --v function(self: RECRUITER_MANAGER, unitID: string)
 function recruiter_manager.check_unit_on_individual_character_for_loop(self, unitID)
     self:log("Checking unit ["..unitID.."] on currently selected character")
-    local restrict = self:do_checks_for_unit(unitID)
+    local restrict, UIstring = self:do_checks_for_unit(unitID)
     self:current_character():set_unit_restriction(unitID, restrict)
+    self:current_character():set_ui_string_for_unit(unitID, UIstring)
 end
 
 
@@ -754,8 +806,9 @@ end
 --v function(self: RECRUITER_MANAGER, unitID: string)
 function recruiter_manager.check_unit_on_character(self, unitID)
     self:log("Checking unit ["..unitID.."] on currently selected character")
-    local restrict = self:do_checks_for_unit(unitID)
+    local restrict, UIstring = self:do_checks_for_unit(unitID)
     self:current_character():set_unit_restriction(unitID, restrict)
+    self:current_character():set_ui_string_for_unit(unitID, UIstring)
     self:current_character():enforce_unit_restriction(unitID)
     --for each group that the unit belongs to
     for i = 1, #self:get_groups_for_unit(unitID) do
@@ -815,13 +868,13 @@ function recruiter_manager.add_group_check(self, groupID)
         local total = 0 --:number
         --for each unit in the group, count that unit and add to total
         for i = 1, #rm:get_units_in_group(groupID) do
-            total = total + self:current_character():get_unit_count(rm:get_units_in_group(groupID)[i])
+            total = total + rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[i])
         end
         --determine whether the total is above or equal to the group quantity limit
         local result = total >= rm:quantity_limit_for_group(groupID)
         rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
         --return the result
-        return result
+        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:quantity_limit_for_group(groupID)..")"
     end
     --add the check to every unit in the group
     for i = 1, #self:get_units_in_group(groupID) do
@@ -894,7 +947,7 @@ function recruiter_manager.add_quantity_check(self, unitID)
     local result = rm:current_character():get_unit_count(unitID) >= rm:get_quantity_limit_for_unit(unitID)
     --return the result
     rm:log("Checking quantity restriction for ["..unitID.."] resulted in ["..tostring(result).."]")
-    return result
+    return result, "This character already has the maximum number of this unit ("..rm:get_quantity_limit_for_unit(unitID)..")"
     end
     --add this check to the model
     self:add_check_to_unit(unitID, check)
