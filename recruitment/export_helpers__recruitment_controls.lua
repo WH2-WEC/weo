@@ -1,10 +1,13 @@
+--grab rm, cm and events
 events = get_events(); cm = get_cm(); rm = _G.rm;
 
-rm:error_checker()
+rm:error_checker() --turn on error checking
+---[[ testing limits
 rm:add_character_quantity_limit_for_unit("wh_main_emp_inf_swordsmen", 2)
 rm:add_unit_to_group("wh_dlc04_emp_inf_free_company_militia_0", "testing_group")
 rm:add_unit_to_group("wh_main_emp_inf_spearmen_0", "testing_group")
 rm:add_character_quantity_limit_for_group("testing_group", 3)
+--]]
 --add unit added to queue listener
 core:add_listener(
     "RecruiterManagerOnRecruitOptionClicked",
@@ -124,7 +127,9 @@ core:add_listener(
                 rm:log("Human character disbanded a unit!")
                 local unit = context:unit()
                 --# assume unit: CA_UNIT
+                --remove the unit from the army
                 rm:get_character_by_cqi(unit:force_commander():cqi()):remove_unit_from_army(unit:unit_key())
+                --check the unit (+groups) again.
                 rm:check_unit_on_character(unit:unit_key())
             end,
             true);
@@ -138,6 +143,8 @@ core:add_listener(
             function(context)
                 local unit = context:new_unit():unit_key() --:string
                 local cqi = context:new_unit():force_commander():cqi() --:CA_CQI
+                --there is a lot of possibilies when a merge has happened
+                --to be safe, we just set the army stale. 
                 rm:get_character_by_cqi(cqi):set_army_stale()
                 cm:callback(function()
                     rm:check_unit_on_character(unit)
