@@ -536,14 +536,30 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
             if self:is_unit_restricted(unitID) == true then
                 self:log("Locking Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(false)
-                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                -- unitCard:SetVisible(false)
+                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                if not not lockedOverlay then
+                    lockedOverlay:SetVisible(true)
+                    lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
+                    lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                    lockedOverlay:SetCanResizeHeight(true)
+                    lockedOverlay:SetCanResizeWidth(true)
+                    lockedOverlay:Resize(72, 89)
+                    lockedOverlay:SetCanResizeHeight(false)
+                    lockedOverlay:SetCanResizeWidth(false)
+                end
+                
                 --unitCard:SetVisible(false)
             else
             --otherwise, set the card clickable
                 self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(true)
-                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
                 -- unitCard:SetVisible(true)
+                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                if not not lockedOverlay then
+                    unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                    lockedOverlay:SetVisible(false)
+                end
             end
         else 
             --if we couldn't find the card, warn the log. 
@@ -563,13 +579,27 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
             if self:is_unit_restricted(unitID) then
                 self:log("Locking Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(false)
-                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                if not not lockedOverlay then
+                    lockedOverlay:SetVisible(true)
+                    lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
+                    lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                    lockedOverlay:SetCanResizeHeight(true)
+                    lockedOverlay:SetCanResizeWidth(true)
+                    lockedOverlay:Resize(72, 89)
+                    lockedOverlay:SetCanResizeHeight(false)
+                    lockedOverlay:SetCanResizeWidth(false)
+                end
                 --  unitCard:SetVisible(false)
             else
                 self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
                 unitCard:SetInteractive(true)
-                unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
                 -- unitCard:SetVisible(true)
+                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                if not not lockedOverlay then
+                    unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                    lockedOverlay:SetVisible(false)
+                end
             end
         else 
             self:log("Unit Card isn't a component!")
@@ -577,7 +607,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
     else
         self:log("WARNING: Could not find the component for the global recruitment list!. Is the panel closed? Does the Player not have global recruitment?")
     end 
-
+    cm:steal_user_input(false);
 end
 
 --loop through each unit which has a restriction entry, and enforce those entries on the UI. 

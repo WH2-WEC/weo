@@ -18,15 +18,17 @@ core:add_listener(
         local unit_component_ID = tostring(UIComponent(context.component):Id())
         --is our clicked component a unit?
         if string.find(unit_component_ID, "_recruitable") and UIComponent(context.component):CurrentState() == "active" then
-            --its a unit! lock it.
-            UIComponent(context.component):SetInteractive(false)
+            --its a unit! steal the users input so that they don't click more shit while we calculate.
+            cm:steal_user_input(true);
             rm:log("Locking recruitment button for ["..unit_component_ID.."] temporarily");
             --reduce the string to get the name of the unit.
             local unitID = string.gsub(unit_component_ID, "_recruitable", "")
             --add the unit to queue so that our model knows it exists.
             rm:current_character():add_unit_to_queue(unitID)
             --run the checks on that character with the updated queue quantities.
+            cm:callback(function()
             rm:check_unit_on_character(unitID)
+            end, 0.1)
         end
     end,
     true);
@@ -42,6 +44,7 @@ core:add_listener(
                 rm:log("Component Clicked was a Queued Unit!")
                 --set the queue stale so that when we get it, we refresh the queue!
                 rm:current_character():set_queue_stale()
+                cm:remove_callback("RMOnQueue")
                 cm:callback( function() -- we callback this because if we don't do it on a small delay, it will pick up the unit we just cancelled as existing!
                     --we want to re-evaluate the units who were previously in queue, they may have changed.
                     local queue_counts = rm:current_character():get_queue_counts() 
@@ -49,7 +52,7 @@ core:add_listener(
                         --check the units again. This eventually calls a get on the queue counts, which will trigger a queue re-evaluation
                         rm:check_unit_on_character(unitID)
                     end
-                end, 0.1)
+                end, 0.2, "RMOnQueue")
             end
         end,
         true);
