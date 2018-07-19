@@ -247,6 +247,9 @@
 --# assume CM.win_next_autoresolve_battle: method(faction: string)
 --# assume CM.modify_next_autoresolve_battle: method(attacker_win_chance: number, defender_win_chance: number, attacker_losses_modifier: number, defender_losses_modifier: number, wipe_out_loser: boolean)
 
+--# assume CM.steal_user_input:method(steal: boolean)
+--# assume CM.remove_callback: method(callback: string)
+
 -- CAMPAIGN UI MANAGER
 --# assume CUIM.get_char_selected: method() --> string
 --# assume CUIM.settlement_selected: string
