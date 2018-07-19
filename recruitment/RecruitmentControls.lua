@@ -931,13 +931,17 @@ function recruiter_manager.add_unit_to_group(self, unitID, groupID)
     self:log("Added unit ["..unitID.."] to group ["..groupID.."]")
 end
 
+--add a quantity limit to the group. Must be called after all units are in the group already
+--publically available function
 --v function(self: RECRUITER_MANAGER, groupID: string, quantity: number)
 function recruiter_manager.add_character_quantity_limit_for_group(self, groupID, quantity)
     --check for errors in API functions
     if not is_string(groupID) then
+        self:log("add_character_quantity_limit_for_group called but the provided groupID is not a string!")
         return
     end
     if not is_number(quantity) then
+        self:log("add_character_quantity_limit_for_group called but the provided quantity is not a number!")
         return
     end
     self:log("registering a limit for group ["..groupID.."] of ["..quantity.."]")
