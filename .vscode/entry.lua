@@ -2,6 +2,8 @@
 ---[[master recruitment system
 require("recruitment/RecruitmentControls")
 require("recruitment/export_helpers__recruitment_controls")
+require("recruitment/export_helpers__recruitment_controls_ai")
+
 --]]
 
 ---[[geopolitical system
