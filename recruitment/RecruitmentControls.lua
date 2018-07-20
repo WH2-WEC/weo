@@ -879,7 +879,7 @@ end
 
 --get the quantity limit of a specific group
 --v function(self: RECRUITER_MANAGER, groupID: string) -->number
-function recruiter_manager.quantity_limit_for_group(self,groupID)
+function recruiter_manager.get_quantity_limit_for_group(self,groupID)
     if self:get_group_quantity_limits()[groupID] == nil then
         --if the group doesn't have a quantity set, set it to 999.
         --this won't waste time as without a checker function, this group won't factor into standard operations. 
@@ -901,10 +901,10 @@ function recruiter_manager.add_group_check(self, groupID)
             total = total + rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[i])
         end
         --determine whether the total is above or equal to the group quantity limit
-        local result = total >= rm:quantity_limit_for_group(groupID)
+        local result = total >= rm:get_quantity_limit_for_group(groupID)
         rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
         --return the result
-        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:quantity_limit_for_group(groupID)..")"
+        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:get_quantity_limit_for_group(groupID)..")"
     end
     --add the check to every unit in the group
     for i = 1, #self:get_units_in_group(groupID) do

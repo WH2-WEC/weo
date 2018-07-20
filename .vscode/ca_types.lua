@@ -185,6 +185,7 @@
 --# assume CM.disable_event_feed_events: method(disable: boolean, categories: string, subcategories: string, events: string)
 --# assume CM.trigger_incident: method(factionName: string, incidentKey: string, fireImmediately: boolean)
 --# assume CM.apply_effect_bundle_to_characters_force: method(bundleKey: string, charCqi: CA_CQI, turns: number, useCommandQueue: boolean)
+--# assume CM.remove_effect_bundle_from_characters_force: method(bundle_key: string, cqi: CA_CQI)
 --# assume CM.zero_action_points: method(charName: string)
 --# assume CM.add_agent_experience: method(charName: string, experience: number)
 --# assume CM.spawn_character_to_pool: method(
@@ -201,6 +202,8 @@
 --# assume CM.apply_effect_bundle_to_region: method(bundle: string, region: string, turns: number)
 --# assume CM.remove_effect_bundle_from_region: method(bundle: string, region: string)
 --# assume CM.grant_unit_to_character: method(cqi: CA_CQI, unit: string)
+--# assume CM.remove_unit_from_character: method(lookup_string: string, unitID: string)
+
 --# assume CM.add_saving_game_callback: method(function(context: WHATEVER))
 --# assume CM.add_loading_game_callback: method(function(context: WHATEVER))
 --# assume CM.random_number: method(num: int) --> int
@@ -250,6 +253,15 @@
 --# assume CM.steal_user_input:method(steal: boolean)
 --# assume CM.remove_callback: method(callback: string)
 
+
+--# assume CM.char_is_mobile_general_with_army: method(character: CA_CHAR) --> boolean
+
+
+
+
+
+
+
 -- CAMPAIGN UI MANAGER
 --# assume CUIM.get_char_selected: method() --> string
 --# assume CUIM.settlement_selected: string
@@ -290,6 +302,7 @@
 -- MILITARY FORCE
 --# assume CA_MILITARY_FORCE.general_character: method() --> CA_CHAR
 --# assume CA_MILITARY_FORCE.unit_list: method() --> CA_UNIT_LIST
+--# assume CA_MILITARY_FORCE.has_effect_bundle: method(bundle_key: string) --> boolean
 
 
 -- MILITARY FORCE LIST
