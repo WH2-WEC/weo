@@ -52,7 +52,8 @@ function recruiter_manager.init()
     self._groupUnitLimits = {} --:map<string, number>
     --check infrastructure
     self._unitChecks = {} --:map<string, vector<(function(rm: RECRUITER_MANAGER) --> (boolean, string))>>
-
+    --unit weight
+    self._unitWeights = {} --:map<string, number>
     --ui
     self._UIGroupNames = {} --:map<string, string>
     --place instance in _G. 
@@ -685,11 +686,14 @@ end
 
 --group ui names--
 ------------------
+
+--get the map of groups to UI names
 --v function(self: RECRUITER_MANAGER) --> map<string, string>
 function recruiter_manager.get_group_ui_names(self)
     return self._UIGroupNames
 end
 
+--get a specific UI name
 --v function(self: RECRUITER_MANAGER, groupID: string) --> string
 function recruiter_manager.get_ui_name_for_group(self, groupID)
     if self:get_group_ui_names()[groupID] == nil then
@@ -698,9 +702,47 @@ function recruiter_manager.get_ui_name_for_group(self, groupID)
     return self:get_group_ui_names()[groupID]
 end
 
+--set the UI name for a group
 --v function(self: RECRUITER_MANAGER, groupID: string, UIname: string)
 function recruiter_manager.set_ui_name_for_group(self, groupID, UIname)
     self._UIGroupNames[groupID] = UIname
+end
+
+
+--unit ui images--
+------------------
+
+--unit weights--
+----------------
+
+--get the map of units to their weights
+--v function(self: RECRUITER_MANAGER) --> map<string, number>
+function recruiter_manager.get_unit_weights(self)
+    return self._unitWeights
+end
+
+--get the weight of a specific unit
+--v function(self: RECRUITER_MANAGER, unitID: string) --> number
+function recruiter_manager.get_weight_for_unit(self, unitID)
+    if self._unitWeights[unitID] == nil then
+        self._unitWeights[unitID] = 1
+    end
+    return self._unitWeights[unitID]
+end
+
+--set the weight for a unit within their groups.
+--publically available function
+--v function(self: RECRUITER_MANAGER, unitID: string, weight: number)
+function recruiter_manager.set_weight_for_unit(self, unitID, weight)
+    if not is_string(unitID) then
+        self:log("set_weight_for_unit called but the supplied unitID is not a string")
+        return
+    end
+    if not is_number(weight) then
+        self:log("set_weight_for_unit but the supplied weight was not a number!")
+        return
+    end
+    self._unitWeights[unitID] = weight
 end
 
 
@@ -830,7 +872,7 @@ function recruiter_manager.add_group_check(self, groupID)
         local total = 0 --:number
         --for each unit in the group, count that unit and add to total
         for i = 1, #rm:get_units_in_group(groupID) do
-            total = total + rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[i])
+            total = total + (rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[i]))*(rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]))
         end
         --determine whether the total is above or equal to the group quantity limit
         local result = total >= rm:get_quantity_limit_for_group(groupID)
