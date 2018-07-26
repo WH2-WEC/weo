@@ -66,6 +66,32 @@ function recruiter_manager.log(self, text)
     RCLOG(tostring(text))
 end
 
+--fully reset the model, clearing all stored data.
+--v function(self: RECRUITER_MANAGER)
+function recruiter_manager.full_reset(self)
+    self:log("SCRIPT CALLED TO RESET THE RECRUITER MANAGER!!")
+    self._recruiterCharacters = {} 
+    self._currentCharacter = nil 
+    --quantity based limits
+    self._characterUnitLimits = {} 
+    --unit groupings membership
+    self._unitToGroupNames = {} 
+    self._groupToUnits = {} 
+    --unit group quantity limits
+    self._groupUnitLimits = {} 
+    --check infrastructure
+    self._unitChecks = {} 
+    --unit weight
+    self._unitWeights = {} 
+    --ui
+    self._UIGroupNames = {} 
+    --place instance in _G. 
+    _G.rm = self
+    self:log("RESET COMPLETE")
+end
+
+
+
 --logs lua errors to a file after this is called.
 --v [NO_CHECK] 
 --v function (self: RECRUITER_MANAGER)
