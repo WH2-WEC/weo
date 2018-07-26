@@ -56,6 +56,7 @@ function recruiter_manager.init()
     self._unitWeights = {} --:map<string, number>
     --ui
     self._UIGroupNames = {} --:map<string, string>
+    self._UIUnitProfiles = {} --:map<string, TOOLTIPIMAGE>
     --place instance in _G. 
     _G.rm = self
 end
@@ -735,9 +736,32 @@ function recruiter_manager.set_ui_name_for_group(self, groupID, UIname)
 end
 
 
---unit ui images--
+--unit ui profiles--
 ------------------
 
+--get the map of units to their UI
+--v function(self: RECRUITER_MANAGER) --> map<string, TOOLTIPIMAGE>
+function recruiter_manager.get_unit_ui_profiles(self)
+    return self._UIUnitProfiles
+end
+
+--does a unit have a UI image?
+--v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
+function recruiter_manager.unit_has_ui_image(self, unitID) 
+    return not not self:get_unit_ui_profiles()[unitID]
+end
+
+--set the UI profile for a unit.
+--v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: TOOLTIPIMAGE)
+function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
+    self._UIUnitProfiles[unitID] = UIprofile
+end
+
+--get the UI profile for a unit.
+--v function(self: RECRUITER_MANAGER, unitID: string) --> TOOLTIPIMAGE
+function recruiter_manager.get_ui_profile_for_unit(self, unitID)
+    return self:get_unit_ui_profiles()[unitID]
+end
 --unit weights--
 ----------------
 
