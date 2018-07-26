@@ -11,7 +11,7 @@
 
 --# assume global class RECRUITER_MANAGER
 --# assume global class RECRUITER_CHARACTER
---# assume global class RECRUITER_QUEUED_UNIT
+--# type global TOOLTIPIMAGE = {_image: string, _text: string}
 
 ---Geopolitics system
 --# assume global class GEOPOLITIC_FACTION
