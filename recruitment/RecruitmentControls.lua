@@ -164,7 +164,57 @@ function recruiter_manager.error_checker(self)
 
 end
 
+--group ui names--
+------------------
 
+--get the map of groups to UI names
+--v function(self: RECRUITER_MANAGER) --> map<string, string>
+function recruiter_manager.get_group_ui_names(self)
+    return self._UIGroupNames
+end
+
+--get a specific UI name
+--v function(self: RECRUITER_MANAGER, groupID: string) --> string
+function recruiter_manager.get_ui_name_for_group(self, groupID)
+    if self:get_group_ui_names()[groupID] == nil then
+        self._UIGroupNames[groupID] = groupID
+    end
+    return self:get_group_ui_names()[groupID]
+end
+
+--set the UI name for a group
+--v function(self: RECRUITER_MANAGER, groupID: string, UIname: string)
+function recruiter_manager.set_ui_name_for_group(self, groupID, UIname)
+    self._UIGroupNames[groupID] = UIname
+end
+
+
+--unit ui profiles--
+------------------
+
+--get the map of units to their UI
+--v function(self: RECRUITER_MANAGER) --> map<string, TOOLTIPIMAGE>
+function recruiter_manager.get_unit_ui_profiles(self)
+    return self._UIUnitProfiles
+end
+
+--does a unit have a UI image?
+--v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
+function recruiter_manager.unit_has_ui_profile(self, unitID) 
+    return not not self:get_unit_ui_profiles()[unitID]
+end
+
+--set the UI profile for a unit.
+--v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: TOOLTIPIMAGE)
+function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
+    self._UIUnitProfiles[unitID] = UIprofile
+end
+
+--get the UI profile for a unit.
+--v function(self: RECRUITER_MANAGER, unitID: string) --> TOOLTIPIMAGE
+function recruiter_manager.get_ui_profile_for_unit(self, unitID)
+    return self:get_unit_ui_profiles()[unitID]
+end
 
 
 --ui utility to get the names of the units in the queue by reading the UI.
@@ -518,8 +568,14 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 -- unitCard:SetVisible(true)
                 local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
                 if not not lockedOverlay then
-                    unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
-                    lockedOverlay:SetVisible(false)
+                    if self:manager():unit_has_ui_profile(unitID) then
+                        local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        lockedOverlay:SetVisible(true)
+                        lockedOverlay:SetTooltipText(unit_profile._text)
+                        lockedOverlay:SetImage(unit_profile._image)
+                    else
+                        lockedOverlay:SetVisible(false)
+                    end
                 end
             end
         else 
@@ -558,8 +614,14 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 -- unitCard:SetVisible(true)
                 local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
                 if not not lockedOverlay then
-                    unitCard:SetTooltipText(self:get_ui_string_for_unit(unitID))
-                    lockedOverlay:SetVisible(false)
+                    if self:manager():unit_has_ui_profile(unitID) then
+                        local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        lockedOverlay:SetVisible(true)
+                        lockedOverlay:SetTooltipText(unit_profile._text)
+                        lockedOverlay:SetImage(unit_profile._image)
+                    else
+                        lockedOverlay:SetVisible(false)
+                    end
                 end
             end
         else 
@@ -711,57 +773,7 @@ function recruiter_manager.place_unit_in_group(self, unitID, groupID)
     table.insert(self:get_units_in_group(groupID), unitID)
 end
 
---group ui names--
-------------------
 
---get the map of groups to UI names
---v function(self: RECRUITER_MANAGER) --> map<string, string>
-function recruiter_manager.get_group_ui_names(self)
-    return self._UIGroupNames
-end
-
---get a specific UI name
---v function(self: RECRUITER_MANAGER, groupID: string) --> string
-function recruiter_manager.get_ui_name_for_group(self, groupID)
-    if self:get_group_ui_names()[groupID] == nil then
-        self._UIGroupNames[groupID] = groupID
-    end
-    return self:get_group_ui_names()[groupID]
-end
-
---set the UI name for a group
---v function(self: RECRUITER_MANAGER, groupID: string, UIname: string)
-function recruiter_manager.set_ui_name_for_group(self, groupID, UIname)
-    self._UIGroupNames[groupID] = UIname
-end
-
-
---unit ui profiles--
-------------------
-
---get the map of units to their UI
---v function(self: RECRUITER_MANAGER) --> map<string, TOOLTIPIMAGE>
-function recruiter_manager.get_unit_ui_profiles(self)
-    return self._UIUnitProfiles
-end
-
---does a unit have a UI image?
---v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
-function recruiter_manager.unit_has_ui_image(self, unitID) 
-    return not not self:get_unit_ui_profiles()[unitID]
-end
-
---set the UI profile for a unit.
---v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: TOOLTIPIMAGE)
-function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
-    self._UIUnitProfiles[unitID] = UIprofile
-end
-
---get the UI profile for a unit.
---v function(self: RECRUITER_MANAGER, unitID: string) --> TOOLTIPIMAGE
-function recruiter_manager.get_ui_profile_for_unit(self, unitID)
-    return self:get_unit_ui_profiles()[unitID]
-end
 --unit weights--
 ----------------
 
