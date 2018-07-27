@@ -462,3 +462,8 @@ for name, _ in pairs(groups) do
     end
 end
 
+rm:add_unit_to_already_initialized_group("wh_main_emp_inf_swordsmen", "emp_rare")
+rm:add_unit_to_already_initialized_group("wh_dlc04_emp_inf_free_company_militia_0", "emp_rare")
+rm:add_unit_to_already_initialized_group("wh_main_emp_inf_spearmen_0", "emp_rare")
+rm:set_weight_for_unit("wh_main_emp_inf_swordsmen", 2)
+rm:set_weight_for_unit("wh_main_emp_inf_spearmen_0", 3)
