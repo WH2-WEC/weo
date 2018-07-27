@@ -403,7 +403,7 @@ for i = 1, #units do
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
         local weight = units[i][3] --# assume weight: number
         rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This unit is a Special Unit and costs [[col:green]] "..weight.." [[/col]] points. \n Armies have have up to 10 Points worth of Special Units. ",
+            _text = "This unit is a Special Unit and costs[[col:green]] "..weight.." [[/col]]points. \n Armies may have up to 10 Points worth of Special Units. ",
             _image = "ui/custom/recruitment_controls/special_units_"..weight..".png"
         })
     end
@@ -412,7 +412,7 @@ for i = 1, #units do
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
         local weight = units[i][3] --# assume weight: number
         rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This unit is a Rare Unit and costs [[col:green]] "..weight.." [[/col]] points. \n Armies have have up to 5 Points worth of Rare Units. ",
+            _text = "This unit is a Rare Unit and costs[[col:green]] "..weight.." [[/col]]points. \n Armies may have up to 5 Points worth of Rare Units. ",
             _image = "ui/custom/recruitment_controls/rare_units_"..weight..".png"
         })
     end
