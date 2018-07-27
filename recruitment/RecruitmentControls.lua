@@ -491,6 +491,10 @@ end
 --remove a unit from the army (used by disband listener)
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.remove_unit_from_army(self, unitID)
+    if self._armyCounts[unitID] == nil then
+        self:log("Called for the removal of unit ["..unitID.."] for the army of ["..tostring(self:cqi()).."] but this unit isn't in that army?!?!")
+        return
+    end
     self._armyCounts[unitID] = self:get_army_counts()[unitID] - 1;
     self:log("Removed unit ["..unitID.."] to the army of ["..tostring(self:cqi()).."]")
 end
