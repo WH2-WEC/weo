@@ -2,12 +2,7 @@
 events = get_events(); cm = get_cm(); rm = _G.rm;
 
 rm:error_checker() --turn on error checking
----[[ testing limits
-rm:add_character_quantity_limit_for_unit("wh_main_emp_inf_swordsmen", 2)
-rm:add_unit_to_group("wh_dlc04_emp_inf_free_company_militia_0", "testing_group")
-rm:add_unit_to_group("wh_main_emp_inf_spearmen_0", "testing_group")
-rm:add_character_quantity_limit_for_group("testing_group", 3)
---]]
+
 --add unit added to queue listener
 core:add_listener(
     "RecruiterManagerOnRecruitOptionClicked",
