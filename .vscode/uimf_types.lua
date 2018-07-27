@@ -117,6 +117,8 @@
 --# assume IMAGE.PositionRelativeTo: method(component: WHATEVER, xDiff: number, yDiff: number)
 --# assume IMAGE.Scale: method(factor: number)
 --# assume IMAGE.Move: method(xMove: number, yMove: number)
+--# assume IMAGE.SetImage: method(path: string)
+--# assume IMAGE.GetContentComponent: method() --> CA_UIC
 --text
 --# assume TEXT.PositionRelativeTo: method(component: WHATEVER, xDiff: number, yDiff: number)
 --# assume TEXT.SetText: method(str: string)
