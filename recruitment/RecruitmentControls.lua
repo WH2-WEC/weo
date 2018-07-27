@@ -48,6 +48,7 @@ function recruiter_manager.init()
     --unit groupings membership
     self._unitToGroupNames = {} --:map<string, vector<string>>
     self._groupToUnits = {} --:map<string, vector<string>>
+    self._unitCultureAssignment = {} --:map<string, string>
     --unit group quantity limits
     self._groupUnitLimits = {} --:map<string, number>
     --check infrastructure
@@ -78,6 +79,7 @@ function recruiter_manager.full_reset(self)
     --unit groupings membership
     self._unitToGroupNames = {} 
     self._groupToUnits = {} 
+    self._unitCultureAssignment = {}
     --unit group quantity limits
     self._groupUnitLimits = {} 
     --check infrastructure
@@ -183,8 +185,17 @@ function recruiter_manager.get_ui_name_for_group(self, groupID)
 end
 
 --set the UI name for a group
+--publically available function
 --v function(self: RECRUITER_MANAGER, groupID: string, UIname: string)
 function recruiter_manager.set_ui_name_for_group(self, groupID, UIname)
+    if not is_string(groupID) then
+        self:log("ERROR: set_ui_name_for_group called but the provided group name is not a string!")
+        return 
+    end
+    if not is_string(UIname) then
+        self:log("ERROR: set_ui_name_for_group called but the provided unit key is not a string!")
+        return 
+    end
     self._UIGroupNames[groupID] = UIname
 end
 
@@ -205,8 +216,17 @@ function recruiter_manager.unit_has_ui_profile(self, unitID)
 end
 
 --set the UI profile for a unit.
+--publically available function
 --v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: TOOLTIPIMAGE)
 function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
+    if not (is_string(UIprofile._image) and is_string(UIprofile._text)) then
+        self:log("ERROR: set_ui_profile_for_unit called but the supplied profile table isn't properly formatted. /n It needs to have a _text and _image field which are both strings!")
+        return
+    end
+    if not is_string(unitID) then
+        self:log("ERROR set_ui_profile_for_unit called but the supplied unitID is not a string!")
+        return
+    end
     self._UIUnitProfiles[unitID] = UIprofile
 end
 
@@ -573,6 +593,11 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
+                        lockedOverlay:SetCanResizeHeight(true)
+                        lockedOverlay:SetCanResizeWidth(true)
+                        lockedOverlay:Resize(30, 30)
+                        lockedOverlay:SetCanResizeHeight(false)
+                        lockedOverlay:SetCanResizeWidth(false)
                     else
                         lockedOverlay:SetVisible(false)
                     end
@@ -619,6 +644,11 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
+                        lockedOverlay:SetCanResizeHeight(true)
+                        lockedOverlay:SetCanResizeWidth(true)
+                        lockedOverlay:Resize(30, 30)
+                        lockedOverlay:SetCanResizeHeight(false)
+                        lockedOverlay:SetCanResizeWidth(false)
                     else
                         lockedOverlay:SetVisible(false)
                     end
@@ -716,8 +746,46 @@ function recruiter_manager.set_current_character(self, cqi)
     self._currentCharacter = cqi
 end
 
---unit grouping assignments--
+--unit whitelisting by subculture--
+-----------------------------------------
+--this is necessary because otherwise every single unit will be checked for every single time someone refreshes the queue of a unit, causing a noticable ~.2 second lag with a large enough groupset.
 
+--get the map of groups to cultures
+--v function(self: RECRUITER_MANAGER) --> map<string, string>
+function recruiter_manager.get_unit_subculture_whitelist(self)
+    return self._unitCultureAssignment
+end
+
+--does the group have a specified whitelist? Note: if it doesn't have one, the script will always check it.
+--v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
+function recruiter_manager.unit_has_whitelist_set(self, unitID)
+    return not not self._unitCultureAssignment[unitID]
+end
+
+--get the culture for which the group is whitelisted
+--v function(self: RECRUITER_MANAGER, unitID: string) --> string
+function recruiter_manager.get_unit_whitelisted_subculture(self, unitID)
+    return self._unitCultureAssignment[unitID]
+end
+
+--add a culture to the whitelist of a group. 
+--publically available function
+--v function(self: RECRUITER_MANAGER, unitID: string, subculture: string)
+function recruiter_manager.whitelist_unit_for_subculture(self, unitID, subculture)
+    if not is_string(unitID) then
+        self:log("ERROR: whitelist_unit_for_subculture called but supplied unit ID isn't a string!")
+        return
+    end
+    if not is_string(subculture) then
+        self:log("ERROR: whitelist_unit_for_subculture called but supplied subculture isn't a string!")
+        return
+    end
+    self:log("Whitelisted unit ["..unitID.."] for subculture ["..subculture.."] ")
+    self._unitCultureAssignment[unitID] = subculture
+end
+
+
+--unit grouping assignments--
 -----------------------------
 
 --get the map of units to their list of groups
@@ -804,6 +872,7 @@ function recruiter_manager.set_weight_for_unit(self, unitID, weight)
         self:log("set_weight_for_unit but the supplied weight was not a number!")
         return
     end
+    self:log("Set unit weight for ["..unitID.."] to ["..weight.."] ")
     self._unitWeights[unitID] = weight
 end
 
@@ -898,7 +967,18 @@ function recruiter_manager.check_all_units_on_character(self)
     --if a unit doesn't have any checks, it must have no limits and therefore be irrelevant. 
     --this loop will catch all useful units. 
     for unitID, _ in pairs(self:get_unit_checks()) do
-        self:check_unit_on_individual_character_for_loop(unitID)
+        if self:unit_has_whitelist_set(unitID) then
+            --only check the unit if we are the necessary subculture
+            local sub = cm:get_faction(cm:get_local_faction(true)):subculture() 
+            if sub == "wh_main_sc_grn_savage_orcs" then
+                sub = "wh_main_sc_grn_greenskins"
+            end
+            if self:get_unit_whitelisted_subculture(unitID) == sub then
+                self:check_unit_on_individual_character_for_loop(unitID)
+            end
+        else
+            self:check_unit_on_individual_character_for_loop(unitID)
+        end
     end
     --enforce the restrictions for the units we just checked. 
     self:current_character():enforce_all_restrictions()
@@ -927,23 +1007,25 @@ end
 --add a checking function to a group for their quantity cap.
 --v function(self: RECRUITER_MANAGER, groupID: string)
 function recruiter_manager.add_group_check(self, groupID)
-    --define our check function
-    local check = function(rm --:RECRUITER_MANAGER
-    )
-        --declare total
-        local total = 0 --:number
-        --for each unit in the group, count that unit and add to total
-        for i = 1, #rm:get_units_in_group(groupID) do
-            total = total + (rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[i]))*(rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]))
-        end
-        --determine whether the total is above or equal to the group quantity limit
-        local result = total >= rm:get_quantity_limit_for_group(groupID)
-        rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
-        --return the result
-        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:get_quantity_limit_for_group(groupID)..")"
-    end
-    --add the check to every unit in the group
+    
     for i = 1, #self:get_units_in_group(groupID) do
+    --define our check function
+        local check = function(rm --:RECRUITER_MANAGER
+        )
+            --declare total
+            local total = 0 --:number
+            --for each unit in the group, count that unit and add to total
+            for j = 1, #rm:get_units_in_group(groupID) do
+                total = total + (rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[j]))*(rm:get_weight_for_unit(rm:get_units_in_group(groupID)[j]))
+            end
+            --determine whether the total is above or equal to the group quantity limit
+            local result = total + (rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]) -1) >= rm:get_quantity_limit_for_group(groupID)
+            rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
+            --return the result
+            return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:get_quantity_limit_for_group(groupID)..")"
+        end
+    --add the check to every unit in the group
+    
         self:add_check_to_unit(self:get_units_in_group(groupID)[i], check)
     end
     --note that if a unit isn't in the group at the time quantity is set, it won't work!
@@ -987,6 +1069,42 @@ function recruiter_manager.add_character_quantity_limit_for_group(self, groupID,
     self:add_group_check(groupID)
 end
 
+--adds a unit to a group that already has a quantity cap set.
+--publicly available function
+--v function(self: RECRUITER_MANAGER, unitID: string, groupID: string)
+function recruiter_manager.add_unit_to_already_initialized_group(self, unitID, groupID)
+    if not (is_string(unitID) and is_string(groupID)) then
+        self:log("ERROR: add_unit_to_group called but unitID and groupID must be a string!")
+        return
+    end
+    --put the unit in the group
+    self:place_unit_in_group(unitID, groupID)
+    --assign the group to the unit
+    self:give_unit_group(unitID, groupID)
+
+    --create a new check
+    local check = function(rm --:RECRUITER_MANAGER
+    )
+        --declare total
+        local total = 0 --:number
+        --for each unit in the group, count that unit and add to total
+        for j = 1, #rm:get_units_in_group(groupID) do
+            total = total + (rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[j]))*(rm:get_weight_for_unit(rm:get_units_in_group(groupID)[j]))
+        end
+        --determine whether the total is above or equal to the group quantity limit
+        local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
+        rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
+        --return the result
+        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:get_quantity_limit_for_group(groupID)..")"
+    end
+    --add the check 
+    self:add_check_to_unit(unitID, check)
+
+end
+
+
+
+
 
 --quantity limits--
 -------------------
@@ -1008,6 +1126,7 @@ function recruiter_manager.get_quantity_limit_for_unit(self, unitID)
     return self:get_quantity_limits()[unitID]
 end
 
+--adds a checker function for a specific unit.
 --v function(self: RECRUITER_MANAGER, unitID: string)
 function recruiter_manager.add_quantity_check(self, unitID)
     --we need to see if the count is higher or equal to allowed, then block if so.
@@ -1023,8 +1142,8 @@ function recruiter_manager.add_quantity_check(self, unitID)
     self:add_check_to_unit(unitID, check)
 end
 
-
---public function
+--adds a quantity limit to a single unit
+--publicly available function
 --v function(self: RECRUITER_MANAGER, unitID: string, quantity: number) 
 function recruiter_manager.add_character_quantity_limit_for_unit(self, unitID, quantity)
     --check for errors in API functions.
