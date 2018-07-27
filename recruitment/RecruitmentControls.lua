@@ -106,8 +106,8 @@ function recruiter_manager.error_checker(self)
             --output("safeCall start");
             local status, result = pcall(func)
             if not status then
-                SFOLOG(tostring(result), "ERROR CHECKER")
-                SFOLOG(debug.traceback(), "ERROR CHECKER");
+                RCLOG(tostring(result), "ERROR CHECKER")
+                RCLOG(debug.traceback(), "ERROR CHECKER");
             end
             --output("safeCall end");
             return result;
