@@ -447,23 +447,21 @@ for i = 1, #units do
 
 end
 
-for name, _ in pairs(groups) do
-    if string.find(name, "core") then
-        rm:set_ui_name_for_group(name, "Core Units")
-        rm:add_character_quantity_limit_for_group(name, 999)
-    end
-    if string.find(name, "special") then
-        rm:set_ui_name_for_group(name, "Special Units")
-        rm:add_character_quantity_limit_for_group(name, 10)
-    end
-    if string.find(name, "rare") then
-        rm:set_ui_name_for_group(name, "Rare Units")
-        rm:add_character_quantity_limit_for_group(name, 5)
-    end
-end
 
-rm:add_unit_to_already_initialized_group("wh_main_emp_inf_swordsmen", "emp_rare")
-rm:add_unit_to_already_initialized_group("wh_dlc04_emp_inf_free_company_militia_0", "emp_rare")
-rm:add_unit_to_already_initialized_group("wh_main_emp_inf_spearmen_0", "emp_rare")
-rm:set_weight_for_unit("wh_main_emp_inf_swordsmen", 2)
-rm:set_weight_for_unit("wh_main_emp_inf_spearmen_0", 3)
+
+events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+    for name, _ in pairs(groups) do
+        if string.find(name, "core") then
+            rm:set_ui_name_for_group(name, "Core Units")
+            rm:add_character_quantity_limit_for_group(name, 999)
+        end
+        if string.find(name, "special") then
+            rm:set_ui_name_for_group(name, "Special Units")
+            rm:add_character_quantity_limit_for_group(name, 10)
+        end
+        if string.find(name, "rare") then
+            rm:set_ui_name_for_group(name, "Rare Units")
+            rm:add_character_quantity_limit_for_group(name, 5)
+        end
+    end
+end;
