@@ -8,6 +8,16 @@ local function increment_unit_total(unit_totals, unitID)
     unit_totals[unitID] = unit_totals[unitID] + 1
 end
 
+--v function(group_totals: map<string, number>, groupID: string, weight: number)
+local function increment_group_total(group_totals, groupID, weight)
+    if group_totals[groupID] == nil then
+        group_totals[groupID] = 0
+    end
+    group_totals[groupID] = group_totals[groupID] + (1* weight)
+end
+
+
+
 
 --v function(faction:CA_FACTION)
 local function rm_ai_evaluation(faction)
@@ -22,7 +32,7 @@ local function rm_ai_evaluation(faction)
             for j = 0, unit_list:num_items() - 1 do
                 increment_unit_total(unit_totals, unit_list:item_at(j):unit_key())
                 for k = 1, #rm:get_groups_for_unit(unit_list:item_at(j):unit_key()) do
-                    increment_unit_total(group_totals, rm:get_groups_for_unit(unit_list:item_at(j):unit_key())[k])
+                    increment_group_total(group_totals, rm:get_groups_for_unit(unit_list:item_at(j):unit_key())[k], rm:get_weight_for_unit(unit_list:item_at(j):unit_key()))
                 end
             end
             for unitID, quantity in pairs(unit_totals) do
@@ -31,11 +41,8 @@ local function rm_ai_evaluation(faction)
                     rm:log("AI limiting ["..tostring(character:cqi()).."] for unit ["..unitID.."] ")
                     cm:apply_effect_bundle_to_characters_force("wec_unit_caps_"..unitID.."_limiter", character:cqi(), 0, true)
                 elseif quantity_difference > 0 then 
+                    rm:log("AI limiting ["..tostring(character:cqi()).."] for unit ["..unitID.."] ")
                     cm:apply_effect_bundle_to_characters_force("wec_unit_caps_"..unitID.."_limiter", character:cqi(), 0, true)
-                    for i = 1, quantity_difference do
-                        rm:log("AI limiting ["..tostring(character:cqi()).."] for unit ["..unitID.."] ")
-                        cm:remove_unit_from_character(cm:char_lookup_str(character), unitID);
-                    end
                 else
                     rm:log("AI unlimiting ["..tostring(character:cqi()).."] for unit ["..unitID.."] ")
                     if character:military_force():has_effect_bundle("wec_unit_caps_"..unitID.."_limiter") then
