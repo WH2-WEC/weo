@@ -357,38 +357,7 @@ local units = {
 {"wh2_main_def_cav_cold_one_knights_1", "def_special", 2},
 {"wh2_main_def_cav_dark_riders_0", "def_core"},
 {"wh2_main_def_cav_dark_riders_1", "def_core"},
-{"wh2_main_def_cav_cold_one_chariot", "def_special", 2},
---tmb
-{"wh2_dlc09_tmb_inf_nehekhara_warriors_0", "tmb_core"},
-{"wh2_dlc09_tmb_inf_skeleton_archers_0", "tmb_core"},
-{"wh2_dlc09_tmb_inf_skeleton_spearmen_0", "tmb_core"},
-{"wh2_dlc09_tmb_inf_skeleton_warriors_0", "tmb_core"},
-{"wh2_dlc09_tmb_inf_skeleton_warriors_0_summoned", "tmb_core"},
-{"wh2_dlc09_tmb_inf_tomb_guard_0", "tmb_special", 2},
-{"wh2_dlc09_tmb_inf_tomb_guard_1", "tmb_special", 2},
-{"wh2_dlc09_tmb_mon_carrion_0", "tmb_special", 1},
-{"wh2_dlc09_tmb_mon_dire_wolves", "tmb_core"},
-{"wh2_dlc09_tmb_mon_fell_bats", "tmb_special", 1},
-{"wh2_dlc09_tmb_mon_heirotitan_0", "tmb_rare", 3},
-{"wh2_dlc09_tmb_mon_necrosphinx_0", "tmb_rare"},
-{"wh2_dlc09_tmb_mon_sepulchral_stalkers_0", "tmb_special", 2},
-{"wh2_dlc09_tmb_mon_tomb_scorpion_0", "tmb_special", 2},
-{"wh2_dlc09_tmb_mon_ushabti_0", "tmb_special", 2},
-{"wh2_dlc09_tmb_mon_ushabti_1", "tmb_special", 2},
-{"wh2_dlc09_tmb_veh_khemrian_warsphinx_0", "tmb_special", 3},
-{"wh2_dlc09_tmb_veh_skeleton_archer_chariot_0", "tmb_core"},
-{"wh2_dlc09_tmb_veh_skeleton_chariot_0", "tmb_core"},
-{"wh2_dlc09_tmb_art_casket_of_souls_0", "tmb_rare", 1},
-{"wh2_dlc09_tmb_art_screaming_skull_catapult_0", "tmb_rare", 1},
-{"wh2_dlc09_tmb_cav_hexwraiths", "tmb_special", 2},
-{"wh2_dlc09_tmb_cav_necropolis_knights_0", "tmb_special", 2},
-{"wh2_dlc09_tmb_cav_necropolis_knights_1", "tmb_special", 2},
-{"wh2_dlc09_tmb_cav_nehekhara_horsemen_0", "tmb_core"},
-{"wh2_dlc09_tmb_cav_skeleton_horsemen_0", "tmb_core"},
-{"wh2_dlc09_tmb_cav_skeleton_horsemen_archers_0", "tmb_core"},
-{"wh2_dlc09_tmb_inf_crypt_ghouls", "tmb_core"},
-{"wh2_pro06_tmb_mon_bone_giant_0", "tmb_rare", 2}
-
+{"wh2_main_def_cav_cold_one_chariot", "def_special", 2}
 } --:vector<{string, string, number?}>
 
 local groups = {} --:map<string, boolean>
@@ -434,7 +403,7 @@ for i = 1, #units do
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
         local weight = units[i][3] --# assume weight: number
         rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This unit is a Special Unit and costs [[col:green]]"..weight.."[[/col]] points. \n Armies may have up to 10 Points worth of Special Units. ",
+            _text = "This unit is a Special Unit and costs [[col:green]] "..weight.." [[/col]] points. \n Armies have have up to 10 Points worth of Special Units. ",
             _image = "ui/custom/recruitment_controls/special_units_"..weight..".png"
         })
     end
@@ -443,7 +412,7 @@ for i = 1, #units do
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
         local weight = units[i][3] --# assume weight: number
         rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This unit is a Rare Unit and costs [[col:green]]"..weight.."[[/col]] points. \n Armies may have up to 5 Points worth of Rare Units. ",
+            _text = "This unit is a Rare Unit and costs [[col:green]] "..weight.." [[/col]] points. \n Armies have have up to 5 Points worth of Rare Units. ",
             _image = "ui/custom/recruitment_controls/rare_units_"..weight..".png"
         })
     end
