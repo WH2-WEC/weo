@@ -21,6 +21,10 @@ end
 
 --v function(faction:CA_FACTION)
 local function rm_ai_evaluation(faction)
+    if faction:name() == "rebels" then
+        return
+    end
+
     rm:log("AI CHECKS ["..faction:name().."]")
     local character_list = faction:character_list()
     for i = 0, character_list:num_items() - 1 do
@@ -81,7 +85,9 @@ core:add_listener(
         return not context:faction():is_human()
     end,
     function(context)
+
         rm_ai_evaluation(context:faction())
+
     end,
     true
 )
