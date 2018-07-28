@@ -26,7 +26,8 @@
 --# assume global class PROVINCE
 
 
-
+--imperium
+--# assume global class IMPERIUM_EFFECTS_MANAGER
 
 
 
