@@ -235,7 +235,6 @@ for i = 1, #units do
     if string.find(units[i][2], "_elite") then
         local prefix = string.gsub(units[i][2], "_elite", "")
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
-        local weight = units[i][3] --# assume weight: number
         rm:set_ui_profile_for_unit(units[i][1], {
             _text = "This is an Elite Unit. \n Armies may have up to 4 Elite Units",
             _image = "ui/campaign ui/cap/elite.png"
@@ -244,7 +243,6 @@ for i = 1, #units do
     if string.find(units[i][2], "_rare") then
         local prefix = string.gsub(units[i][2], "_rare", "")
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
-        local weight = units[i][3] --# assume weight: number
         rm:set_ui_profile_for_unit(units[i][1], {
             _text = "This is a Rare Unit. \n Armies may have up to 2 Rare Units.",
             _image = "ui/campaign ui/cap/rare.png"
