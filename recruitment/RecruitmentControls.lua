@@ -1157,7 +1157,7 @@ function recruiter_manager.add_group_check(self, groupID)
             local result = total + (rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]) -1) >= rm:get_quantity_limit_for_group(groupID)
             rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
             --return the result
-            return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:get_quantity_limit_for_group(groupID)..")"
+            return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
         end
         --add the check to every unit in the group
     
@@ -1230,7 +1230,7 @@ function recruiter_manager.add_unit_to_already_initialized_group(self, unitID, g
         local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
         rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
         --return the result
-        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID).." units. ("..rm:get_quantity_limit_for_group(groupID)..")"
+        return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
     end
     --add the check 
     self:add_check_to_unit(unitID, check)
