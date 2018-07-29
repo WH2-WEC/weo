@@ -10,9 +10,11 @@ core:add_listener(
     function(context)
         local faction = context:faction():name() --:string
         local imperium_level = context:faction():imperium_level() --:number
+        iem:log("Tracked faction ["..faction.."] at imperium level ["..imperium_level.."] ")
         if iem:has_effect_for_faction_at_imperium(faction, imperium_level) then
             local effect = iem:get_effect_for_faction_at_imperium(faction, imperium_level)
             if not context:faction():has_effect_bundle(effect) then
+                iem:log("applied imperium bundle ["..effect.."] to ["..faction.."] ")
                 cm:apply_effect_bundle(effect, faction, 0)
             end
         end

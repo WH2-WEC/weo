@@ -134,6 +134,7 @@ function imperium_effects_manager.add_imperium_effect_for_faction_at_level(self,
         self:log("The Imperium effects manager does not have this faction! Track it with iem:track_faction() before calling this function!")
         return
     end
+    self:log("Added imperium effect to faction ["..faction_key.."] at imperium level ["..imperium_level.."] ")
     self._imperiumEffects[faction_key][imperium_level] = effect_bundle
 end
 
@@ -152,6 +153,7 @@ function imperium_effects_manager.add_imperium_callback_for_faction_at_level(sel
         self:log("already triggered imperium callback for ["..faction_key.."] at level ["..imperium_level.."], refusing addition of another callback")
         return
     end
+    self:log("Added imperium callback for ["..faction_key.."] at level ["..imperium_level.."] ")
     self._imperiumCallbacks[faction_key][imperium_level] = callback
 end
 
