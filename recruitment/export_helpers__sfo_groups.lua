@@ -219,41 +219,40 @@ local prefix_to_subculture = {
     skv = "wh2_main_sc_skv_skaven"
 }--:map<string, string>
 
-for i = 1, #units do
 
-    groups[units[i][2]] = true;
-    rm:add_unit_to_group(units[i][1], units[i][2])
+--v function()
+local function sfo_add_unit_caps()
+    for i = 1, #units do
+        groups[units[i][2]] = true;
+        rm:add_unit_to_group(units[i][1], units[i][2])
 
-    if string.find(units[i][2], "_special") then
-        local prefix = string.gsub(units[i][2], "_special", "")
-        rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
-        rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This is a Special Unit. \n Armies may have up to 6 Special Units.",
-            _image = "ui/campaign ui/cap/special.png"
-        })
+        if string.find(units[i][2], "_special") then
+            local prefix = string.gsub(units[i][2], "_special", "")
+            rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
+            rm:set_ui_profile_for_unit(units[i][1], {
+                _text = "This is a Special Unit. \n Armies may have up to 6 Special Units.",
+                _image = "ui/campaign ui/cap/special.png"
+            })
+        end
+        if string.find(units[i][2], "_elite") then
+            local prefix = string.gsub(units[i][2], "_elite", "")
+            rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
+            rm:set_ui_profile_for_unit(units[i][1], {
+                _text = "This is an Elite Unit. \n Armies may have up to 4 Elite Units",
+                _image = "ui/campaign ui/cap/elite.png"
+            })
+        end
+        if string.find(units[i][2], "_rare") then
+            local prefix = string.gsub(units[i][2], "_rare", "")
+            rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
+            rm:set_ui_profile_for_unit(units[i][1], {
+                _text = "This is a Rare Unit. \n Armies may have up to 2 Rare Units.",
+                _image = "ui/campaign ui/cap/rare.png"
+            })
+        end
     end
-    if string.find(units[i][2], "_elite") then
-        local prefix = string.gsub(units[i][2], "_elite", "")
-        rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
-        rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This is an Elite Unit. \n Armies may have up to 4 Elite Units",
-            _image = "ui/campaign ui/cap/elite.png"
-        })
-    end
-    if string.find(units[i][2], "_rare") then
-        local prefix = string.gsub(units[i][2], "_rare", "")
-        rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
-        rm:set_ui_profile_for_unit(units[i][1], {
-            _text = "This is a Rare Unit. \n Armies may have up to 2 Rare Units.",
-            _image = "ui/campaign ui/cap/rare.png"
-        })
-    end
 
-end
-
-
-
-events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+    
     for name, _ in pairs(groups) do
         if string.find(name, "special") then
             rm:set_ui_name_for_group(name, "Special Units")
@@ -268,4 +267,18 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = functi
             rm:add_character_quantity_limit_for_group(name, 2)
         end
     end
-end;
+end
+
+core:add_listener(
+    "SFOcapsDilemma",
+    "DilemmaChoiceMadeEvent",
+    function(context)
+        return context:dilemma() == "cap_army_choice"
+    end,
+    function(context)
+        if context:choice() == 0 then
+            sfo_add_unit_caps()
+        end
+    end,
+    false)
+
