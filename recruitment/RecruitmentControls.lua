@@ -1104,14 +1104,16 @@ function recruiter_manager.check_all_units_on_character(self)
         if self:unit_has_whitelist_set(unitID) then
             --only check the unit if we are the necessary subculture
             local sub = cm:get_character_by_cqi(self:current_cqi()):faction():subculture() 
-            --[[
-            if sub == "wh_main_sc_grn_savage_orcs" then
-                sub = "wh_main_sc_grn_greenskins"
-            end --]]
             if self:get_unit_whitelisted_subculture(unitID) == sub then
                 self:check_unit_on_individual_character_for_loop(unitID)
+            elseif self:get_unit_whitelisted_subculture(unitID) == "wh_main_sc_emp_empire" and sub == "wh_main_sc_teb_teb" then --exception, we want to check empire units for teb
+                self:check_unit_on_individual_character_for_loop(unitID)
+            elseif self:get_unit_whitelisted_subculture(unitID) == "wh_main_sc_emp_empire" and sub == "wh_main_sc_ksl_kislev" then --exception, we want to check empire units for ksl
+                self:check_unit_on_individual_character_for_loop(unitID)
+            elseif self:get_unit_whitelisted_subculture(unitID) == "wh_main_sc_grn_greenskins" and sub == "wh_main_sc_grn_savage_orcs" then --exception, we want to check greenskin units for savage orcs
+                self:check_unit_on_individual_character_for_loop(unitID)
             end
-        else
+        else --if no whitelist is set, just check it.
             self:check_unit_on_individual_character_for_loop(unitID)
         end
     end
