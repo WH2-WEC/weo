@@ -27,6 +27,32 @@ core:add_listener(
         end
     end,
     true);
+--add unit added to queue from mercenaries listener
+core:add_listener(
+    "RecruiterManagerOnMercenaryOptionClicked",
+    "ComponentLClickUp",
+    true,
+    function(context)
+        --# assume context: CA_UIContext
+        local unit_component_ID = tostring(UIComponent(context.component):Id())
+        --is our clicked component a unit?
+        if string.find(unit_component_ID, "_mercenary") and UIComponent(context.component):CurrentState() == "active" then
+            --its a unit! steal the users input so that they don't click more shit while we calculate.
+            cm:steal_user_input(true);
+            rm:log("Locking recruitment button for ["..unit_component_ID.."] temporarily");
+            --reduce the string to get the name of the unit.
+            local unitID = string.gsub(unit_component_ID, "_mercenary", "")
+            --add the unit to queue so that our model knows it exists.
+            rm:current_character():add_unit_to_queue(unitID)
+            --run the checks on that character with the updated queue quantities.
+            cm:callback(function()
+            rm:check_unit_on_character(unitID)
+            end, 0.1)
+        end
+    end,
+    true);
+
+
 --add queued unit clicked listener
 core:add_listener(
 "RecruiterManagerOnQueuedUnitClicked",
@@ -51,6 +77,36 @@ function(context)
     end
 end,
 true);
+--add queued mercenary listener
+core:add_listener(
+"RecruiterManagerOnQueuedMercenaryClicked",
+"ComponentLClickUp",
+true,
+function(context)
+    --# assume context: CA_UIContext
+    local queue_component_ID = tostring(UIComponent(context.component):Id())
+    if string.find(queue_component_ID, "temp_merc_") then
+        rm:log("Component Clicked was a Queued Unit!")
+        --set the queue stale so that when we get it, we refresh the queue!
+        rm:current_character():set_queue_stale()
+        cm:remove_callback("RMOnMerc")
+        cm:callback( function() -- we callback this because if we don't do it on a small delay, it will pick up the unit we just cancelled as existing!
+            --we want to re-evaluate the units who were previously in queue, they may have changed.
+            local queue_counts = rm:current_character():get_queue_counts() 
+            for unitID, _ in pairs(queue_counts) do
+                --check the units again. This eventually calls a get on the queue counts, which will trigger a queue re-evaluation
+                rm:check_unit_on_character(unitID)
+            end
+        end, 0.2, "RMOnMerc")
+    end
+end,
+true);
+
+
+
+
+
+
 --add character moved listener
 core:add_listener(
 "RecruiterManagerPlayerCharacterMoved",
@@ -104,6 +160,22 @@ core:add_listener(
     "PanelOpenedCampaign",
     function(context) 
         return context.string == "units_recruitment"; 
+    end,
+    function(context)
+        cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
+            --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
+            rm:check_all_units_on_character() 
+        end, 0.1)
+    end,
+    true
+)
+
+--add mercenary panel open listener
+core:add_listener(
+    "RecruiterManagerOnMercenaryPanelOpened",
+    "PanelOpenedCampaign",
+    function(context) 
+        return context.string == "mercenary_recruitment"; 
     end,
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!

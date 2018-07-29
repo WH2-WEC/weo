@@ -733,14 +733,14 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
         self:log("WARNING: Could not find the component for the global recruitment list!. Is the panel closed? Does the Player not have global recruitment?")
     end 
     --repeat it all *again* for the black ark panel
-    local localRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local2", "unit_list", "listview", "list_clip", "list_box"};
-    local localUnitList = find_uicomponent_from_table(core:get_ui_root(), localRecruitmentTable);
+    local BlackArkRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local2", "unit_list", "listview", "list_clip", "list_box"};
+    local blackArkUnitList = find_uicomponent_from_table(core:get_ui_root(), BlackArkRecruitmentTable);
     --if we got the panel, proceed
-    if is_uicomponent(localUnitList) then
+    if is_uicomponent(blackArkUnitList) then
         --attach the UI suffix onto the unit name to get the name of the recruit button.
         local unit_component_ID = unitID.."_recruitable"
         --find the unit card using that name
-        local unitCard = find_uicomponent(localUnitList, unit_component_ID)
+        local unitCard = find_uicomponent(blackArkUnitList, unit_component_ID)
         --if we got the unit card, proceed
         if is_uicomponent(unitCard) then
             --if the unit is restricted, set the card to be unclickable.
@@ -791,6 +791,68 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
         --if we couldn't find the panel, warn the log.
         self:log("WARNING: No black ark recruitment panel found!")
     end
+    --and one last time for vampire raise dead
+    local mercenaryRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "listview", "list_clip", "list_box"};
+    local mercenaryRecruitmentList = find_uicomponent_from_table(core:get_ui_root(), mercenaryRecruitmentTable);
+    --if we got the panel, proceed
+    if is_uicomponent(mercenaryRecruitmentList) then
+        --attach the UI suffix onto the unit name to get the name of the recruit button.
+        local unit_component_ID = unitID.."_mercenary"
+        --find the unit card using that name
+        local unitCard = find_uicomponent(mercenaryRecruitmentList, unit_component_ID)
+        --if we got the unit card, proceed
+        if is_uicomponent(unitCard) then
+            --if the unit is restricted, set the card to be unclickable.
+            if self:is_unit_restricted(unitID) == true then
+                self:log("Locking Unit Card ["..unit_component_ID.."]")
+                unitCard:SetInteractive(false)
+                -- unitCard:SetVisible(false)
+                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                if not not lockedOverlay then
+                    lockedOverlay:SetVisible(true)
+                    lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
+                    lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                    lockedOverlay:SetCanResizeHeight(true)
+                    lockedOverlay:SetCanResizeWidth(true)
+                    lockedOverlay:Resize(72, 89)
+                    lockedOverlay:SetCanResizeHeight(false)
+                    lockedOverlay:SetCanResizeWidth(false)
+                end
+                
+                --unitCard:SetVisible(false)
+            else
+            --otherwise, set the card clickable
+                self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
+                unitCard:SetInteractive(true)
+                -- unitCard:SetVisible(true)
+                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                if not not lockedOverlay then
+                    if self:manager():unit_has_ui_profile(unitID) then
+                        local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        lockedOverlay:SetVisible(true)
+                        lockedOverlay:SetTooltipText(unit_profile._text)
+                        lockedOverlay:SetImage(unit_profile._image)
+                        lockedOverlay:SetCanResizeHeight(true)
+                        lockedOverlay:SetCanResizeWidth(true)
+                        lockedOverlay:Resize(30, 30)
+                        lockedOverlay:SetCanResizeHeight(false)
+                        lockedOverlay:SetCanResizeWidth(false)
+                    else
+                        lockedOverlay:SetVisible(false)
+                    end
+                end
+            end
+        else 
+            --if we couldn't find the card, warn the log. 
+            self:log("Unit Card isn't a component!")
+        end
+    else
+        --if we couldn't find the panel, warn the log.
+        self:log("WARNING: No mercenary recruitment panel found!")
+    end
+
+
+
     cm:steal_user_input(false);
 end
 
