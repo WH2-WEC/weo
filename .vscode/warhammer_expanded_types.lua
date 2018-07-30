@@ -30,6 +30,8 @@
 --# assume global class IMPERIUM_EFFECTS_MANAGER
 
 
+--tech unlocks
+--# assume global class TECH_UNLOCK
 
 
 

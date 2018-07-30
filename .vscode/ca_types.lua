@@ -181,6 +181,8 @@
 --# assume CM.force_add_trait_on_selected_character: method(trait_key: string)
 --# assume CM.force_remove_trait: method(lookup: string, trait_key: string)
 
+--# assume CM.lock_technology: method(faction_key: string, tech_key: string)
+--# assume CM.unlock_technology: method(faction_key: string, tech_key: string)
 
 --# assume CM.disable_event_feed_events: method(disable: boolean, categories: string, subcategories: string, events: string)
 --# assume CM.trigger_incident: method(factionName: string, incidentKey: string, fireImmediately: boolean)

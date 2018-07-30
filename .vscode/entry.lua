@@ -20,3 +20,7 @@ require("recruitment/export_helpers__tt_groups")
   require("imperium_effects/ImperiumEffects")
   require("imperium_effects/export_helpers__imperium_effects_core")
 --]]
+
+---[[
+  require("tech_unlocks/TechUnlocks")
+--]]
