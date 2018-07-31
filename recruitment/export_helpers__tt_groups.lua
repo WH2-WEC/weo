@@ -238,7 +238,7 @@ local units = {
 {"wh_main_nor_inf_chaos_marauders_1", "nor_core"},
 {"wh_main_nor_cav_marauder_horsemen_0", "nor_core"},
 {"wh_main_nor_cav_chaos_chariot", "nor_core"},
-{"wh_dlc08_nor_veh_marauder_warwolves_chariot_0", ""},
+{"wh_dlc08_nor_veh_marauder_warwolves_chariot_0", "nor_special", 1},
 --lzd
 {"wh2_main_lzd_mon_kroxigors", "lzd_core"},
 {"wh2_main_lzd_mon_kroxigors_blessed", "lzd_core"},
