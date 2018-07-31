@@ -42,6 +42,7 @@ end
 
 --v function(group_totals: map<string, number>, groupID: string, weight: number)
 local function increment_group_total(group_totals, groupID, weight)
+    rm:log("Incrementing a group total for ["..groupID.."] with weight ["..weight.."] ")
     if group_totals[groupID] == nil then
         group_totals[groupID] = 0
     end
@@ -50,7 +51,7 @@ end
 
 --v function(character: CA_CHAR, groupID: string, difference: number)
 local function limit_character(character, groupID, difference)
-
+    rm:log("limiting character ["..tostring(character:cqi()).."] in group ["..groupID.."] who has a difference of ["..difference.."] ")
     local unit_list = character:military_force():unit_list()
     for j = 0, unit_list:num_items() - 1 do
         local unit = unit_list:item_at(j):unit_key()
