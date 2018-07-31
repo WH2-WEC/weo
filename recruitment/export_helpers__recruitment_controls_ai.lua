@@ -60,9 +60,12 @@ local function limit_character(character, groupID, difference)
             if groups_list[k] == groupID then
                 cm:remove_unit_from_character(cm:char_lookup_str(character:cqi()), unit)
                 cm:grant_unit_to_character(character:cqi(), subculture_default_units[character:faction():subculture()])
+                rm:log("removed unit ["..unit.."] and granted ["..subculture_default_units[character:faction():subculture()].."] as a replacement unit!")
                 if rm:get_weight_for_unit(unit) >= difference then
+                    rm:log("removed unit was sufficient!")
                     return
                 end
+                rm:log("removed unit was insufficient, repeating!")
             end
         end
     end
