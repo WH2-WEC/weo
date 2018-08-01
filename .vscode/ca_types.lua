@@ -203,7 +203,7 @@
 --# assume CM.is_new_game: method() --> boolean
 --# assume CM.apply_effect_bundle_to_region: method(bundle: string, region: string, turns: number)
 --# assume CM.remove_effect_bundle_from_region: method(bundle: string, region: string)
---# assume CM.grant_unit_to_character: method(cqi: CA_CQI, unit: string)
+--# assume CM.grant_unit_to_character: method(lookup: string, unit: string)
 --# assume CM.remove_unit_from_character: method(lookup_string: string, unitID: string)
 
 --# assume CM.add_saving_game_callback: method(function(context: WHATEVER))

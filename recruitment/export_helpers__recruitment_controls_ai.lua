@@ -4,12 +4,12 @@ local subculture_default_units = {
     ["wh_main_sc_brt_bretonnia"] = "wh_main_brt_cav_knights_of_the_realm",
     ["wh_main_sc_chs_chaos"] = "wh_main_chs_inf_chaos_warriors_0",
     ["wh_main_sc_dwf_dwarfs"] = "wh_main_dwf_inf_longbeards",
-    ["wh_main_sc_emp_empire"] = "wh_main_emp_inf_halberdiers",
+    ["wh_main_sc_emp_empire"] = "wh_main_emp_inf_swordsmen",
     ["wh_main_sc_grn_greenskins"] = "wh_main_grn_inf_orc_big_uns",
     ["wh_main_sc_grn_savage_orcs"] = "wh_main_grn_inf_savage_orc_big_uns",
-    ["wh_main_sc_ksl_kislev"] = "wh_main_emp_inf_halberdiers",
+    ["lololol wh_main_sc_ksl_kislev"] = "wh_main_emp_inf_halberdiers",
     ["wh_main_sc_nor_norsca"] = "wh_main_nor_inf_chaos_marauders_0",
-    ["wh_main_sc_teb_teb"] = "wh_main_emp_inf_halberdiers",
+    ["lololol wh_main_sc_teb_teb"] = "wh_main_emp_inf_halberdiers",
     ["wh_main_sc_vmp_vampire_counts"] = "wh_main_vmp_inf_crypt_ghouls",
     ["wh2_dlc09_sc_tmb_tomb_kings"] = "wh2_dlc09_tmb_inf_nehekhara_warriors_0",
     ["wh2_main_sc_def_dark_elves"] = "wh2_main_def_inf_black_ark_corsairs_0",
@@ -51,7 +51,13 @@ end
 
 --v function(character: CA_CHAR, groupID: string, difference: number)
 local function limit_character(character, groupID, difference)
-    rm:log("limiting character ["..tostring(character:cqi()).."] in group ["..groupID.."] who has a difference of ["..difference.."] ")
+    if subculture_default_units[character:faction():subculture()] == nil then
+        return
+    end
+    local diff = difference
+
+
+    rm:log("limiting character ["..tostring(character:cqi()).."] in group ["..groupID.."] who has a difference of ["..diff.."] ")
     local unit_list = character:military_force():unit_list()
     for j = 0, unit_list:num_items() - 1 do
         local unit = unit_list:item_at(j):unit_key()
@@ -59,12 +65,13 @@ local function limit_character(character, groupID, difference)
         for k = 1, #groups_list do
             if groups_list[k] == groupID then
                 cm:remove_unit_from_character(cm:char_lookup_str(character:cqi()), unit)
-                cm:grant_unit_to_character(character:cqi(), subculture_default_units[character:faction():subculture()])
+                cm:grant_unit_to_character(cm:char_lookup_str(character:cqi()), subculture_default_units[character:faction():subculture()])
                 rm:log("removed unit ["..unit.."] and granted ["..subculture_default_units[character:faction():subculture()].."] as a replacement unit!")
-                if rm:get_weight_for_unit(unit) >= difference then
+                if rm:get_weight_for_unit(unit) >= diff then
                     rm:log("removed unit was sufficient!")
                     return
                 end
+                diff = diff - rm:get_weight_for_unit(unit);
                 rm:log("removed unit was insufficient, repeating!")
             end
         end
