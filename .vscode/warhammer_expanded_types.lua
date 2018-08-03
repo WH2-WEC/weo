@@ -35,7 +35,8 @@
 --# assume global class TECH_UNLOCK
 
 
-
+--lord unlocks
+--# assume global class CUSTOM_LORD_UNLOCK
 
 
 
