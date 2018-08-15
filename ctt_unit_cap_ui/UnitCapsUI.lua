@@ -7,12 +7,19 @@ function unit_caps_ui.init()
     setmetatable(self, {
         __index = unit_caps_ui
     }) --# assume self: UNIT_CAPS_UI
+    self._cappedUnits = {} --:map<string, boolean>
     --cap counting
+    --------------
+    --buildings
     self._regionsToUnits = {} --:map<string, map<string, number>>
     self._staleRegions = {} --:map<string, boolean>
     self._buildingLevelImpacts = {} --:map<string, map<string, number>>
+    --skills
+    self._skillLevelImpacts = {} --:map<string, map<string, number>>
+    self._charactersToUnits = {} --:map<CA_CQI, map<string, number>>
+    self._staleCharacters = {} --:map<CA_CQI, boolean>
+    --base
     self._unitBaseCaps = {} --:map<string, number>
-    self._cappedUnits = {} --:map<string, boolean>
     --unit counting
     self._armyUnitCounts = {} --:map<CA_CQI, map<string, number>>
     self._staleArmies = {} --:map<CA_CQI, boolean>
