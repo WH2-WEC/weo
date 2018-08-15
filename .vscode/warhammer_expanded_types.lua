@@ -8,10 +8,15 @@
 
 
 --# assume global class KOU_MODEL
-
+---unit controls
 --# assume global class RECRUITER_MANAGER
 --# assume global class RECRUITER_CHARACTER
 --# type global TOOLTIPIMAGE = {_image: string, _text: string}
+
+--unit cap ui
+--# assume global class UNIT_CAPS_UI
+
+
 
 ---Geopolitics system
 --# assume global class GEOPOLITIC_FACTION
