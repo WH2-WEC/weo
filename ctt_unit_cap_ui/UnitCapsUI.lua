@@ -152,6 +152,99 @@ function unit_caps_ui.get_region_unit_cap_contribution(self, region, unit)
     return self._regionsToUnits[region][unit]
 end
 
+--skill caps
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI)
+function unit_caps_ui.set_skills_fresh(self, cqi)
+    self._staleCharacters[cqi] = true
+end
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI)
+function unit_caps_ui.set_skills_stale(self, cqi)
+    self._staleCharacters[cqi] = false
+    self._capsStale = true
+end
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI) --> boolean
+function unit_caps_ui.are_skills_fresh(self, cqi)
+    if self._staleCharacters[cqi] == nil then
+        self._staleCharacters[cqi] = false
+    end
+    return self._staleCharacters[cqi]
+end
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI)
+function unit_caps_ui.reset_character_skill_cap_contributions(self, cqi)
+    self._charactersToUnits[cqi] = {}
+end
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI, unit: string, cap_contribution: number)
+function unit_caps_ui.increase_character_skill_cap_contributions(self, cqi, unit, cap_contribution)
+    if self._charactersToUnits[cqi] == nil then
+        self._charactersToUnits[cqi] = {}
+    end
+    if self._charactersToUnits[cqi][unit] == nil then
+        self._charactersToUnits[cqi][unit] = 0
+    end
+    self._charactersToUnits[cqi][unit] = self._charactersToUnits[cqi][unit] + cap_contribution
+end
+
+
+--v function(self: UNIT_CAPS_UI, skill: string, unit:string, cap_contribution: number)
+function unit_caps_ui.set_cap_contribution_of_skill(self, skill, unit, cap_contribution)
+    if self._skillLevelImpacts[skill] == nil then
+        self._skillLevelImpacts[skill] = {}
+    end
+    self._skillLevelImpacts[skill][unit] = cap_contribution
+end
+
+--v function(self: UNIT_CAPS_UI, skill: string) --> map<string, number>
+function unit_caps_ui.get_cap_contributions_of_skill_level(self, skill)
+    if self._skillLevelImpacts[skill] == nil then
+        self._skillLevelImpacts[skill] = {}
+    end
+    return self._skillLevelImpacts[skill]
+end
+
+--v function(self: UNIT_CAPS_UI, skill: string, unit_key: string) --> number
+function unit_caps_ui.get_cap_contribution_of_skill_for_unit(self, skill, unit_key)
+    if self._skillLevelImpacts[skill] == nil then
+        self._skillLevelImpacts[skill] = {}
+    end
+    if self._skillLevelImpacts[skill][unit_key] == nil then
+        self._skillLevelImpacts[skill][unit_key] = 0
+    end
+    return self._skillLevelImpacts[skill][unit_key]
+end
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI)
+function unit_caps_ui.evaluate_character_skills(self, cqi)
+    local character = cm:get_character_by_cqi(cqi)
+    self:reset_character_skill_cap_contributions(cqi)
+    for skill, impacts in pairs(self._skillLevelImpacts) do
+        if character:has_skill(skill) then
+            for unit, quantity in pairs(impacts) do
+                self:increase_character_skill_cap_contributions(cqi, unit, quantity)
+            end
+        end
+    end
+    self:set_skills_fresh(cqi)
+end
+
+
+
+--v function(self: UNIT_CAPS_UI, cqi: CA_CQI, unit: string) --> number
+function unit_caps_ui.get_character_unit_cap_contribution(self, cqi, unit)
+    if not self:are_skills_fresh(cqi) then
+        self:evaluate_character_skills(cqi)
+    end
+    if self._charactersToUnits[cqi][unit] == nil then
+        self._charactersToUnits[cqi][unit] = 0 
+    end
+    return self._charactersToUnits[cqi][unit]
+end
+    
+
 --base caps--
 -------------
 
@@ -299,6 +392,16 @@ function unit_caps_ui.evaluate_caps(self)
             if is_capped then
                 local cap = self:get_region_unit_cap_contribution(region:name(), unit)
                 self:increment_global_cap_for_unit(unit, cap)
+            end
+        end
+    end
+    local char_list = human_faction:character_list()
+    for i = 0, char_list:num_items() - 1 do
+        local character = char_list:item_at(i)
+        for unit, is_capped in pairs(self:capped_units()) do
+            if is_capped then
+                local skill_cap = self:get_character_unit_cap_contribution(character:cqi(), unit)
+                self:increment_global_cap_for_unit(unit, skill_cap)
             end
         end
     end
