@@ -920,16 +920,11 @@ function recruiter_manager.has_currently_selected_character(self)
     return not not self._currentCharacter
 end
 
---return the cqi of the current character
---v function(self: RECRUITER_MANAGER) --> CA_CQI
-function recruiter_manager.current_cqi(self)
-    return self._currentCharacter
-end
 
 --return the current character's object
 --v function(self: RECRUITER_MANAGER) --> RECRUITER_CHARACTER
 function recruiter_manager.current_character(self)
-    return self:get_character_by_cqi(self:current_cqi())
+    return self:get_character_by_cqi(self._currentCharacter)
 end
 
 --set the current character by CQI
@@ -1140,7 +1135,7 @@ function recruiter_manager.check_all_units_on_character(self)
     for unitID, _ in pairs(self._unitChecks) do
         if self:unit_has_whitelist_set(unitID) then
             --only check the unit if we are the necessary subculture
-            local sub = cm:get_character_by_cqi(self:current_cqi()):faction():subculture() 
+            local sub = cm:get_character_by_cqi(self._currentCharacter):faction():subculture() 
             if self:get_unit_whitelisted_subculture(unitID) == sub then
                 self:check_unit_on_individual_character_for_loop(unitID)
             elseif self:get_unit_whitelisted_subculture(unitID) == "wh_main_sc_emp_empire" and sub == "wh_main_sc_teb_teb" then --exception, we want to check empire units for teb
