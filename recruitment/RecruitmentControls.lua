@@ -898,7 +898,7 @@ end
 --return whether a character exists in the rm
 --v function(self: RECRUITER_MANAGER, cqi: CA_CQI) --> boolean
 function recruiter_manager.has_character(self, cqi)
-    return not not self:characters()[cqi]
+    return not not self._recruiterCharacters[cqi]
 end
 
 --get a character by cqi from the rm
@@ -906,7 +906,7 @@ end
 function recruiter_manager.get_character_by_cqi(self, cqi)
     if self:has_character(cqi) then
         --if we already have that character, return it.
-        return self:characters()[cqi]
+        return self._recruiterCharacters[cqi]
     else
         --otherwise, return a new character
         self:log("Requested character with ["..tostring(cqi).."] who does not exist, creating them!")
@@ -946,11 +946,6 @@ end
 -----------------------------------------
 --this is necessary because otherwise every single unit will be checked for every single time someone refreshes the queue of a unit, causing a noticable ~.2 second lag with a large enough groupset.
 
---get the map of groups to cultures
---v function(self: RECRUITER_MANAGER) --> map<string, string>
-function recruiter_manager.get_unit_subculture_whitelist(self)
-    return self._unitCultureAssignment
-end
 
 --does the group have a specified whitelist? Note: if it doesn't have one, the script will always check it.
 --v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
@@ -984,36 +979,25 @@ end
 --unit grouping assignments--
 -----------------------------
 
---get the map of units to their list of groups
---v function(self: RECRUITER_MANAGER) --> map<string, vector<string>>
-function recruiter_manager.get_unit_group_names(self)
-    return self._unitToGroupNames
-end
-
---get the map of groups to their list of units
---v function(self: RECRUITER_MANAGER) --> map<string, vector<string>>
-function recruiter_manager.get_unit_groups(self)
-    return self._groupToUnits
-end
 
 --get the list of groups for a specific unit
 --v function(self: RECRUITER_MANAGER, unitID: string) -->vector<string>
 function recruiter_manager.get_groups_for_unit(self, unitID)
-    if self:get_unit_group_names()[unitID] == nil then
+    if self._unitToGroupNames[unitID] == nil then
         --if the unit has no groups, give it a default blank list
         self._unitToGroupNames[unitID] = {}
     end
-    return self:get_unit_group_names()[unitID]
+    return self._unitToGroupNames[unitID]
 end
 
 --get the list of units for a specific group
 --v function(self: RECRUITER_MANAGER, groupID: string) --> vector<string>
 function recruiter_manager.get_units_in_group(self, groupID)
-    if self:get_unit_groups()[groupID] == nil then
+    if self._groupToUnits[groupID] == nil then
         --if the group hasn't been used at all, give it a default blank list.
         self._groupToUnits[groupID] = {}
     end
-    return self:get_unit_groups()[groupID]
+    return self._groupToUnits[groupID]
 end
 
 --attach a group to a unit
@@ -1041,11 +1025,6 @@ end
 --unit weights--
 ----------------
 
---get the map of units to their weights
---v function(self: RECRUITER_MANAGER) --> map<string, number>
-function recruiter_manager.get_unit_weights(self)
-    return self._unitWeights
-end
 
 --get the weight of a specific unit
 --v function(self: RECRUITER_MANAGER, unitID: string) --> number
@@ -1077,29 +1056,25 @@ end
 --unit checks framework--
 -------------------------
 
---get the map of units to their list of checks
---v function(self: RECRUITER_MANAGER) --> map<string, vector<(function(rm: RECRUITER_MANAGER) --> (boolean, string))>>
-function recruiter_manager.get_unit_checks(self)
-    return self._unitChecks
-end
+
 
 --get the list of checks for a specific unit
 --v function(self: RECRUITER_MANAGER, unitID: string) --> vector<(function(rm: RECRUITER_MANAGER) --> (boolean, string))>
 function recruiter_manager.get_checks_for_unit(self, unitID)
-    if self:get_unit_checks()[unitID] == nil then
+    if self._unitChecks[unitID] == nil then
         self._unitChecks[unitID] = {}
     end
-    return self:get_unit_checks()[unitID]
+    return self._unitChecks[unitID]
 end
 
 --add a function to check a specific unit
 --v function(self: RECRUITER_MANAGER, unitID: string, check:(function(rm: RECRUITER_MANAGER) --> (boolean, string)))
 function recruiter_manager.add_check_to_unit(self, unitID, check)
-    if self:get_unit_checks()[unitID] == nil then
+    if self._unitChecks[unitID] == nil then
         --if the unit doesn't have any checks yet, we need to initialize the list
         self._unitChecks[unitID] = {}
     end
-    table.insert(self:get_unit_checks()[unitID], check)
+    table.insert(self._unitChecks[unitID], check)
 end
 
 --carry out the checking functions for a unit
@@ -1162,7 +1137,7 @@ function recruiter_manager.check_all_units_on_character(self)
     self:log("Checking all units with checks for currently selected character")
     --if a unit doesn't have any checks, it must have no limits and therefore be irrelevant. 
     --this loop will catch all useful units. 
-    for unitID, _ in pairs(self:get_unit_checks()) do
+    for unitID, _ in pairs(self._unitChecks) do
         if self:unit_has_whitelist_set(unitID) then
             --only check the unit if we are the necessary subculture
             local sub = cm:get_character_by_cqi(self:current_cqi()):faction():subculture() 
@@ -1186,21 +1161,15 @@ end
 --group quantity limits--
 -------------------------
 
---get the map of groups to their quantity limits
---v function(self: RECRUITER_MANAGER) --> map<string, number>
-function recruiter_manager.get_group_quantity_limits(self)
-    return self._groupUnitLimits
-end
-
 --get the quantity limit of a specific group
 --v function(self: RECRUITER_MANAGER, groupID: string) -->number
 function recruiter_manager.get_quantity_limit_for_group(self,groupID)
-    if self:get_group_quantity_limits()[groupID] == nil then
+    if self._groupUnitLimits[groupID] == nil then
         --if the group doesn't have a quantity set, set it to 999.
         --this won't waste time as without a checker function, this group won't factor into standard operations. 
         self._groupUnitLimits[groupID] = 999
     end
-    return self:get_group_quantity_limits()[groupID]
+    return self._groupUnitLimits[groupID]
 end
 
 --add a checking function to a group for their quantity cap.
@@ -1308,21 +1277,16 @@ end
 --quantity limits--
 -------------------
 
---get the map of units to their limits
---v function(self: RECRUITER_MANAGER) --> map<string, number>
-function recruiter_manager.get_quantity_limits(self)
-    return self._characterUnitLimits
-end
 
 --get the limit of a specific unit
 --v function(self: RECRUITER_MANAGER, unitID: string) --> number
 function recruiter_manager.get_quantity_limit_for_unit(self, unitID)
-    if self:get_quantity_limits()[unitID] == nil then
+    if self._characterUnitLimits[unitID] == nil then
         --if the unit hasn't been used yet, set their quantity to 999.
         --this won't waste time because without a check added to their unit, they won't factor into standard operation.
         self._characterUnitLimits[unitID] = 999
     end
-    return self:get_quantity_limits()[unitID]
+    return self._characterUnitLimits[unitID]
 end
 
 --adds a checker function for a specific unit.
