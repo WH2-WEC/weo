@@ -164,7 +164,15 @@ core:add_listener(
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
             --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
-            rm:check_all_units_on_character() 
+            local recruitmentList = find_uicomponent(core:get_ui_root(), 
+            "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox",
+            "local1", "unit_list", "listview", "list_clip", "list_box"
+            )
+            for i = 0, recruitmentList:ChildCount() - 1 do	
+                local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                rm:check_unit_on_individual_character_for_loop(unitID)
+            end
         end, 0.1)
     end,
     true
@@ -180,7 +188,13 @@ core:add_listener(
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
             --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
-            rm:check_all_units_on_character() 
+            local recruitmentList = find_uicomponent(core:get_ui_root(), 
+            "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "listview", "list_clip", "list_box")
+            for i = 0, recruitmentList:ChildCount() - 1 do	
+                local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                local unitID = string.gsub(recruitmentOption, "_mercenary", "")
+                rm:check_unit_on_individual_character_for_loop(unitID)
+            end
         end, 0.1)
     end,
     true
