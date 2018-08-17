@@ -1079,8 +1079,9 @@ function recruiter_manager.do_checks_for_unit(self, unitID)
     --start looping through the list of checks for the unit. 
     --we want to mimic doing an 'or' statement except for a vector: 
     --if any condition on the list is true this function returns true
-    for i = 1, #self:get_checks_for_unit(unitID) do
-        local result, UIstring = self:get_checks_for_unit(unitID)[i](self)
+    local unit_checks = self:get_checks_for_unit(unitID)
+    for i = 1, #unit_checks do
+        local result, UIstring = unit_checks[i](self)
         if result then
             --if our check returns true, end the function and return that true
             self:log("A check resulted in a restriction for ["..unitID.."]")
@@ -1178,8 +1179,9 @@ function recruiter_manager.add_group_check(self, groupID)
             --declare total
             local total = 0 --:number
             --for each unit in the group, count that unit and add to total
-            for j = 1, #rm:get_units_in_group(groupID) do
-                total = total + (rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[j]))*(rm:get_weight_for_unit(rm:get_units_in_group(groupID)[j]))
+            local units_in_group = rm:get_units_in_group(groupID)
+            for j = 1, #units_in_group do
+                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
             end
             --determine whether the total is above or equal to the group quantity limit
             local result = total + (rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]) -1) >= rm:get_quantity_limit_for_group(groupID)
@@ -1251,8 +1253,9 @@ function recruiter_manager.add_unit_to_already_initialized_group(self, unitID, g
         --declare total
         local total = 0 --:number
         --for each unit in the group, count that unit and add to total
-        for j = 1, #rm:get_units_in_group(groupID) do
-            total = total + (rm:current_character():get_unit_count(rm:get_units_in_group(groupID)[j]))*(rm:get_weight_for_unit(rm:get_units_in_group(groupID)[j]))
+        local units_in_group = rm:get_units_in_group(groupID)
+        for j = 1, #units_in_group do
+            total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
         end
         --determine whether the total is above or equal to the group quantity limit
         local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
