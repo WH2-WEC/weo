@@ -93,9 +93,37 @@ function(context)
         cm:callback( function() -- we callback this because if we don't do it on a small delay, it will pick up the unit we just cancelled as existing!
             --we want to re-evaluate the units who were previously in queue, they may have changed.
             local queue_counts = rm:current_character():get_queue_counts() 
-            for unitID, _ in pairs(queue_counts) do
-                --check the units again. This eventually calls a get on the queue counts, which will trigger a queue re-evaluation
-                rm:check_unit_on_character(unitID)
+            local recruitmentList = find_uicomponent(core:get_ui_root(), "units_panel", "main_units_panel",
+            "recruitment_docker", "recruitment_options", "recruitment_listbox", "global", "unit_list", "listview", "list_clip", "list_box")
+            if not not recruitmentList then
+                for i = 0, recruitmentList:ChildCount() - 1 do	
+                    local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                    local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                    rm:check_unit_on_individual_character_for_loop(unitID)
+                    rm:current_character():enforce_unit_restriction(unitID)
+                end
+            else
+                local recruitmentList = find_uicomponent(core:get_ui_root(), 
+                "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox",
+                "local1", "unit_list", "listview", "list_clip", "list_box"
+                )
+                if not not recruitmentList then
+                    for i = 0, recruitmentList:ChildCount() - 1 do	
+                        local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                        local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                        rm:check_unit_on_individual_character_for_loop(unitID)
+                        rm:current_character():enforce_unit_restriction(unitID)
+                    end
+                end
+            end
+            local recruitmentList = find_uicomponent(core:get_ui_root(), "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local2", "unit_list", "listview", "list_clip", "list_box")
+            if not not recruitmentList then
+                for i = 0, recruitmentList:ChildCount() - 1 do	
+                    local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                    local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                    rm:check_unit_on_individual_character_for_loop(unitID)
+                    rm:current_character():enforce_unit_restriction(unitID)
+                end
             end
         end, 0.2, "RMOnMerc")
     end
@@ -164,14 +192,37 @@ core:add_listener(
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
             --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
-            local recruitmentList = find_uicomponent(core:get_ui_root(), 
-            "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox",
-            "local1", "unit_list", "listview", "list_clip", "list_box"
-            )
-            for i = 0, recruitmentList:ChildCount() - 1 do	
-                local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
-                local unitID = string.gsub(recruitmentOption, "_recruitable", "")
-                rm:check_unit_on_individual_character_for_loop(unitID)
+            local recruitmentList = find_uicomponent(core:get_ui_root(), "units_panel", "main_units_panel",
+            "recruitment_docker", "recruitment_options", "recruitment_listbox", "global", "unit_list", "listview", "list_clip", "list_box")
+            if not not recruitmentList then
+                for i = 0, recruitmentList:ChildCount() - 1 do	
+                    local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                    local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                    rm:check_unit_on_individual_character_for_loop(unitID)
+                    rm:current_character():enforce_unit_restriction(unitID)
+                end
+            else
+                local recruitmentList = find_uicomponent(core:get_ui_root(), 
+                "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox",
+                "local1", "unit_list", "listview", "list_clip", "list_box"
+                )
+                if not not recruitmentList then
+                    for i = 0, recruitmentList:ChildCount() - 1 do	
+                        local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                        local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                        rm:check_unit_on_individual_character_for_loop(unitID)
+                        rm:current_character():enforce_unit_restriction(unitID)
+                    end
+                end
+            end
+            local recruitmentList = find_uicomponent(core:get_ui_root(), "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local2", "unit_list", "listview", "list_clip", "list_box")
+            if not not recruitmentList then
+                for i = 0, recruitmentList:ChildCount() - 1 do	
+                    local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                    local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                    rm:check_unit_on_individual_character_for_loop(unitID)
+                    rm:current_character():enforce_unit_restriction(unitID)
+                end
             end
         end, 0.1)
     end,
@@ -194,6 +245,7 @@ core:add_listener(
                 local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
                 local unitID = string.gsub(recruitmentOption, "_mercenary", "")
                 rm:check_unit_on_individual_character_for_loop(unitID)
+                rm:current_character():enforce_unit_restriction(unitID)
             end
         end, 0.1)
     end,
