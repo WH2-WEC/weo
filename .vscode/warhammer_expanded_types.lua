@@ -22,9 +22,7 @@
 
 
 --provinces
---# assume global class PROVINCE_MANAGER
---# assume global class PROVINCE_DETAILS
---# assume global class REGION_DETAILS
+--# assume global class PROVINCE_REGISTER
 
 
 --imperium
