@@ -1,3 +1,9 @@
+---[[province extensions
+require("provinces/ProvinceObjects")
+--]]
+
+
+
 
 ---[[master recruitment system
 require("recruitment/RecruitmentControls")
@@ -26,9 +32,6 @@ require("recruitment/export_helpers__tt_groups")
 --]]
 
 
----[[province extensions
-  require("provinces/ProvinceObjects")
 
---]]
 
 
