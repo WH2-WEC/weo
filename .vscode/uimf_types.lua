@@ -119,6 +119,8 @@
 --# assume IMAGE.Move: method(xMove: number, yMove: number)
 --# assume IMAGE.SetImage: method(path: string)
 --# assume IMAGE.GetContentComponent: method() --> CA_UIC
+--# assume IMAGE.SetVisible: method(boolean)
+--# assume IMAGE.Delete: method()
 --text
 --# assume TEXT.PositionRelativeTo: method(component: WHATEVER, xDiff: number, yDiff: number)
 --# assume TEXT.SetText: method(str: string)

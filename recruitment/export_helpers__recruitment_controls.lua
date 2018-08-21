@@ -3,6 +3,24 @@ events = get_events(); cm = get_cm(); rm = _G.rm;
 
 rm:error_checker() --turn on error checking
 
+---[[testing code
+core:add_listener(
+    "printquantity",
+    "ShortcutTriggered",
+    function(context) return context.string == "camera_bookmark_view0"; end, --default F9
+    function(context)
+        rm:log("POOL AT: ".. rm._unitPoolQuantities["wh_dlc04_emp_inf_free_company_militia_0"]["wh_main_emp_empire"])
+    end,
+    true)
+
+  rm:add_unit_pool("wh_dlc04_emp_inf_free_company_militia_0", "wh_main_emp_empire", 2, 3)
+
+
+
+
+
+
+--]]
 --add unit added to queue listener
 core:add_listener(
     "RecruiterManagerOnRecruitOptionClicked",
@@ -13,6 +31,7 @@ core:add_listener(
         local unit_component_ID = tostring(UIComponent(context.component):Id())
         --is our clicked component a unit?
         if string.find(unit_component_ID, "_recruitable") and UIComponent(context.component):CurrentState() == "active" then
+            print_all_uicomponent_children(UIComponent(context.component))
             --its a unit! steal the users input so that they don't click more shit while we calculate.
             cm:steal_user_input(true);
             rm:log("Locking recruitment button for ["..unit_component_ID.."] temporarily");
@@ -151,6 +170,7 @@ function(context)
     rm:get_character_by_cqi(character:cqi()):set_queue_stale()
 end,
 true)
+
 --add unit trained listener
 core:add_listener(
 "RecruiterManagerPlayerFactionRecruitedUnit",
@@ -164,9 +184,20 @@ function(context)
     local char_cqi = unit:force_commander():command_queue_index();
     rm:log("Player faction recruited a unit!")
     rm:get_character_by_cqi(char_cqi):set_army_stale()
-    rm:get_character_by_cqi(char_cqi):set_queue_stale()
+    --we can't just delete the queue when pools are involved.
+    if rm:unit_has_pool(unit:unit_key()) then
+        --take away the cost
+        rm:change_unit_pool(unit:unit_key(), unit:faction():name(), -1)
+        --remove the unit from queue, this will refund the cost that is there so the user isn't double charged!
+        rm:get_character_by_cqi(char_cqi):remove_unit_from_queue(unit:unit_key())
+        --raw set the queue stale so that the remaining costs are re-evaluated next time he is looked at.
+        rm:get_character_by_cqi(char_cqi):raw_set_queue_stale()
+    else
+        rm:get_character_by_cqi(char_cqi):set_queue_stale()
+    end
 end,
 true)
+
 --add character selected listener
 core:add_listener(
     "RecruiterManagerOnCharacterSelected",
@@ -288,6 +319,9 @@ core:add_listener(
     end,
     true)
 
+-------------
+--transfers--
+-------------
 
 --v function(panel: string, index: number) --> (string, boolean)
 local function GetUnitNameInExchange(panel, index)

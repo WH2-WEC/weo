@@ -58,6 +58,10 @@ function recruiter_manager.init()
     --ui
     self._UIGroupNames = {} --:map<string, string>
     self._UIUnitProfiles = {} --:map<string, TOOLTIPIMAGE>
+    --unit to pool quantity
+    self._unitPoolQuantities = {} --:map<string, map<string, number>>
+    self._unitPools = {} --:map<string, boolean>
+    self._unitPoolMaximums = {} --:map<string, number>
     --place instance in _G. 
     _G.rm = self
 end
@@ -320,6 +324,51 @@ local function GetQueuedUnit(index)
         return nil
     end
 end
+
+--unit pools--
+--------------
+
+
+
+--v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
+function recruiter_manager.unit_has_pool(self, unitID)
+    return not not self._unitPools[unitID]
+end
+    
+--v function(self: RECRUITER_MANAGER, unitID: string, faction: string) --> number
+function recruiter_manager.get_unit_pool_of_unit_for_faction(self, unitID, faction)
+    if self._unitPoolQuantities[unitID] == nil then
+        return 1000
+    end
+    if self._unitPoolQuantities[unitID][faction] == nil then
+        return 1000
+    end
+    return self._unitPoolQuantities[unitID][faction]
+end
+
+
+
+
+--v function(self: RECRUITER_MANAGER, unitID: string, faction: string, change: number)
+function recruiter_manager.change_unit_pool(self, unitID, faction, change)
+    self:log("Called for a change of unit pool for unit ["..unitID.."] on faction ["..faction.."] of ["..change.."]")
+    if self._unitPoolMaximums[unitID] == nil or self._unitPoolQuantities[unitID] == nil or self._unitPoolQuantities[unitID][faction] == nil then
+        self:log("Called for a unit pool change but the unit pool is not set up for this unit! aborting!")
+        return
+    end
+    local old_val = self._unitPoolQuantities[unitID][faction]
+    local new_val = old_val + change
+    if new_val > self._unitPoolMaximums[unitID] then
+        new_val = self._unitPoolMaximums[unitID]
+    elseif new_val < 0 then
+        new_val = 0
+    end
+    self._unitPoolQuantities[unitID][faction] = new_val
+end
+
+
+
+
 ----------------------------------------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -355,6 +404,7 @@ function recruiter_character.new(manager, cqi)
     self._UIStrings = {} --:map<string, string> --stores the string to explain why a unit is locked.
     self._staleQueueFlag = true --:boolean -- flags for the queue needing to be refreshed entirely.
     self._staleArmyFlag = true --:boolean --flags for the army needing to be refreshed entirely.
+    self._rawQueueFlag = true --:boolean --flags for when the queue needing refresh needs to have refunds done
     
     return self
 end
@@ -434,9 +484,24 @@ end
 
 --marks the queue for a refresh
 --v function(self: RECRUITER_CHARACTER)
-function recruiter_character.set_queue_stale(self)
+function recruiter_character.raw_set_queue_stale(self)
     self._staleQueueFlag = true
+    self._rawQueueFlag = true
 end
+
+--marks the queue for a refresh
+--v function(self: RECRUITER_CHARACTER)
+function recruiter_character.set_queue_stale(self)
+
+    for unit, count in pairs(self._queueCounts) do
+        if self:manager():unit_has_pool(unit) then
+            self:manager():change_unit_pool(unit, cm:get_character_by_cqi(self:cqi()):faction():name(),  count)
+        end
+    end
+    self._staleQueueFlag = true
+    self._rawQueueFlag = false
+end
+
 
 --marks the army for a refresh
 --v function(self: RECRUITER_CHARACTER)
@@ -502,6 +567,9 @@ end
 --add a unit to the queue
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.add_unit_to_queue(self, unitID)
+    if self:manager():unit_has_pool(unitID) then
+        self:manager():change_unit_pool(unitID, cm:get_character_by_cqi(self:cqi()):faction():name(),  -1)
+    end
     if self._queueCounts[unitID] == nil then
         self._queueCounts[unitID] = 0 
         --if that unit hasn't been used yet, give it a default value.
@@ -509,6 +577,22 @@ function recruiter_character.add_unit_to_queue(self, unitID)
     self._queueCounts[unitID] = self:get_queue_counts()[unitID] + 1;
     self:log("Added unit ["..unitID.."] to the queue of ["..tostring(self:cqi()).."]")
 end
+
+--remove a unit from the queue (used by the queue listener)
+--v function(self: RECRUITER_CHARACTER, unitID: string)
+function recruiter_character.remove_unit_from_queue(self, unitID)
+    if self:manager():unit_has_pool(unitID) then
+        self:manager():change_unit_pool(unitID, cm:get_character_by_cqi(self:cqi()):faction():name(), 1)
+    end
+    if self._queueCounts[unitID] == nil then
+        self:log("Called for the removal of unit ["..unitID.."] for the queue of ["..tostring(self:cqi()).."] but this unit isn't in that queue?!?!")
+        return
+    end
+    self._queueCounts[unitID] = self:get_queue_counts()[unitID] - 1;
+    self:log("Removed unit ["..unitID.."] to the queue of ["..tostring(self:cqi()).."]")
+end
+    
+
 
 --refresh the army of the character
 --v function(self: RECRUITER_CHARACTER)
@@ -531,6 +615,14 @@ end
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.refresh_queue(self)
     --remove the old queue before we start
+    if self._rawQueueFlag == true then
+        for unit, count in pairs(self._queueCounts) do
+            if self:manager():unit_has_pool(unit) then
+                self:manager():change_unit_pool(unit, cm:get_character_by_cqi(self:cqi()):faction():name(), count)
+            end
+        end
+        self._rawQueueFlag = false;
+    end
     self:wipe_queue() 
     self:log("Freshening up the queue of ["..tostring(self:cqi()).."]")
     --check if the unit panel is open so that we can see the army. If it isn't, the function can abort with a failure message.
@@ -617,7 +709,7 @@ function recruiter_character.is_unit_restricted(self, unitID)
     self:log("is unit restricted returning ["..tostring(self:get_unit_restrictions()[unitID]).."] for unit ["..unitID.."]")
     return self:get_unit_restrictions()[unitID]
 end
-
+--# assume RECRUITER_MANAGER.current_character: method() --> RECRUITER_CHARACTER
 --enforce the restriction for a specific unit onto the UI.
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.enforce_unit_restriction(self, unitID)
@@ -671,6 +763,16 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         lockedOverlay:SetCanResizeWidth(false)
                     else
                         lockedOverlay:SetVisible(false)
+                    end
+                    if self:manager():unit_has_pool(unitID) then
+                        local xp = find_uicomponent(unitCard, "merch_type");
+                        xp:SetVisible(true)
+                        --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                        xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                        xp:SetImage("ui/custom/recruitment_controls/pool.png")
+                    else
+                        local xp = find_uicomponent(unitCard, "bonuses", "armour");
+                        xp:SetVisible(false)
                     end
                 end
             end
@@ -1322,6 +1424,75 @@ function recruiter_manager.add_character_quantity_limit_for_unit(self, unitID, q
     --add the checker function
     self:add_quantity_check(unitID)
 end
+
+
+--pool limits--
+---------------
+
+--v function(self: RECRUITER_MANAGER, unitID: string)
+function recruiter_manager.add_pool_check(self, unitID)
+    --we need to see if the pool has capacity, then block recruitment based on that
+    local check = function(rm --: RECRUITER_MANAGER
+    ) 
+    --see if the count for this unit is higher or equal to the quantity limit
+    local result = rm:get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(rm:current_character():cqi()):faction():name()) <= 0 
+    --return the result
+    rm:log("Checking quantity restriction for ["..unitID.."] resulted in ["..tostring(result).."]")
+    return result, "No units of this type are currently available!"
+    end
+    --add this check to the model
+    self:add_check_to_unit(unitID, check)
+end
+
+
+
+
+--set the pool quantity of a unit
+--sloooow, use the alternative function below for large numbers of units with the same quantity
+--v function(self: RECRUITER_MANAGER, unitID: string, culture: string, quantity: number, maximum: number)
+function recruiter_manager.add_unit_pool(self, unitID, culture, quantity, maximum)
+    self._unitPoolQuantities[unitID] = {}
+    self._unitPools[unitID] = true
+    self._unitPoolMaximums[unitID] = maximum
+    self:add_pool_check(unitID)
+    local faction_list = cm:model():world():faction_list()
+    for i = 0, faction_list:num_items() - 1 do
+        local faction = faction_list:item_at(i)
+        if faction:culture() == culture then
+            self._unitPoolQuantities[unitID][faction:name()] = quantity
+        end
+    end
+end
+
+--sets the pool quantity of a large list of units
+--faster
+--v function(self: RECRUITER_MANAGER, unitIDset: vector<string>, culture: string, quantity: number, maximum: number)
+function recruiter_manager.add_unit_set_to_pools(self, unitIDset, culture, quantity, maximum)
+    for i = 1, #unitIDset do
+        self._unitPoolQuantities[unitIDset[i]] = {}
+        self._unitPools[unitIDset[i]] = true
+        self._unitPoolMaximums[unitIDset[i]] = maximum
+        self:add_pool_check(unitIDset[i])
+    end
+    local faction_list = cm:model():world():faction_list()
+    for i = 0, faction_list:num_items() - 1 do
+        local faction = faction_list:item_at(i)
+        if faction:culture() == culture then
+            for i = 1, #unitIDset do
+                self._unitPoolQuantities[unitIDset[i]][faction:name()] = quantity
+            end
+        end
+    end
+end
+
+
+
+
+
+
+
+
+
 
 
 
