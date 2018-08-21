@@ -1,4 +1,4 @@
-
+cm = get_cm() events = get_events() rm = _G.rm
 local units = {
 {"wh_main_emp_inf_greatswords", "emp_special"},
 {"wh_main_emp_cav_reiksguard", "emp_special"},
@@ -36,6 +36,7 @@ local units = {
 {"wh_main_grn_mon_giant", "grn_elite"},
 {"wh_main_grn_inf_black_orcs", "grn_elite"},
 {"grn_black_orc_shields", "grn_elite"},
+{"grn_savage_big_great", "grn_elite"},
 {"wh_main_grn_mon_arachnarok_spider_0", "grn_rare"},
 
 {"wh_dlc06_dwf_inf_bugmans_rangers_0", "dwf_special"},
@@ -47,7 +48,6 @@ local units = {
 {"wh_main_dwf_inf_irondrakes_0", "dwf_elite"},
 {"wh_main_dwf_inf_irondrakes_2", "dwf_elite"},
 {"dwf_sniper", "dwf_elite"},
-{"dwf_oathsworn", "dwf_rare"},
 {"wh2_dlc10_dwf_inf_giant_slayers", "dwf_rare"},
 
 {"wh_dlc05_wef_inf_deepwood_scouts_0", "wef_special"},
@@ -146,6 +146,8 @@ local units = {
 {"wh2_main_hef_mon_phoenix_frostheart", "hef_elite"},
 {"wh2_dlc10_hef_inf_sisters_of_avelorn_0", "hef_elite"},
 {"wh2_dlc10_hef_mon_treekin_0", "hef_elite"},
+{"wh2_main_hef_inf_phoenix_guard", "hef_elite"},
+{"wh2_main_hef_inf_swordmasters_of_hoeth_0", "hef_elite"},
 {"wh2_dlc10_hef_mon_treeman_0", "hef_rare"},
 {"wh2_main_hef_cav_dragon_princes", "hef_rare"},
 {"wh2_main_hef_mon_moon_dragon", "hef_rare"},
@@ -196,7 +198,7 @@ local units = {
 {"wh2_dlc09_tmb_mon_ushabti_1", "tmb_elite"},
 {"wh2_dlc09_tmb_mon_heirotitan_0", "tmb_rare"},
 {"wh2_dlc09_tmb_mon_necrosphinx_0", "tmb_rare"},
-{"wh2_dlc09_tmb_veh_khemrian_warsphinx_0", "tmb_rare"},
+{"wh2_dlc09_tmb_veh_khemrian_warsphinx_0", "tmb_rare"}
 } --:vector<{string, string}>
 
 local groups = {} --:map<string, boolean>
@@ -231,7 +233,7 @@ local function sfo_add_unit_caps()
             rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
             rm:set_ui_profile_for_unit(units[i][1], {
                 _text = "This is a Special Unit. \n Armies may have up to 6 Special Units.",
-                _image = "ui/campaign ui/cap/special.png"
+                _image = "ui/custom/recruitment_controls/special.png"
             })
         end
         if string.find(units[i][2], "_elite") then
@@ -239,7 +241,7 @@ local function sfo_add_unit_caps()
             rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
             rm:set_ui_profile_for_unit(units[i][1], {
                 _text = "This is an Elite Unit. \n Armies may have up to 4 Elite Units",
-                _image = "ui/campaign ui/cap/elite.png"
+                _image = "ui/custom/recruitment_controls/elite.png"
             })
         end
         if string.find(units[i][2], "_rare") then
@@ -247,7 +249,7 @@ local function sfo_add_unit_caps()
             rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
             rm:set_ui_profile_for_unit(units[i][1], {
                 _text = "This is a Rare Unit. \n Armies may have up to 2 Rare Units.",
-                _image = "ui/campaign ui/cap/rare.png"
+                _image = "ui/custom/recruitment_controls/rare.png"
             })
         end
     end
@@ -268,6 +270,22 @@ local function sfo_add_unit_caps()
         end
     end
 end
+--v function()
+function sfo_apply_cap_bundle()
+    local SFO_UNIT_CAPS_EFFECT_BUNDLE = "cap_factionwide"
+
+
+    local faction_list = cm:model():world():faction_list()
+    for i = 0, faction_list:num_items() - 1 do
+        if not faction_list:item_at(i):is_dead() then
+            cm:apply_effect_bundle(SFO_UNIT_CAPS_EFFECT_BUNDLE, faction_list:item_at(i):name(), 0)
+        end
+    end
+
+
+end
+
+
 
 core:add_listener(
     "SFOcapsDilemma",
@@ -276,9 +294,18 @@ core:add_listener(
         return context:dilemma() == "cap_army_choice"
     end,
     function(context)
-        if context:choice() == 0 then
+        if context:choice() == 1 or context:choice() == 2 then
             sfo_add_unit_caps()
+            cm:set_saved_value("SFO_APPLY_CAPS", true)
+        end
+        if context:choice() == 2 or context:choice() == 3 then
+            sfo_apply_cap_bundle()
         end
     end,
     false)
 
+if cm:get_saved_value("SFO_APPLY_CAPS") then
+    sfo_add_unit_caps()
+end
+    
+    
