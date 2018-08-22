@@ -2,7 +2,6 @@
 events = get_events(); cm = get_cm(); rm = _G.rm;
 
 
-rm:add_unit_pool("wh_dlc04_emp_inf_free_company_militia_0", "wh_main_emp_empire", 2, 3)
 
 local units = {
 --empire
