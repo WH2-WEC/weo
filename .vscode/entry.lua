@@ -1,7 +1,9 @@
 ---[[province extensions
 require("provinces/ProvinceObjects")
 --]]
-
+---[[region details manager
+require("building_overhaul/RegionManagement")
+--]]
 
 
 
