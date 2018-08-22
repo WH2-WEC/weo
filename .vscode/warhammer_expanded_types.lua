@@ -24,7 +24,9 @@
 --provinces
 --# assume global class PROVINCE_REGISTER
 
-
+--region detail
+--# assume global class REGION_DETAIL
+--# assume global class RDM
 --imperium
 --# assume global class IMPERIUM_EFFECTS_MANAGER
 
