@@ -28,7 +28,10 @@ function region_detail_manager.init()
     --religion and wealth impact
     self._buildingReligionEffects = {} --:map<string, function(region: REGION_DETAIL)>
     self._buildingWealthEffects = {} --:map<string, function(region:REGION_DETAIL)>
+    --unit gen impact
     self._buildingUnitGenerationEffects = {} --:map<string, function(region: REGION_DETAIL)>
+    --religion effects
+    self._religionEffects = {} --:map<string, map<number, function(region: REGION_DETAIL)>>
 
     self._regions = {} --: map<string, REGION_DETAIL>
     self._recruiterManager = nil --:RECRUITER_MANAGER
@@ -37,46 +40,54 @@ function region_detail_manager.init()
     _G.rdm = self
 end
 
+--log script to text
 --v method(text: any)
 function region_detail_manager:log(text)
     RDMLOG(tostring(text))
 end
 
+--add the RM linkage to the model
 --v function(self: RDM, rm: RECRUITER_MANAGER)
 function region_detail_manager.add_rm(self, rm)
     self._recruiterManager = rm
 end
 
+--does a building have a religion effect?
 --v function(self: RDM, building: string) --> boolean
 function region_detail_manager.building_has_religion_effect(self, building)
     return not not self._buildingReligionEffects[building]
 end
+--does a building have a wealth effect?
 --v function(self: RDM, building: string) --> boolean
 function region_detail_manager.building_has_wealth_effect(self, building)
     return not not self._buildingWealthEffects[building]
 end
+--does a building have a unit generation effect?
 --v function(self: RDM, building: string) --> boolean
 function region_detail_manager.building_has_unit_gen_effect(self, building)
     return not not self._buildingUnitGenerationEffects[building]
 end
 
+--register a function as the religion effect of the building
 --v function(self: RDM, building: string, effect: function(region: REGION_DETAIL))
 function region_detail_manager.add_building_religion_effect(self, building, effect)
     self._buildingReligionEffects[building] = effect
 end
 
+--register a function as the wealth effect of the building
 --v function(self: RDM, building: string, effect: function(region: REGION_DETAIL))
 function region_detail_manager.add_building_wealth_effect(self, building, effect)
     self._buildingWealthEffects[building] = effect
 end
 
+--register a function as the unit gen effect of a building
 --v function(self: RDM, building: string, effect: function(region: REGION_DETAIL))
 function region_detail_manager.add_building_unit_gen_effect(self, building, effect)
     self._buildingUnitGenerationEffects[building] = effect
 end
 
 --v function(self: RDM, building: string, region_key: string)
-function region_detail_manager.process_region(self, building, region_key)
+function region_detail_manager.process_building_for_region(self, building, region_key)
     local rd = self._regions[region_key]
     if self:building_has_religion_effect(building) then
         self._buildingReligionEffects[building](rd)
@@ -87,6 +98,22 @@ function region_detail_manager.process_region(self, building, region_key)
     if self:building_has_unit_gen_effect(building) then
         self._buildingUnitGenerationEffects[building](rd)
     end
+end
+
+--v function(self: RDM, religion: string, level: number) --> boolean
+function region_detail_manager.does_religion_have_effect_at_level(self, religion, level)
+    if self._religionEffects[religion] == nil then
+        self._religionEffects[religion] = {}
+    end
+    return not not self._religionEffects[religion][level]
+end
+
+--v function(self: RDM, religion: string, level: number, effect: function(rd: REGION_DETAIL))
+function region_detail_manager.add_religion_effect_at_level(self, religion, level, effect)
+    if self._religionEffects[religion] == nil then
+        self._religionEffects[religion] = {}
+    end
+    self._religionEffects[religion][level] = effect
 end
 
 
