@@ -1,9 +1,6 @@
 ---[[province extensions
 require("provinces/ProvinceObjects")
 --]]
----[[region details manager
-require("building_overhaul/RegionManagement")
---]]
 
 
 
@@ -12,8 +9,13 @@ require("recruitment/RecruitmentControls")
 require("recruitment/export_helpers__recruitment_controls")
 require("recruitment/export_helpers__recruitment_controls_ai")
 require("recruitment/export_helpers__tt_groups")
-
 --]]
+---[[region details manager
+require("building_overhaul/RegionManagement")
+require("building_overhaul/export_helpers__region_management")
+--]]
+
+
 
 ---[[geopolitical system
 

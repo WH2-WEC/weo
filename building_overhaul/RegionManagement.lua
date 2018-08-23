@@ -115,31 +115,37 @@ function region_detail_manager.add_religion_effect_at_level(self, religion, leve
     end
     self._religionEffects[religion][level] = effect
 end
-
-
-
-
+---------------------------
+---------------------------
+--region detail subobject--
+---------------------------
+---------------------------
 local region_detail = {} --# assume region_detail: REGION_DETAIL
 
 
---v function(manager: RDM, region_key: string, starting_wealth: number)
-function region_detail.new(manager, region_key, starting_wealth)
+--v function(manager: RDM, region_key: string)
+function region_detail.new(manager, region_key)
     local self = {}
     setmetatable(self, {
         __index = region_detail
     }) --# assume self: REGION_DETAIL
     self._key = region_key
     self._manager = manager
+    self._owningFaction = cm:get_region(region_key):owning_faction():name()
+
     self._buildings = {} --: map<string, boolean>
     --religion 
     self._activeReligions = {} --:map<string, number>
     self._religionStrengths = {} --:map<string, number>
     --wealth
-    self._wealth = starting_wealth
+    self._wealth = 0 --:number
     self._wealthCap = 100 --:number
     --unit generation
     self._unitGeneration = {} --:map<string, number>
-
+    --ui display
+    self._UIwealthEffects = {} --:map<string, number>
+    self._UIreligionEffects = {} --:map<string, number>
+    self._UIunitGenerationEffects = {} --:map<string, string>
 end
 
 --v function(self: REGION_DETAIL) --> RDM
@@ -166,13 +172,19 @@ function region_detail.process_unit_generation(self)
 
 end
 
+--------------------
+--------------------
+--end of subobject--
+--------------------
+--------------------
 
-
-
-
-
-
-
+--v function(self: RDM, region_key: string) --> REGION_DETAIL
+function region_detail_manager.get_region(self, region_key)
+    if self._regions[region_key] == nil then
+        self._regions[region_key] = region_detail.new(self, region_key)
+    end
+    return self._regions[region_key]
+end
 
 
 
