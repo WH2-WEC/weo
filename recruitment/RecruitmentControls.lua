@@ -742,7 +742,16 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     lockedOverlay:SetCanResizeHeight(false)
                     lockedOverlay:SetCanResizeWidth(false)
                 end
-                
+                if self:manager():unit_has_pool(unitID) then
+                    local xp = find_uicomponent(unitCard, "merch_type");
+                    xp:SetVisible(true)
+                    --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                    xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                    xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                else
+                    local xp = find_uicomponent(unitCard, "merch_type");
+                    xp:SetVisible(false)
+                end
                 --unitCard:SetVisible(false)
             else
             --otherwise, set the card clickable
@@ -769,9 +778,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         xp:SetVisible(true)
                         --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
                         xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/recruitment_controls/pool.png")
+                        xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                     else
-                        local xp = find_uicomponent(unitCard, "bonuses", "armour");
+                        local xp = find_uicomponent(unitCard, "merch_type");
                         xp:SetVisible(false)
                     end
                 end
@@ -806,6 +815,10 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     lockedOverlay:SetCanResizeHeight(false)
                     lockedOverlay:SetCanResizeWidth(false)
                 end
+                if self:manager():unit_has_pool(unitID) then
+                    local xp = find_uicomponent(unitCard, "merch_type");
+                    xp:SetVisible(false)
+                end
                 --  unitCard:SetVisible(false)
             else
                 self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
@@ -825,6 +838,16 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         lockedOverlay:SetCanResizeWidth(false)
                     else
                         lockedOverlay:SetVisible(false)
+                    end
+                    if self:manager():unit_has_pool(unitID) then
+                        local xp = find_uicomponent(unitCard, "merch_type");
+                        xp:SetVisible(true)
+                        --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                        xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                        xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    else
+                        local xp = find_uicomponent(unitCard, "merch_type");
+                        xp:SetVisible(false)
                     end
                 end
             end
@@ -861,7 +884,16 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     lockedOverlay:SetCanResizeHeight(false)
                     lockedOverlay:SetCanResizeWidth(false)
                 end
-                
+                if self:manager():unit_has_pool(unitID) then
+                    local xp = find_uicomponent(unitCard, "merch_type");
+                    xp:SetVisible(true)
+                    --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                    xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                    xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                else
+                    local xp = find_uicomponent(unitCard, "merch_type");
+                    xp:SetVisible(false)
+                end
                 --unitCard:SetVisible(false)
             else
             --otherwise, set the card clickable
@@ -882,6 +914,16 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         lockedOverlay:SetCanResizeWidth(false)
                     else
                         lockedOverlay:SetVisible(false)
+                    end
+                    if self:manager():unit_has_pool(unitID) then
+                        local xp = find_uicomponent(unitCard, "merch_type");
+                        xp:SetVisible(true)
+                        --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                        xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                        xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    else
+                        local xp = find_uicomponent(unitCard, "merch_type");
+                        xp:SetVisible(false)
                     end
                 end
             end
