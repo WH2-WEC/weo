@@ -79,9 +79,14 @@ function province_manager.save(self)
             local savetable = self._saveData[faction..province]
             savetable._wealth = fpd._wealth
             savetable._taxRate = fpd._taxRate
+            savetable._religions = fpd._religions
+            savetable._partialUnits = fpd._partialUnits
+            savetable._activeCapital = fpd._activeCapital
+            savetable._activeEffects = fpd._activeEffects
+            savetable._desiredEffects = fpd._desiredEffects
+            savetable._activeEffectsClear = fpd._activeEffectsClear
         end
     end
-
     return self._saveData
 end
 
@@ -90,12 +95,26 @@ function province_manager.load(self, savedata)
     self._saveData = savedata
 end
 
+--v [NO_CHECK] function(self: PM,fpd: FPD)
+function province_manager.load_fpd(self, fpd)
+    --no check because kailua doesn't aprove this way of doing it
+    self:log("LOADING: data for FPD ["..fpd._name.."] ")
+    local savetable = self._saveData[fpd._name]
+    for key, value in pairs(savetable) do
+        fpd[key] = value
+    end
+end
 --v function(self: PM, faction_name: string, province_name: string, region_name: string) --> FPD
 function province_manager.create_faction_province_detail(self, faction_name, province_name, region_name)
     local fpd = faction_province_detail.new(self, faction_name, province_name, region_name)
-    local region_obj = cm:get_region(region_name)
-    if region_obj:is_province_capital() then
-        fpd._correctCapital = true
+    if not self._saveData[fpd._name] == nil then
+        self:load_fpd(fpd)
+    else
+        --we don't need to preform this if we're loading
+        local region_obj = cm:get_region(region_name)
+        if region_obj:is_province_capital() then
+            fpd._correctCapital = true
+        end
     end
     fpd:add_region(self._regionDetails[region_name])
     return fpd
@@ -124,3 +143,18 @@ end
 
 province_manager.init()
 _G.pm:log("province manager initialised")
+
+
+cm:add_saving_game_callback(
+    function(context)
+        local savedata = _G.pm:save() 
+        cm:save_named_value("WEC_PM_SAVEDATA", savedata, context)
+    end
+)
+
+cm:add_loading_game_callback(
+    function(context)
+        local savedata = cm:load_named_value("WEC_PM_SAVEDATA", {}, context)
+        _G.pm:load(savedata)
+    end
+)
