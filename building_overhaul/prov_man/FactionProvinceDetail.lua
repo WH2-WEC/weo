@@ -133,6 +133,63 @@ function faction_province_detail.add_region(self, region_object)
     end
 end
 
+--v function(thresholds:vector<number>, quantity: number) --> number
+local function FindThresholdFit(thresholds, quantity)
+
+    local highest_passed_threshold
+    for i = 1, #thresholds do
+        if quantity >= thresholds[i] then
+            highest_passed_threshold = thresholds[i]
+        else
+            return highest_passed_threshold
+        end
+    end
+    return thresholds[#thresholds]
+
+end
+
+--v function(self: FPD)
+function faction_province_detail.evaluate_reglion(self)
+    for key, region in pairs(self._regions) do
+        for building, _ in pairs(region._buildings) do
+            if not not self._model._religionEffects[building] then
+                for religion, quantity in pairs(self._model._religionEffects[building]) do
+                    self._religions[religion] = self._religions[religion] + quantity
+                end
+            end
+        end
+    end
+    
+    for religion, quantity in pairs(self._religions) do
+        self._religions[religion] = quantity - 5 
+        --natural decay of religions every turn
+        local religion_detail = self._model._religionDetails[religion]
+        local religion_level = FindThresholdFit(religion_detail._thresholds, quantity)
+        table.insert(self._desiredEffects, religion_detail._bundles[religion_level])
+    end
+end
+
+--v function(self: FPD)
+function faction_province_detail.evaluate_tax_rate(self)
+    local sub = cm:get_faction(self._faction):subculture()
+    if self._model._taxResults[sub] == nil then
+        self:log("tax rate is unimplemented for sub ["..sub.."] ")
+        return
+    end
+    table.insert(self._desiredEffects, self._model._taxResults[sub][self._taxRate]._bundle)
+end
+
+
+--v function(self: FPD)
+function faction_province_detail.evaluate_unit_generation(self)
+
+end
+
+
+--v function(self: FPD)
+function faction_province_detail.evaluate_wealth(self)
+
+end
 
 
 

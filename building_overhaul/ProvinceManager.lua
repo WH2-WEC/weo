@@ -54,7 +54,7 @@ function province_manager.init()
     self._wealthResults = {} --:map<string, map<number, string>> -- subculture to level to bundle
     self._wealthParameters = {} --:map<number, number> -- min value for bundle to level
     --tax level effects: struct definition in types files
-    self._taxResults = {} --:map<string,map<number, TAX_DETAIL>>
+    self._taxResults = {} --:map<string,map<number, TAX_DETAIL>> --subculture to level, detail
 
     self._saveData = {} --:map<string, map<string, WHATEVER>>
 
