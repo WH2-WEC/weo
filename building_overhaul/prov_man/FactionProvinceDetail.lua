@@ -20,6 +20,7 @@ function faction_province_detail.new(model, faction, province, capital)
     self._wealth = 0 --:number
     self._taxRate = 3 --:number
     self._religions = {} --:map<string, number>
+    self._religionLevels = {} --:map<string, number>
 
     self._unitProduction = {} --:map<string, number>
     self._producableUnits = {} --:map<string, {_bool: boolean, _reason: string}>
@@ -165,6 +166,7 @@ function faction_province_detail.evaluate_reglion(self)
         --natural decay of religions every turn
         local religion_detail = self._model._religionDetails[religion]
         local religion_level = FindThresholdFit(religion_detail._thresholds, quantity)
+        self._religionLevels[religion] = religion_level
         table.insert(self._desiredEffects, religion_detail._bundles[religion_level])
     end
 end
@@ -200,6 +202,17 @@ function faction_province_detail.evaluate_unit_generation(self)
             end
         end
     end
+    for religion, level in pairs(self._religionLevels) do
+        local religion_detail = self._model._religionDetails[religion]
+        if not religion_detail._unitProdEffects[level] == nil then
+            for unit, quantity in pairs(religion_detail._unitProdEffects[level]) do
+                if self._unitProduction[unit] == nil then
+                    self._unitProduction[unit] = 0 
+                end
+                self._unitProduction[unit] = self._unitProduction[unit] + quantity
+            end
+        end
+    end
     for unit, quantity in pairs(self._unitProduction) do
         local can_produce = true
         local reason = ""
@@ -223,7 +236,26 @@ end
 
 --v function(self: FPD)
 function faction_province_detail.evaluate_wealth(self)
-
+    local subculture = cm:get_faction(self._faction):subculture()
+    if self._model._wealthResults[subculture] == nil then
+        self:log("wealth is not implemented for the subculture: ["..subculture.."]")
+        return
+    end
+    for key, region in pairs(self._regions) do
+        for building, _ in pairs(region._buildings) do
+            if not not self._model._wealthEffects[building] then
+                self._wealth = self._wealth + self._model._wealthEffects[building] 
+            end
+        end
+    end
+    for religion, level in pairs(self._religionLevels) do
+        local religion_detail = self._model._religionDetails[religion]
+        if not religion_detail._wealthEffects[level] == nil then
+            self._wealth = self._wealth + religion_detail._wealthEffects[level]
+        end
+    end
+    local level = FindThresholdFit(self._model._wealthThresholds, self._wealth)
+    table.insert(self._desiredEffects, self._model._wealthResults[subculture][level])
 end
 
 
