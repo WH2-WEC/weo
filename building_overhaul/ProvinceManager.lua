@@ -56,6 +56,8 @@ function province_manager.init()
     --tax level effects: struct definition in types files
     self._taxResults = {} --:map<string,map<number, TAX_DETAIL>>
 
+    self._saveData = {} --:map<string, map<string, WHATEVER>>
+
     _G.pm = self
 end
 
@@ -65,10 +67,28 @@ function province_manager:log(text)
 end
 
 
-
 local region_detail = require("building_overhaul/prov_man/RegionDetail")
 local faction_province_detail = require("building_overhaul/prov_man/FactionProvinceDetail")
 
+--v function(self: PM) --> map<string, map<string, WHATEVER>>
+function province_manager.save(self)
+    self._saveData = {}
+    for faction, province_object_pair in pairs(self._factionProvinceDetails) do
+        for province, fpd in pairs(province_object_pair) do
+            self._saveData[faction..province] = {}
+            local savetable = self._saveData[faction..province]
+            savetable._wealth = fpd._wealth
+            savetable._taxRate = fpd._taxRate
+        end
+    end
+
+    return self._saveData
+end
+
+--v function(self: PM, savedata: map<string, map<string, WHATEVER>>)
+function province_manager.load(self, savedata)
+    self._saveData = savedata
+end
 
 --v function(self: PM, faction_name: string, province_name: string, region_name: string) --> FPD
 function province_manager.create_faction_province_detail(self, faction_name, province_name, region_name)

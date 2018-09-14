@@ -14,14 +14,19 @@ function faction_province_detail.new(model, faction, province, capital)
     self._faction = faction
     self._province = province
     self._regions = {} --:map<string, REGION_DETAIL>
-    self._numRegions = 0
+    self._numRegions = 0 --:number
     self._regionChangeFlag = false
 
-    self._wealth = 0
-    self._taxRate = 3
+    self._wealth = 0 --:number
+    self._taxRate = 3 --:number
+    self._religions = {} --:map<string, number>
+
     self._unitProduction = {} --:map<string, number>
     self._producableUnits = {} --:map<string, {_bool: boolean, _reason: string}>
+    self._partialUnits = {} --:map<string, number>
+
     self._desiredEffects = {} --:vector<string>
+
     self._activeEffects = {} --:vector<string>
     self._activeEffectsClear = true --:boolean
     self._activeCapital = capital
