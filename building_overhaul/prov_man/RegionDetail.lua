@@ -1,7 +1,7 @@
-local region_detail = {} --# assume region_detail: region_detail
+local region_detail = {} --# assume region_detail: REGION_DETAIL
 
---v function(model: PM, region_key: string) --> REGION_DETAIL
-function region_detail.new(model, region_key)
+--v function(model: PM, region_key: string, province_name: string) --> REGION_DETAIL
+function region_detail.new(model, region_key, province_name)
     local self = {}
     setmetatable(self, {
         __index = region_detail,
@@ -11,8 +11,26 @@ function region_detail.new(model, region_key)
     }) --# assume self: REGION_DETAIL
     
     self._key = region_key
+    self._province = province_name
     self._model = model
     self._fpd = nil --: FPD
     self._buildings = {} --:map<string, boolean>
+    
+    return self
+end
+
+
+--v function(self: REGION_DETAIL, text: any)
+function region_detail.log(self, text)
+    self._model:log(tostring(text))
+end
+
+--v function(self:REGION_DETAIL, fpd: FPD)
+function region_detail.set_fpd(self, fpd)
 
 end
+
+
+return {
+    new = region_detail.new
+}
