@@ -58,3 +58,49 @@ function province_manager.init()
 
     _G.pm = self
 end
+
+--v method(text: any)
+function province_manager:log(text)
+    PMLOG(tostring(text))
+end
+
+
+
+local region_detail = require("building_overhaul/prov_man/RegionDetail")
+local faction_province_detail = require("building_overhaul/prov_man/FactionProvinceDetail")
+
+
+--v function(self: PM, faction_name: string, province_name: string, region_name: string) --> FPD
+function province_manager.create_faction_province_detail(self, faction_name, province_name, region_name)
+    local fpd = faction_province_detail.new(self, faction_name, province_name, region_name)
+    local region_obj = cm:get_region(region_name)
+    if region_obj:is_province_capital() then
+        fpd._correctCapital = true
+    end
+    fpd:add_region(self._regionDetails[region_name])
+    return fpd
+end
+
+
+
+--v function(self: PM, region: string)
+function province_manager.create_region_detail(self, region)
+    local region_obj = cm:get_region(region)
+    local province = region_obj:province_name()
+    local faction = region_obj:owning_faction():name()
+    local new_region = region_detail.new(self, region, province)
+    self._regionDetails[region] = new_region
+    if self._factionProvinceDetails[faction] == nil then
+        self._factionProvinceDetails[faction] = {}
+    end
+    if self._factionProvinceDetails[faction][province] == nil then
+        self:create_faction_province_detail(faction, province, region)
+    else
+        self._factionProvinceDetails[faction][province]:add_region(new_region)
+    end
+end
+
+
+
+province_manager.init()
+_G.pm:log("province manager initialised")
