@@ -69,6 +69,8 @@ function faction_province_detail.remove_region(self, region_name)
         if not self._activeEffectsClear then
             self:clear_active_effects()
         end
+        --we set the correct capital flag to false because it will always be false after a capital is lost
+        self._correctCapital = false
         --if this isn't the only region in the province, we need a new capital!
         if self._numRegions > 1 then
             local new_capital 
@@ -109,6 +111,10 @@ function faction_province_detail.add_region(self, region_object)
     self._regionChangeFlag = true
     self:log("added region ["..region_object._key.."] to FPD ["..self._name.."] ")
     --we have to move the capital if the new capital is the real capital
+    --don't bother checking if it's already true
+    if self._correctCapital == true then
+        return
+    end
     if cm:get_region(region_object._key):is_province_capital() then
         --clear any effects on the old capital
         if not self._activeEffectsClear then
