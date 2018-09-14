@@ -85,6 +85,7 @@ function province_manager.save(self)
             savetable._activeEffects = fpd._activeEffects
             savetable._desiredEffects = fpd._desiredEffects
             savetable._activeEffectsClear = fpd._activeEffectsClear
+            savetable._producableUnits = fpd._producableUnits
         end
     end
     return self._saveData

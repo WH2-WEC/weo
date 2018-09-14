@@ -1,4 +1,4 @@
-pm = _G.pm
+pm = _G.pm; rm = _G.rm; cm = get_cm(); events = get_events(); 
 
 --this function creates region details 
 cm:add_game_created_callback(function()
@@ -29,6 +29,7 @@ local function OnTurnStartProvince(fpd)
     --first of all, we want to clean up everything from last turn
     fpd:clear_active_effects()
     fpd._desiredEffects = {}
+    fpd._unitProduction = {}
     --now, we want to evaluate the buildings for each region within the FPD
     for _, region_detail in pairs(fpd._regions) do
         OnTurnStartRegion(region_detail)
@@ -41,6 +42,29 @@ local function OnTurnStartProvince(fpd)
 
     --all evaluations are finished so we can apply effects
     fpd:apply_all_effects()
+    --apply our unit generation to RM
+    for unit, quantity in pairs(fpd._unitProduction) do
+        --avoid a nil case on partial units
+        if fpd._partialUnits[unit] == nil then
+            fpd._partialUnits[unit] = 0
+        end
+        if fpd._producableUnits[unit]._bool == true then
+            local total = 0 --total number of units for rm to recieve
+            fpd._unitProduction[unit] = fpd._unitProduction[unit] + fpd._partialUnits[unit]
+            while fpd._unitProduction[unit] >= 100 do
+                fpd._unitProduction[unit] = fpd._unitProduction[unit] - 100
+                total = total + 1;
+            end
+            if total > 0 then 
+                --increase unit pools
+                rm:change_unit_pool(unit, fpd._faction, total)
+            end
+            --store the partial unit for next turn
+            fpd._partialUnits[unit] = fpd._unitProduction[unit]
+            --restore the unit production so it can be viewed in the UI
+            fpd._unitProduction[unit] = (total * 100) + fpd._partialUnits[unit] 
+        end
+    end
 end
 
 

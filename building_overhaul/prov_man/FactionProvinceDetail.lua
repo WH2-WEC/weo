@@ -182,7 +182,42 @@ end
 
 --v function(self: FPD)
 function faction_province_detail.evaluate_unit_generation(self)
-
+    local subculture = cm:get_faction(self._faction):subculture()
+    if self._model._unitProdReqs[subculture] == nil then 
+        self._model._unitProdReqs[subculture] = {}
+    end
+    local unified_building_map = {} --:map<string, boolean>
+    for key, region in pairs(self._regions) do
+        for building, _ in pairs(region._buildings) do
+            unified_building_map[building] = true
+            if not not self._model._unitProdEffects[building] then
+                for unit, quantity in pairs(self._model._unitProdEffects[building]) do
+                    if self._unitProduction[unit] == nil then
+                        self._unitProduction[unit] = 0 
+                    end
+                    self._unitProduction[unit] = self._unitProduction[unit] + quantity
+                end
+            end
+        end
+    end
+    for unit, quantity in pairs(self._unitProduction) do
+        local can_produce = true
+        local reason = ""
+        local req_buildings = self._model._unitProdReqs[subculture][unit]
+        if req_buildings then
+            for i = 1, #req_buildings do
+                if not unified_building_map[req_buildings[i]] then
+                    can_produce = false
+                    reason = req_buildings[i]
+                end
+            end
+        end
+        if can_produce == true then
+            self._producableUnits[unit] = {_bool = true, _reason = reason}
+        else
+            self._producableUnits[unit] = {_bool = false, _reason = reason}
+        end
+    end
 end
 
 
