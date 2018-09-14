@@ -11,8 +11,10 @@ require("recruitment/export_helpers__recruitment_controls_ai")
 require("recruitment/export_helpers__tt_groups")
 --]]
 ---[[region details manager
-require("building_overhaul/RegionManagement")
-require("building_overhaul/export_helpers__region_management")
+require("building_overhaul/ProvinceManager")
+require("building_overhaul/export_helpers__province_management_events")
+require("building_overhaul/export_helpers__province_management_content")
+require("building_overhaul/export_helpers__province_management_ui")
 --]]
 
 

@@ -26,7 +26,16 @@
 
 --region detail
 --# assume global class REGION_DETAIL
---# assume global class RDM
+--# assume global class PM
+--# assume global class FPD
+
+--# type global RELIGION_DETAIL = {
+--# _name: string, _image: string, _description: string, _bundles: map<number, string>,
+--# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>
+--# }
+--# type global TAX_DETAIL = {
+--# _level: number, _UIName: string, _bundle: string,
+--# _wealthEffects: number, _unitProdEffects: map<string, number>}
 --imperium
 --# assume global class IMPERIUM_EFFECTS_MANAGER
 
@@ -41,10 +50,6 @@
 
 
 
-
---# type global QUEUED_UNIT_RECORD = { 
---# _char: CA_CQI, _unitID: string, _buildTime: number
---#}
 
 
 
