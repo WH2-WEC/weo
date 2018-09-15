@@ -216,6 +216,46 @@ function province_manager.create_region_detail(self, region)
 end
 
 
+--content API functions
+--v function(self: PM, building: string, wealth_effect: number)
+function province_manager.add_building_wealth_effect(self, building, wealth_effect)
+    if is_number(wealth_effect) and is_string(building) then
+        self._wealthEffects[building] = wealth_effect
+    end
+end
+
+--v function(self: PM, building: string, religion: RELIGION_NAME, effect: number)
+function province_manager.add_building_religion_effect(self, building, religion, effect)
+    if is_number(effect) and is_string(religion) and is_string(building) then
+        if self._religionEffects[building] == nil then
+            self._religionEffects[building] = {}
+        end
+        self._religionEffects[building][religion] = effect
+    end
+end
+
+--v function(self: PM, building: string, unitID: string, effect: number)
+function province_manager.add_building_unit_production_effect(self, building, unitID, effect)
+    if is_number(effect) and is_string(unitID) and is_string(building) then
+        if self._unitProdEffects[building] == nil then
+            self._unitProdEffects[building] = {}
+        end
+        self._unitProdEffects[building][unitID] = effect
+    end
+end
+
+--v function(self: PM, subculture: string, unitID: string, building: string)
+function province_manager.add_building_unit_requirement(self, subculture, unitID, building)
+    if is_string(building) and is_string(unitID) and is_string(subculture) then
+        if self._unitProdReqs[subculture] == nil then
+            self._unitProdReqs[subculture] = {}
+        end
+        if self._unitProdReqs[subculture][unitID] == nil then
+            self._unitProdReqs[subculture][unitID] = {}
+        end
+        table.insert(self._unitProdReqs[subculture][unitID], building)
+    end
+end
 
 province_manager.init()
 _G.pm:log("province manager initialised")
