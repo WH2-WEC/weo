@@ -137,16 +137,24 @@ end
 --v function(thresholds:vector<number>, quantity: number) --> number
 local function FindThresholdFit(thresholds, quantity)
 
-    local highest_passed_threshold
+    local highest_passed_threshold --:number
+    local highest_threshold_checked = 0 --:number
     for i = 1, #thresholds do
         if quantity >= thresholds[i] then
-            highest_passed_threshold = thresholds[i]
-        else
-            return highest_passed_threshold
+            if highest_passed_threshold == nil then
+                highest_passed_threshold = thresholds[i]
+            elseif thresholds[i] > highest_passed_threshold then
+                highest_passed_threshold = thresholds[i]
+            end
+        end
+        if thresholds[i] > highest_threshold_checked then
+            highest_threshold_checked = thresholds[i]
         end
     end
-    return thresholds[#thresholds]
-
+    if highest_passed_threshold == nil then
+        return highest_threshold_checked
+    end
+    return highest_passed_threshold
 end
 
 --v function(self: FPD)
@@ -279,7 +287,7 @@ function faction_province_detail.evaluate_wealth(self)
         self._wealth = self._wealth + tax_wealth_effect
     end
 
-    local level = FindThresholdFit(self._model._wealthThresholds, self._wealth)
+    local level = FindThresholdFit(self._model._wealthThresholds[subculture], self._wealth)
     table.insert(self._desiredEffects, self._model._wealthResults[subculture][level])
 end
 
