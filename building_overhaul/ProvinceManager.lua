@@ -52,7 +52,7 @@ function province_manager.init()
     self._religionDetails = {} --:map<string, RELIGION_DETAIL>
     --consequence bundles
     self._wealthResults = {} --:map<string, map<number, string>> -- subculture to level to bundle
-    self._wealthThresholds = {} --:vector<number> -- min value for bundle to level
+    self._wealthThresholds = {} --:map<string, vector<number>> -- subculture to threshold set
     --tax level effects: struct definition in types files
     self._taxResults = {} --:map<string,map<number, TAX_DETAIL>> --subculture to level, detail
 
@@ -254,6 +254,35 @@ function province_manager.add_building_unit_requirement(self, subculture, unitID
             self._unitProdReqs[subculture][unitID] = {}
         end
         table.insert(self._unitProdReqs[subculture][unitID], building)
+    end
+end
+
+--v function(self: PM, religion_key: RELIGION_NAME, religion_detail: RELIGION_DETAIL)
+function province_manager.create_religion(self, religion_key, religion_detail)
+    if is_string(religion_key) and is_table(religion_detail) then
+        self._religionDetails[religion_key] = religion_detail
+    end
+end
+
+--v function(self: PM, subculture: string, quantity: number, effect_bundle: string)
+function province_manager.add_wealth_threshold_for_subculture(self, subculture, quantity, effect_bundle)
+    if is_string(subculture) and is_number(quantity) and is_string(effect_bundle) then
+        if self._wealthResults[subculture] == nil then
+            self._wealthResults[subculture] = {}
+            self._wealthThresholds[subculture] = {}
+        end
+        self._wealthResults[subculture][quantity] = effect_bundle
+        table.insert(self._wealthThresholds[subculture], quantity)
+    end
+end
+
+--v function(self: PM, subculture: string, level: number, tax_detail: TAX_DETAIL)
+function province_manager.add_tax_level_for_subculture(self, subculture, level, tax_detail)
+    if is_string(subculture) and is_number(level) and is_table(tax_detail) then
+        if self._taxResults[subculture] == nil then
+            self._taxResults[subculture] = {}
+        end
+        self._taxResults[subculture][level] = tax_detail
     end
 end
 
