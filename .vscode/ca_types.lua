@@ -258,7 +258,8 @@
 
 --# assume CM.char_is_mobile_general_with_army: method(character: CA_CHAR) --> boolean
 
-
+--# assume CM.remove_event_restricted_unit_record_for_faction: method(unit_record: string, faction: string)
+--# assume CM.add_event_restricted_unit_record_for_faction: method(unit_record: string, faction: string)
 
 
 

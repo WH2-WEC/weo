@@ -119,7 +119,20 @@ local function rm_ai_evaluation(faction)
         local character = character_list:item_at(i)
         rm_ai_character(character)
     end
+    if not rm._unitPoolQuantities[faction:name()] == nil then
+        for unit, quantity in pairs(rm._unitPoolQuantities[faction:name()]) do
+            if quantity <= 0 then
+                cm:add_event_restricted_unit_record_for_faction(unit, faction:name())
+            else
+                cm:remove_event_restricted_unit_record_for_faction(unit, faction:name())
+            end
+        end
+    end
 end
+
+
+
+
 
 
 
