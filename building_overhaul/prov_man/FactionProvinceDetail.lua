@@ -188,6 +188,7 @@ function faction_province_detail.evaluate_unit_generation(self)
     if self._model._unitProdReqs[subculture] == nil then 
         self._model._unitProdReqs[subculture] = {}
     end
+    --buildings
     local unified_building_map = {} --:map<string, boolean>
     for key, region in pairs(self._regions) do
         for building, _ in pairs(region._buildings) do
@@ -202,6 +203,7 @@ function faction_province_detail.evaluate_unit_generation(self)
             end
         end
     end
+    --religions
     for religion, level in pairs(self._religionLevels) do
         local religion_detail = self._model._religionDetails[religion]
         if not religion_detail._unitProdEffects[level] == nil then
@@ -213,6 +215,19 @@ function faction_province_detail.evaluate_unit_generation(self)
             end
         end
     end
+    --tax rate
+    if self._model._taxResults[subculture] == nil then
+        self:log("No tax implementation for wealth on this subculture")
+    else
+        local tax_wealth_effect = self._model._taxResults[subculture][self._taxRate]._unitProdEffects
+        for unit, quantity in pairs(tax_wealth_effect) do
+            if self._unitProduction[unit] == nil then
+                self._unitProduction[unit] = 0 
+            end
+            self._unitProduction[unit] = self._unitProduction[unit] + quantity
+        end
+    end
+    --production permissions
     for unit, quantity in pairs(self._unitProduction) do
         local can_produce = true
         local reason = ""
@@ -241,6 +256,7 @@ function faction_province_detail.evaluate_wealth(self)
         self:log("wealth is not implemented for the subculture: ["..subculture.."]")
         return
     end
+    --buildings
     for key, region in pairs(self._regions) do
         for building, _ in pairs(region._buildings) do
             if not not self._model._wealthEffects[building] then
@@ -248,12 +264,21 @@ function faction_province_detail.evaluate_wealth(self)
             end
         end
     end
+    --religion
     for religion, level in pairs(self._religionLevels) do
         local religion_detail = self._model._religionDetails[religion]
         if not religion_detail._wealthEffects[level] == nil then
             self._wealth = self._wealth + religion_detail._wealthEffects[level]
         end
     end
+    --wealth
+    if self._model._taxResults[subculture] == nil then
+        self:log("No tax implementation for wealth on this subculture")
+    else
+        local tax_wealth_effect = self._model._taxResults[subculture][self._taxRate]._wealthEffects
+        self._wealth = self._wealth + tax_wealth_effect
+    end
+
     local level = FindThresholdFit(self._model._wealthThresholds, self._wealth)
     table.insert(self._desiredEffects, self._model._wealthResults[subculture][level])
 end
