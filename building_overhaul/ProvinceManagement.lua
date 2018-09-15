@@ -41,6 +41,8 @@ function province_manager.init()
         __tostring = function() return "WEC_PROVINCE_MANAGER" end
     }) --# assume self: PM
 
+    self._currentFPD = nil --:FPD
+
     self._factionProvinceDetails = {} --: map<string, map<string, FPD>> -- faction to province key, FPD object
     self._regionDetails = {} --:map<string, REGION_DETAIL> -- region key, detail object
     --building effects on mod variables
@@ -130,10 +132,6 @@ function province_manager.error_checker(self)
     end
     core.add_listener = myAddListener;
 
-    local currentGameCreated = cm.add_game_created_callback
-    cm.add_game_created_callback = function(cm, callback)
-        currentGameCreated(cm, wrapFunction(callback))
-    end
 end
 
 local region_detail = {} --# assume region_detail: REGION_DETAIL
@@ -505,6 +503,10 @@ end
 function province_manager.create_faction_province_detail(self, faction_name, province_name, region_name)
     self:log("Creating an FPD for ["..faction_name.."], ["..province_name.."], with starting capital ["..region_name.."]  ")
     local fpd = faction_province_detail.new(self, faction_name, province_name, region_name)
+    if self._factionProvinceDetails[faction_name] == nil then
+        self._factionProvinceDetails[faction_name] = {}
+    end
+    self._factionProvinceDetails[faction_name][province_name] = fpd
     if not self._saveData[fpd._name] == nil then
         self:load_fpd(fpd)
     else

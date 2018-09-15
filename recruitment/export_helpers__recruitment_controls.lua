@@ -3,7 +3,7 @@ events = get_events(); cm = get_cm(); rm = _G.rm;
 
 rm:error_checker() --turn on error checking
 
----[[testing code
+--[[testing code
 core:add_listener(
     "printquantity",
     "ShortcutTriggered",

@@ -1,17 +1,7 @@
 pm = _G.pm; rm = _G.rm; cm = get_cm(); events = get_events(); 
 pm:error_checker()
 
---this function creates region details 
-cm:add_game_created_callback(function()
-    local regions_list = cm:model():world():region_manager():region_list()
-    for i = 0, regions_list:num_items() - 1 do
-        local region_obj = regions_list:item_at(i)
-        if not region_obj:settlement():is_null_interface() then
-            --flows through to create FPD and load FPD data
-            pm:create_region_detail(region_obj:name())
-        end
-    end
-end)
+
 
 --these deal with turn start processes
 --v function(region_detail: REGION_DETAIL)
@@ -20,13 +10,20 @@ local function OnTurnStartRegion(region_detail)
     local region_obj = cm:get_region(region_name)
     region_detail._buildings = {}
     for i = 0, region_obj:settlement():slot_list():num_items() - 1 do
-        local building = region_obj:settlement():slot_list():item_at(i):building():name()
-        region_detail._buildings[building] = true
+        local slot = region_obj:settlement():slot_list():item_at(i)
+        if slot:has_building() then
+            building = slot:building():name()
+            region_detail._buildings[building] = true
+        end
     end
 end
 
 --v function(fpd: FPD)
 local function OnTurnStartProvince(fpd)
+    if fpd._faction == "rebels" then
+        return
+    end
+    pm:log("processing turn start for fpd: ["..fpd._name.."] !")
     --first of all, we want to clean up everything from last turn
     fpd:clear_active_effects()
     fpd._desiredEffects = {}
@@ -65,6 +62,7 @@ local function OnTurnStartProvince(fpd)
             fpd._unitProduction[unit] = (total * 100) + fpd._partialUnits[unit] 
         end
     end
+    pm:log("turn start process complete!")
 end
 
 
@@ -72,12 +70,18 @@ end
 core:add_listener(
     "ProvinceManagerTurnStart",
     "FactionTurnStart",
-    true,
+    function(context)
+        return true
+    end,
     function(context)
         local faction = context:faction():name() --:string
         local province_object_pair = pm._factionProvinceDetails[faction]
-        for province_name, fpd in pairs(province_object_pair) do
-            OnTurnStartProvince(fpd)
+        if not not province_object_pair then
+            for province_name, fpd in pairs(province_object_pair) do
+                OnTurnStartProvince(fpd)
+            end
+        else
+            pm:log("No FPD's found for ["..faction.."]: either they are a horde or something has gone wrong!")
         end
     end,
     true
@@ -93,6 +97,7 @@ local function OnRegionOccupied(region_name)
     local region_detail = pm._regionDetails[region_name]
     local old_owner_fpd = region_detail._fpd
     local province_name = region_obj:province_name()
+    pm:log("Region ["..region_name.."] has been occupied by ["..new_owner.."]")
     old_owner_fpd:remove_region(region_name)
     if pm._factionProvinceDetails[new_owner] == nil then
         pm._factionProvinceDetails[new_owner] = {}
@@ -105,4 +110,50 @@ local function OnRegionOccupied(region_name)
     if old_owner_fpd._numRegions == 0 then
         pm:delete_fpd(old_owner_fpd)
     end
+    pm:log("ownership transition complete")
 end
+
+core:add_listener(
+    "RegionTransitionTracker",
+    "GarrisonOccupiedEvent",
+    function(context)
+    return true
+    end,
+    function(context)
+        local region = context:garrison_residence():region():name()
+        OnRegionOccupied(region)
+    end,
+    true)
+
+
+
+
+
+--this function creates region details 
+    events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1]  = function()
+        local status, err = pcall(function()
+            pm:log("Creating regions")
+            local regions_list = cm:model():world():region_manager():region_list()
+            for i = 0, regions_list:num_items() - 1 do
+                local region_obj = regions_list:item_at(i)
+                if not region_obj:settlement():is_null_interface() then
+                    --flows through to create FPD and load FPD data
+                    pm:create_region_detail(region_obj:name())
+                end
+            end
+            
+            if cm:get_saved_value("WEC_PM_NEWGAME") == nil then
+                for faction, province_pair in pairs(pm._factionProvinceDetails) do
+                    for province, object in pairs(province_pair) do
+                        OnTurnStartProvince(object)
+                    end
+                end
+            end
+            cm:set_saved_value("WEC_PM_NEWGAME", true)
+        end)
+        if not status then
+            --# assume err: string
+            pm:log(err)
+        end
+        
+    end
