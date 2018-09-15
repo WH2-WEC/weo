@@ -33,6 +33,11 @@
 --# _name: string, _image: string, _description: string, _thresholds: vector<number>, _bundles: map<number, string>,
 --# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>
 --# }
+--# type global RELIGION_NAME = 
+--# "hum_sigmar" | "hum_ulric" | "hum_mannann" | "hum_myrmida" | "hum_taal" | "hum_lady" | "hum_ursun"
+--# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_vaul" | "elf_hekarti"
+--# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea"
+
 --# type global TAX_DETAIL = {
 --# _level: number, _UIName: string, _bundle: string,
 --# _wealthEffects: number, _unitProdEffects: map<string, number>}
