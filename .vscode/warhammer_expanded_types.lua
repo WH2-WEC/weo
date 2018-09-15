@@ -30,7 +30,7 @@
 --# assume global class FPD
 
 --# type global RELIGION_DETAIL = {
---# _name: string, _image: string, _description: string, _thresholds: vector<number>, _bundles: map<number, string>,
+--# _name: string, _UIName: string, _image: string, _description: string, _thresholds: vector<number>, _bundles: map<number, string>,
 --# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>
 --# }
 --# type global RELIGION_NAME = 

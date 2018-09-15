@@ -193,7 +193,12 @@ function province_manager.create_faction_province_detail(self, faction_name, pro
     return fpd
 end
 
-
+--v function(self: PM, fpd: FPD)
+function province_manager.delete_fpd(self, fpd)
+    self:log("removing no longer in use fpd ["..fpd._name.."]")
+    self._saveData[fpd._name] = nil;
+    self._factionProvinceDetails[fpd._faction][fpd._province] = nil
+end
 
 --v function(self: PM, region: string)
 function province_manager.create_region_detail(self, region)

@@ -1,5 +1,6 @@
 pm = _G.pm; rm = _G.rm; cm = get_cm(); events = get_events(); 
 pm:error_checker()
+
 --this function creates region details 
 cm:add_game_created_callback(function()
     local regions_list = cm:model():world():region_manager():region_list()
@@ -12,6 +13,7 @@ cm:add_game_created_callback(function()
     end
 end)
 
+--these deal with turn start processes
 --v function(region_detail: REGION_DETAIL)
 local function OnTurnStartRegion(region_detail)
     local region_name = region_detail._key
@@ -25,7 +27,6 @@ end
 
 --v function(fpd: FPD)
 local function OnTurnStartProvince(fpd)
-
     --first of all, we want to clean up everything from last turn
     fpd:clear_active_effects()
     fpd._desiredEffects = {}
@@ -39,7 +40,6 @@ local function OnTurnStartProvince(fpd)
     fpd:evaluate_tax_rate() --can also impact wealth and unit gen
     fpd:evaluate_unit_generation()
     fpd:evaluate_wealth()
-
     --all evaluations are finished so we can apply effects
     fpd:apply_all_effects()
     --apply our unit generation to RM
@@ -82,3 +82,27 @@ core:add_listener(
     end,
     true
 )
+
+
+--these deal with when a region is captured
+
+--v function(region_name: string)
+local function OnRegionOccupied(region_name)
+    local region_obj = cm:get_region(region_name)
+    local new_owner = region_obj:owning_faction():name()
+    local region_detail = pm._regionDetails[region_name]
+    local old_owner_fpd = region_detail._fpd
+    local province_name = region_obj:province_name()
+    old_owner_fpd:remove_region(region_name)
+    if pm._factionProvinceDetails[new_owner] == nil then
+        pm._factionProvinceDetails[new_owner] = {}
+    end
+    if pm._factionProvinceDetails[new_owner][province_name] == nil then
+        pm:create_faction_province_detail(new_owner, province_name, region_name)
+    else
+        pm._factionProvinceDetails[new_owner][province_name]:add_region(region_detail)
+    end
+    if old_owner_fpd._numRegions == 0 then
+        pm:delete_fpd(old_owner_fpd)
+    end
+end
