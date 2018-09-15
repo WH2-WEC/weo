@@ -1,5 +1,5 @@
 pm = _G.pm; rm = _G.rm; cm = get_cm(); events = get_events(); 
-
+pm:error_checker()
 --this function creates region details 
 cm:add_game_created_callback(function()
     local regions_list = cm:model():world():region_manager():region_list()

@@ -25,9 +25,10 @@ function region_detail.log(self, text)
     self._model:log(tostring(text))
 end
 
---v function(self:REGION_DETAIL, fpd: FPD)
+--v [NO_CHECK] function(self:REGION_DETAIL, fpd: FPD)
 function region_detail.set_fpd(self, fpd)
-
+    self:log("Region Detail ["..self._key.."] is now linked to ["..fpd._name.."] ")
+    self._fpd = fpd
 end
 
 
