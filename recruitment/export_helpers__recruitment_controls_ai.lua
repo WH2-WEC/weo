@@ -158,7 +158,7 @@ core:add_listener(
     function(context)
         local unit = context:unit() --:CA_UNIT
         if rm:unit_has_pool(unit:unit_key()) then
-            rm:change_unit_pool(unit:unit_key(), unit:faction():name(), 1)
+            rm:change_unit_pool(unit:unit_key(), unit:faction():name(), -1)
         end
     end,
     true
