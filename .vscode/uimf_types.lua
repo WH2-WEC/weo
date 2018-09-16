@@ -101,6 +101,7 @@
 --# assume TEXT_BUTTON.Position: method() --> (number, number)
 --# assume TEXT_BUTTON.Bounds: method() --> (number, number)
 --# assume TEXT_BUTTON.RegisterForClick: method(callback: function(context: WHATEVER?))
+--# assume TEXT_BUTTON.SetDisabled: method(disabled: boolean)
 --frame
 --# assume FRAME.MoveTo: method(xPos: number, yPos: number)
 --# assume FRAME.Move: method(xMove: number, yMove: number)

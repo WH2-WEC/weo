@@ -399,6 +399,7 @@
 --# assume CA_MODEL.character_for_command_queue_index: method(cqi: CA_CQI) --> CA_CHAR
 --# assume CA_MODEL.random_percent: method(chance: number) --> boolean
 --# assume CA_MODEL.facton_is_local: method(faction_key: string) --> boolean
+--# assume CA_MODEL.faction_for_command_queue_index: method(cqi: CA_CQI) --> CA_FACTION
 
 -- WORLD
 --# assume CA_WORLD.faction_list: method() --> CA_FACTION_LIST
