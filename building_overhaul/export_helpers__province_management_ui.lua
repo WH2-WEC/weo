@@ -11,11 +11,11 @@ local function UIOnSettlementSelected()
     if not not existingElement then
         --# assume existingElement: BUTTON
         existingElement:SetVisible(true)
-        existingElement:MoveTo(8, 1008)
+        existingElement:MoveTo(8, 1016)
     else
-        local ButtonParent = find_uicomponent(core:get_ui_root(), "layout", "info_panel_holder", "primary_info_panel_holder", "info_panel_background", "ProvinceInfoPopup", "parchment_banner")
+        local ButtonParent = find_uicomponent(core:get_ui_root(), "layout") --, "info_panel_holder", "primary_info_panel_holder", "info_panel_background", "ProvinceInfoPopup", "parchment_banner"
         local DetailsButton = Button.new(UIBUTTONNAME, ButtonParent, "CIRCULAR", "ui/skins/default/icon_province_details.png")
-        DetailsButton:MoveTo(8, 1008)
+        DetailsButton:MoveTo(8, 1016)
         DetailsButton:RegisterForClick(function() end)
     end
 end
