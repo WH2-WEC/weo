@@ -57,14 +57,31 @@ local function PopulatePanel(DetailsFrame, fpd)
             local UnitProductionHolder = Container.new(FlowLayout.VERTICAL)
 
             local WealthHolder = Container.new(FlowLayout.VERTICAL)
-
+                local WealthTitleHolder = Container.new(FlowLayout.HORIZONTAL)
+                    local WealthTitle = Image.new(UIPANELNAME.."_WEALTH_TITLE", DetailsFrame, "ui/custom/pmui/WealthTitle.png")
+                    WealthTitle:Resize(190, 35)
+                WealthTitleHolder:AddGap(105)
+                WealthTitleHolder:AddComponent(WealthTitle)
+                WealthTitleHolder:AddGap(105)
+                local WealthDisplayHolder = Container.new(FlowLayout.HORIZONTAL)
+                    local WealthDisplay = Text.new(UIPANELNAME.."_DY_WEALTH", DetailsFrame, "NORMAL", "[[col:black]]Wealth [[/col]][[col:dark_g]] "..fpd._wealth.."[[/col]]")
+                    WealthDisplay:Resize(190, 40)
+                    --local CurrentEffectLevel = Image.new()
+                WealthDisplayHolder:AddComponent(WealthDisplay)
+                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "[[col:black]]Wealth Factors: [[/col]]")
+                WealthFactorsBlurb:Resize(190, 40)
+                --wealth factors list
+            WealthHolder:AddComponent(WealthTitleHolder)
+            WealthHolder:AddComponent(WealthDisplayHolder)
+            WealthHolder:AddComponent(WealthFactorsBlurb)
+            
         HorizontalHolder_2:AddComponent(UnitProductionHolder)
         HorizontalHolder_2:AddGap(fX/10)
         HorizontalHolder_2:AddComponent(WealthHolder)
     if HorizontalHolder_1 then
         FrameContainer:AddComponent(HorizontalHolder_1)
     end
-    FrameContainer:AddGap(fY/6)
+    --FrameContainer:AddGap(15)
     FrameContainer:AddComponent(HorizontalHolder_2)
     Util.centreComponentOnComponent(FrameContainer, DetailsFrame)   
 end
