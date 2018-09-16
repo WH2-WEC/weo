@@ -747,7 +747,12 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     xp:SetVisible(true)
                     --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
                     xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                    xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    xp:SetCanResizeHeight(true)
+                    xp:SetCanResizeWidth(true)
+                    xp:Resize(30, 30)
+                    xp:SetCanResizeHeight(false)
+                    xp:SetCanResizeWidth(false)
                 else
                     local xp = find_uicomponent(unitCard, "merch_type");
                     xp:SetVisible(false)
@@ -778,7 +783,12 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         xp:SetVisible(true)
                         --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
                         xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                        xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                        xp:SetCanResizeHeight(true)
+                        xp:SetCanResizeWidth(true)
+                        xp:Resize(40, 40)
+                        xp:SetCanResizeHeight(false)
+                        xp:SetCanResizeWidth(false)
                     else
                         local xp = find_uicomponent(unitCard, "merch_type");
                         xp:SetVisible(false)
@@ -817,6 +827,17 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 end
                 if self:manager():unit_has_pool(unitID) then
                     local xp = find_uicomponent(unitCard, "merch_type");
+                    xp:SetVisible(true)
+                    --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                    xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                    xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    xp:SetCanResizeHeight(true)
+                    xp:SetCanResizeWidth(true)
+                    xp:Resize(30, 30)
+                    xp:SetCanResizeHeight(false)
+                    xp:SetCanResizeWidth(false)
+                else
+                    local xp = find_uicomponent(unitCard, "merch_type");
                     xp:SetVisible(false)
                 end
                 --  unitCard:SetVisible(false)
@@ -844,7 +865,12 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         xp:SetVisible(true)
                         --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
                         xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                        xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                        xp:SetCanResizeHeight(true)
+                        xp:SetCanResizeWidth(true)
+                        xp:Resize(30, 30)
+                        xp:SetCanResizeHeight(false)
+                        xp:SetCanResizeWidth(false)
                     else
                         local xp = find_uicomponent(unitCard, "merch_type");
                         xp:SetVisible(false)
@@ -889,7 +915,12 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     xp:SetVisible(true)
                     --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
                     xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                    xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                    xp:SetCanResizeHeight(true)
+                    xp:SetCanResizeWidth(true)
+                    xp:Resize(30, 30)
+                    xp:SetCanResizeHeight(false)
+                    xp:SetCanResizeWidth(false)
                 else
                     local xp = find_uicomponent(unitCard, "merch_type");
                     xp:SetVisible(false)
@@ -920,7 +951,12 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         xp:SetVisible(true)
                         --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
                         xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/dummies/pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                        xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                        xp:SetCanResizeHeight(true)
+                        xp:SetCanResizeWidth(true)
+                        xp:Resize(30, 30)
+                        xp:SetCanResizeHeight(false)
+                        xp:SetCanResizeWidth(false)
                     else
                         local xp = find_uicomponent(unitCard, "merch_type");
                         xp:SetVisible(false)
@@ -1491,8 +1527,8 @@ end
 
 --set the pool quantity of a unit
 --sloooow, use the alternative function below for large numbers of units with the same quantity
---v function(self: RECRUITER_MANAGER, unitID: string, culture: string, quantity: number, maximum: number)
-function recruiter_manager.add_unit_pool(self, unitID, culture, quantity, maximum)
+--v function(self: RECRUITER_MANAGER, unitID: string, culture: string, quantity: number, maximum: number, variance: number?)
+function recruiter_manager.add_unit_pool(self, unitID, culture, quantity, maximum, variance)
     self._unitPoolQuantities[unitID] = {}
     self._unitPools[unitID] = true
     self._unitPoolMaximums[unitID] = maximum
@@ -1501,15 +1537,20 @@ function recruiter_manager.add_unit_pool(self, unitID, culture, quantity, maximu
     for i = 0, faction_list:num_items() - 1 do
         local faction = faction_list:item_at(i)
         if faction:culture() == culture then
-            self._unitPoolQuantities[unitID][faction:name()] = quantity
+            if not not variance then
+                --# assume variance: integer
+                self._unitPoolQuantities[unitID][faction:name()] = (quantity + cm:random_number(variance))
+            else
+                self._unitPoolQuantities[unitID][faction:name()] = quantity
+            end
         end
     end
 end
 
 --sets the pool quantity of a large list of units
 --faster
---v function(self: RECRUITER_MANAGER, unitIDset: vector<string>, culture: string, quantity: number, maximum: number)
-function recruiter_manager.add_unit_set_to_pools(self, unitIDset, culture, quantity, maximum)
+--v function(self: RECRUITER_MANAGER, unitIDset: vector<string>, subculture: string, quantity: number, maximum: number, variance: number?)
+function recruiter_manager.add_unit_set_to_pools(self, unitIDset, subculture, quantity, maximum, variance)
     for i = 1, #unitIDset do
         self._unitPoolQuantities[unitIDset[i]] = {}
         self._unitPools[unitIDset[i]] = true
@@ -1519,9 +1560,14 @@ function recruiter_manager.add_unit_set_to_pools(self, unitIDset, culture, quant
     local faction_list = cm:model():world():faction_list()
     for i = 0, faction_list:num_items() - 1 do
         local faction = faction_list:item_at(i)
-        if faction:culture() == culture then
+        if faction:subculture() == subculture then
             for i = 1, #unitIDset do
-                self._unitPoolQuantities[unitIDset[i]][faction:name()] = quantity
+                if not not variance then
+                    --# assume variance: int
+                    self._unitPoolQuantities[unitIDset[i]][faction:name()] = quantity + cm:random_number(variance)
+                else
+                    self._unitPoolQuantities[unitIDset[i]][faction:name()] = quantity
+                end
             end
         end
     end

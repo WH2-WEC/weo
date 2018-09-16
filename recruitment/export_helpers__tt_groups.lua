@@ -389,6 +389,7 @@ local units = {
 } --:vector<{string, string, number?}>
 
 local groups = {} --:map<string, boolean>
+local pools = {} --:map<string, vector<string>>
 
 local prefix_to_subculture = {
     bst = "wh_dlc03_sc_bst_beastmen",
@@ -417,6 +418,12 @@ for i = 1, #units do
     end
     groups[units[i][2]] = true;
     rm:add_unit_to_group(units[i][1], units[i][2])
+    
+    if pools[units[i][2]] == nil then
+        pools[units[i][2]] = {}
+    end 
+    table.insert(pools[units[i][2]], units[i][1])
+
 
     if string.find(units[i][2], "_core") then
         local prefix = string.gsub(units[i][2], "_core", "")
@@ -462,6 +469,22 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = functi
         if string.find(name, "rare") then
             rm:set_ui_name_for_group(name, "Rare Units")
             rm:add_character_quantity_limit_for_group(name, 5)
+        end
+    end
+    for category, unitset in pairs(pools) do
+        if string.find(category, "tmb") or string.find(category, "vmp") then
+            --do nothing
+        else
+            if string.find(category, "_core") then
+                local prefix = string.gsub(category, "_core", "")
+                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 2, 12, 3)
+            elseif string.find(category, "_special") then
+                local prefix = string.gsub(category, "_special", "")
+                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 1, 12, 1)
+            elseif string.find(category, "_rare") then
+                local prefix = string.gsub(category, "_rare", "")
+                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 1, 12)
+            end
         end
     end
 end;

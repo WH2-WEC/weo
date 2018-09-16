@@ -130,30 +130,71 @@ core:add_listener(
 
 
 --this function creates region details 
-    events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1]  = function()
-        local status, err = pcall(function()
-            pm:log("Creating regions")
-            local regions_list = cm:model():world():region_manager():region_list()
-            for i = 0, regions_list:num_items() - 1 do
-                local region_obj = regions_list:item_at(i)
-                if not region_obj:settlement():is_null_interface() then
-                    --flows through to create FPD and load FPD data
-                    pm:create_region_detail(region_obj:name())
-                end
+events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1]  = function()
+    local status, err = pcall(function()
+        pm:log("Creating regions")
+        local regions_list = cm:model():world():region_manager():region_list()
+        for i = 0, regions_list:num_items() - 1 do
+            local region_obj = regions_list:item_at(i)
+            if not region_obj:settlement():is_null_interface() then
+                --flows through to create FPD and load FPD data
+                pm:create_region_detail(region_obj:name())
             end
-            
-            if cm:get_saved_value("WEC_PM_NEWGAME") == nil then
-                for faction, province_pair in pairs(pm._factionProvinceDetails) do
-                    for province, object in pairs(province_pair) do
-                        OnTurnStartProvince(object)
-                    end
-                end
-            end
-            cm:set_saved_value("WEC_PM_NEWGAME", true)
-        end)
-        if not status then
-            --# assume err: string
-            pm:log(err)
         end
         
+        if cm:get_saved_value("WEC_PM_NEWGAME") == nil then
+            for faction, province_pair in pairs(pm._factionProvinceDetails) do
+                for province, object in pairs(province_pair) do
+                    OnTurnStartProvince(object)
+                end
+            end
+        end
+        cm:set_saved_value("WEC_PM_NEWGAME", true)
+    end)
+    if not status then
+        --# assume err: string
+        pm:log(err)
     end
+    
+end
+
+
+--this function marks the currently selected province object for the UI
+
+core:add_listener(
+    "SettlementSelectionTracker",
+    "SettlementSelected",
+    function(context)
+        return context:garrison_residence():faction():name() == cm:get_local_faction(true)
+    end,
+    function(context)
+        local province = context:garrison_residence():region():province_name()
+        local faction_name = context:garrison_residence():region():owning_faction():name()
+        local fpd = pm._factionProvinceDetails[faction_name][province]
+        if not not fpd then
+            pm._currentFPD = fpd
+            pm:log("Set the current fpd to ["..fpd._province.."]")
+            pm:log("\t The active capital is ["..fpd._activeCapital.."] ")
+            pm:log("\t tax rate is ["..fpd._taxRate.."]")
+            pm:log("\t wealth level is ["..fpd._wealth.."]")
+            pm:log("\t the religion levels are:")
+            for religion, value in pairs(fpd._religionLevels) do
+                pm:log("\t\t religion: ["..religion.."], value: ["..value.."]")
+            end
+            pm:log("\t the unit production is:")
+            for unit, number in pairs(fpd._unitProduction) do
+                if not fpd._producableUnits[unit] == nil then
+                    if fpd._producableUnits[unit]._bool == false then
+                        pm:log("\t\t unit: ["..unit.."] production requirements not met")
+                    else
+                        pm:log("\t\t unit: ["..unit.."] production is at ["..number.."] ")
+                    end
+                else
+                    pm:log("\t\t unit: ["..unit.."] production is at ["..number.."] ")
+                end
+            end
+        end
+    end,
+    true
+)
+
