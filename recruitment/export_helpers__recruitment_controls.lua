@@ -298,6 +298,10 @@ core:add_listener(
         rm:get_character_by_cqi(unit:force_commander():cqi()):remove_unit_from_army(unit:unit_key())
         --check the unit (+groups) again.
         rm:check_unit_on_character(unit:unit_key())
+        --if the unit has a pool, refund it
+        if rm:unit_has_pool(unit:unit_key()) then
+            rm:change_unit_pool(unit:unit_key(), unit:faction():name(), 1)
+        end
     end,
     true);
 --add merged listener

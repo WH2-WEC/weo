@@ -122,6 +122,7 @@ local function rm_ai_evaluation(faction)
     if not rm._unitPoolQuantities[faction:name()] == nil then
         for unit, quantity in pairs(rm._unitPoolQuantities[faction:name()]) do
             if quantity <= 0 then
+                rm:log("AI Faction ["..faction:name().."] is out of unit "..unit.." ")
                 cm:add_event_restricted_unit_record_for_faction(unit, faction:name())
             else
                 cm:remove_event_restricted_unit_record_for_faction(unit, faction:name())
@@ -144,6 +145,21 @@ core:add_listener(
     end,
     function(context)
         rm_ai_evaluation(context:faction())
+    end,
+    true
+)
+
+core:add_listener(
+    "RecruitmentControlsAIUnitTrained",
+    "UnitTrained",
+    function(context)
+        return (not context:unit():faction():is_human())
+    end,
+    function(context)
+        local unit = context:unit() --:CA_UNIT
+        if rm:unit_has_pool(unit:unit_key()) then
+            rm:change_unit_pool(unit:unit_key(), unit:faction():name(), 1)
+        end
     end,
     true
 )
