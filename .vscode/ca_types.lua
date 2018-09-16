@@ -6,6 +6,7 @@
 --# assume global class CA_UIC
 --# assume global class CA_Component
 --# assume global class CA_UIContext
+--# assume global class CA_CampaignUI
 --# assume global class CA_CHAR_CONTEXT
 --# assume global class CA_SETTLEMENT_CONTEXT
 --# assume global class CA_CQI
@@ -466,6 +467,10 @@
 --# assume CORE.get_screen_resolution: method() --> (number, number)
 --# assume CORE.trigger_event: method(event_name: string)
 
+--CA CAMPAIGN_UI
+--# assume CA_CampaignUI.TriggerCampaignScriptEvent: function(cqi: CA_CQI, event: string)
+
+
 
 
 -- GLOBAL FUNCTIONS
@@ -557,6 +562,7 @@
 --# assume global cm: CM
 --# assume global core: CORE
 --# assume global effect: CA_EFFECT
+--# assume global CampaignUI: CA_CampaignUI
 --# assume global __write_output_to_logfile: boolean
 --# assume global mission_manager: MISSION_MANAGER
 --# assume global rite_unlock: RITE_UNLOCK
