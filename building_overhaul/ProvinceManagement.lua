@@ -205,6 +205,10 @@ function faction_province_detail.new(model, faction, province, capital)
     self._activeCapital = capital
     self._correctCapital = false
 
+    --ui
+    self._UIWealthFactors = {} --:map<string, number>
+    self._UIReligionFactors = {} --:map<string,map<string, number>>
+
     return self
 end
 
@@ -330,12 +334,20 @@ local function FindThresholdFit(thresholds, quantity)
 end
 
 --v function(self: FPD)
-function faction_province_detail.evaluate_reglion(self)
+function faction_province_detail.evaluate_religion(self)
+    self._UIReligionFactors = {}
     for key, region in pairs(self._regions) do
         for building, _ in pairs(region._buildings) do
             if not not self._model._religionEffects[building] then
                 for religion, quantity in pairs(self._model._religionEffects[building]) do
+                    if self._religions[religion] == nil then
+                        self._religions[religion] = 0
+                    end
                     self._religions[religion] = self._religions[religion] + quantity
+                    if self._UIReligionFactors[region._key] == nil then
+                        self._UIReligionFactors[region._key] = {}
+                    end
+                    self._UIReligionFactors[region._key][religion] = self._UIReligionFactors[region._key][religion] + quantity
                 end
             end
         end
@@ -343,6 +355,9 @@ function faction_province_detail.evaluate_reglion(self)
     
     for religion, quantity in pairs(self._religions) do
         self._religions[religion] = quantity - 5 
+        if self._religions[religion] < 0 then
+            self._religions[religion] = 0 
+        end
         --natural decay of religions every turn
         local religion_detail = self._model._religionDetails[religion]
         local religion_level = FindThresholdFit(religion_detail._thresholds, quantity)
@@ -436,11 +451,16 @@ function faction_province_detail.evaluate_wealth(self)
         self:log("wealth is not implemented for the subculture: ["..subculture.."]")
         return
     end
+    self._UIWealthFactors = {}
     --buildings
     for key, region in pairs(self._regions) do
         for building, _ in pairs(region._buildings) do
             if not not self._model._wealthEffects[building] then
                 self._wealth = self._wealth + self._model._wealthEffects[building] 
+                if self._UIWealthFactors[region._key] == nil then
+                    self._UIWealthFactors[region._key] = 0 
+                end
+                self._UIWealthFactors[region._key] = self._UIWealthFactors[region._key] + self._model._wealthEffects[building] 
             end
         end
     end
@@ -448,15 +468,19 @@ function faction_province_detail.evaluate_wealth(self)
     for religion, level in pairs(self._religionLevels) do
         local religion_detail = self._model._religionDetails[religion]
         if not religion_detail._wealthEffects[level] == nil then
-            self._wealth = self._wealth + religion_detail._wealthEffects[level]
+            --cache the increase for the UI 
+            self._UIWealthFactors[religion] =  (self._wealth * religion_detail._wealthEffects[level]) - self._wealth
+            --apply the modifier
+            self._wealth = self._wealth * religion_detail._wealthEffects[level]            
         end
     end
-    --wealth
+    --tax
     if self._model._taxResults[subculture] == nil then
         self:log("No tax implementation for wealth on this subculture")
     else
         local tax_wealth_effect = self._model._taxResults[subculture][self._taxRate]._wealthEffects
         self._wealth = self._wealth + tax_wealth_effect
+        self._UIWealthFactors["tax"] = tax_wealth_effect
     end
 
     local level = FindThresholdFit(self._model._wealthThresholds[subculture], self._wealth)

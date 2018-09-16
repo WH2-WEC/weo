@@ -33,7 +33,7 @@ local function OnTurnStartProvince(fpd)
         OnTurnStartRegion(region_detail)
     end
     --now, we evaluate each element for the province
-    fpd:evaluate_reglion() --religion first because it can effect wealth and unit gen
+    fpd:evaluate_religion() --religion first because it can effect wealth and unit gen
     fpd:evaluate_tax_rate() --can also impact wealth and unit gen
     fpd:evaluate_unit_generation()
     fpd:evaluate_wealth()
