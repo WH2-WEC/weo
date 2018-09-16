@@ -41,6 +41,12 @@
 --# type global TAX_DETAIL = {
 --# _level: number, _UIName: string, _bundle: string,
 --# _wealthEffects: number, _unitProdEffects: map<string, number>}
+
+--# type global UNIT_DETAIL = {
+--# _set: vector<string>, _UIname: string, _UIimage: string
+--#}
+
+
 --imperium
 --# assume global class IMPERIUM_EFFECTS_MANAGER
 

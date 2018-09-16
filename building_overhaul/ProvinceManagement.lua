@@ -57,6 +57,8 @@ function province_manager.init()
     self._wealthThresholds = {} --:map<string, vector<number>> -- subculture to threshold set
     --tax level effects: struct definition in types files
     self._taxResults = {} --:map<string,map<number, TAX_DETAIL>> --subculture to level, detail
+    --unit details: struct definition in types files
+    self._unitDetails = {} --:map<string, UNIT_DETAIL>
 
     self._saveData = {} --:map<string, map<string, WHATEVER>>
 
@@ -618,6 +620,14 @@ function province_manager.add_tax_level_for_subculture(self, subculture, level, 
         self._taxResults[subculture][level] = tax_detail
     end
 end
+
+--v function(self: PM, unit_detail_name: string, unit_detail: UNIT_DETAIL)
+function province_manager.add_unit_detail(self, unit_detail_name, unit_detail)
+    if is_string(unit_detail_name) and is_table(unit_detail) then
+        self._unitDetails[unit_detail_name] = unit_detail
+    end
+end
+
 
 province_manager.init()
 _G.pm:log("province manager initialised")

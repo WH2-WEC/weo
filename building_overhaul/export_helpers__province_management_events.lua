@@ -54,7 +54,10 @@ local function OnTurnStartProvince(fpd)
             end
             if total > 0 then 
                 --increase unit pools
-                rm:change_unit_pool(unit, fpd._faction, total)
+                local unit_set = pm._unitDetails[unit]._set
+                for i = 1, total do
+                    rm:change_unit_pool(unit_set[cm:random_number(#unit_set)], fpd._faction, 1)
+                end
             end
             --store the partial unit for next turn
             fpd._partialUnits[unit] = fpd._unitProduction[unit]
