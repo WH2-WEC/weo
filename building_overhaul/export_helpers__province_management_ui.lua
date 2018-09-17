@@ -2,28 +2,53 @@ pm = _G.pm
 local UIBUTTONNAME = "REGION_DETAILS_BUTTON"
 local UIPANELNAME = "REGION_DETAILS_PANEL"
 
+--v function(SliderImage: IMAGE, fpd: FPD, subculture: string, offset: number?)
+local function SliderTooltip(SliderImage, fpd, subculture, offset)
+    if offset == nil then
+        offset = 0
+    end
+    --# assume offset: number
+    if not not pm._taxResults[subculture] then
+        local detail = pm._taxResults[subculture][fpd._taxRate + offset]
+            if not not detail then
+            local tt = detail._UIName .. "\n"
+            for i = 1, #detail._UIEffects do
+                tt = "\t"..tt..detail._UIEffects[i].."\n" 
+            end
+            SliderImage:GetContentComponent():SetTooltipText(tt, true)
+        else
+            SliderImage:GetContentComponent():SetTooltipText("No Effects", true)
+        end
+    else
+        SliderImage:GetContentComponent():SetTooltipText("No Effects", true)
+    end
+end
+
+
+
 --v function(DetailsFrame: FRAME,fpd: FPD)
 local function PopulatePanel(DetailsFrame, fpd)
     local fX, fY = DetailsFrame:Bounds()
     local sX, sY = core:get_screen_resolution()
     local FrameContainer = Container.new(FlowLayout.VERTICAL)
-     
-    --if subculture_has_religion_and_tax[cm:get_faction(cm:get_local_faction(true)):subculture()] then
+    local subculture = cm:get_faction(cm:get_local_faction(true)):subculture()
+    --if subculture_has_religion_and_tax[subculture] then
         local HorizontalHolder_1 = Container.new(FlowLayout.HORIZONTAL)
             local TaxRateHolder = Container.new(FlowLayout.VERTICAL)
                 local TaxRateTitleHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local TaxRateTitle = Image.new(UIPANELNAME.."_TAX_RATE_TITLE", DetailsFrame, "ui/custom/pmui/TaxRateTitle.png")
+                    local TaxRateTitle = Text.new(UIPANELNAME.."_TAX_RATE_TITLE", DetailsFrame,  "HEADER", "Tax Rate")
                     TaxRateTitle:Resize(190, 35)
-                TaxRateTitleHolder:AddGap(105)
+                TaxRateTitleHolder:AddGap(45)
                 TaxRateTitleHolder:AddComponent(TaxRateTitle)
-                TaxRateTitleHolder:AddGap(105)
+                TaxRateTitleHolder:AddGap(45)
                 local TaxSliderHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local IncrementButton = TextButton.new("TAXincrementButton", DetailsFrame, "TEXT", "+");
-                    IncrementButton:Resize(100, 51);
+                    local IncrementButton = Button.new("TAXincrementButton", DetailsFrame, "CIRCULAR", "ui/skins/default/icon_maximize.png");
+                    IncrementButton:Resize(38, 38);
                     local SliderImage = Image.new(UIPANELNAME.."_TAX_RATE_SLIDER", DetailsFrame, "ui/custom/pmui/tax_"..fpd._taxRate..".png")
+                        SliderTooltip(SliderImage, fpd, subculture)
                     SliderImage:Resize(190, 40)
-                    local DecrementButton = TextButton.new("TAXdecrementButton", DetailsFrame, "TEXT", "-");
-                    DecrementButton:Resize(100, 51);
+                    local DecrementButton = Button.new("TAXdecrementButton", DetailsFrame, "CIRCULAR", "ui/skins/default/icon_minimize.png");
+                    DecrementButton:Resize(38, 38);
 
                     IncrementButton:RegisterForClick(function()
                         SliderImage:SetImage("ui/custom/pmui/tax_"..(fpd._taxRate + 1)..".png")
@@ -31,6 +56,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                             IncrementButton:SetDisabled(true)
                         end
                         DecrementButton:SetDisabled(false)
+                        SliderTooltip(SliderImage, fpd, subculture, 1)
                         CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|IncreaseTaxes|"..fpd._province)
                     end)
                     DecrementButton:RegisterForClick(function()
@@ -39,6 +65,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                             DecrementButton:SetDisabled(true)
                         end
                         IncrementButton:SetDisabled(false)
+                        SliderTooltip(SliderImage, fpd, subculture, -1)
                         CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|DecreaseTaxes|"..fpd._province)
                     end)
 
@@ -48,7 +75,6 @@ local function PopulatePanel(DetailsFrame, fpd)
             TaxRateHolder:AddComponent(TaxRateTitleHolder)
             TaxRateHolder:AddComponent(TaxSliderHolder)
             local ReligionHolder = Container.new(FlowLayout.VERTICAL)
-
         HorizontalHolder_1:AddComponent(TaxRateHolder)
         HorizontalHolder_1:AddGap(fX/10)
         HorizontalHolder_1:AddComponent(ReligionHolder)
@@ -58,17 +84,47 @@ local function PopulatePanel(DetailsFrame, fpd)
 
             local WealthHolder = Container.new(FlowLayout.VERTICAL)
                 local WealthTitleHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local WealthTitle = Image.new(UIPANELNAME.."_WEALTH_TITLE", DetailsFrame, "ui/custom/pmui/WealthTitle.png")
+                    local WealthTitle = Text.new(UIPANELNAME.."_WEALTH_TITLE", DetailsFrame,  "HEADER", "Wealth")
                     WealthTitle:Resize(190, 35)
-                WealthTitleHolder:AddGap(105)
+                WealthTitleHolder:AddGap(45)
                 WealthTitleHolder:AddComponent(WealthTitle)
-                WealthTitleHolder:AddGap(105)
+                WealthTitleHolder:AddGap(45)
                 local WealthDisplayHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local WealthDisplay = Text.new(UIPANELNAME.."_DY_WEALTH", DetailsFrame, "NORMAL", "[[col:black]]Wealth [[/col]][[col:dark_g]] "..fpd._wealth.."[[/col]]")
-                    WealthDisplay:Resize(190, 40)
+                    local colour = "green"
+                    if fpd._wealth < 50 then
+                        colour = "red"
+                    end
+                    local WealthDisplay = Text.new(UIPANELNAME.."_DY_WEALTH", DetailsFrame, "NORMAL", "Wealth: \t[[col:"..colour.."]] "..fpd._wealth.."[[/col]]")
+                    WealthDisplay:Resize(100, 40)
+                    local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
+                    WealthIcon:Resize(23, 23)
+                    local contentComponent = WealthIcon:GetContentComponent()
+                    contentComponent:SetCanResizeHeight(true)
+                    contentComponent:SetCanResizeWidth(true)
+                    contentComponent:Resize(24,24)
+                    contentComponent:SetCanResizeHeight(false)
+                    contentComponent:SetCanResizeWidth(false)
+                    if pm._wealthResults[subculture][fpd._wealthLevel] == nil then
+                        pm:log("Not setting any wealth tooltip")
+                    else
+                        cm:callback(function()
+                            local IconUIC = find_uicomponent(core:get_ui_root(), "REGION_DETAILS_PANEL_ICON_WEALTH")
+                            if not not IconUIC then
+                                local tt = ""
+                                for i = 1, #pm._wealthResultsUI[subculture][fpd._wealthLevel] do
+                                    tt = tt .. pm._wealthResultsUI[subculture][fpd._wealthLevel][i] .. "\n"
+                                end
+                                IconUIC:SetTooltipText(tt, true)
+                            else
+                                pm:log("UI: failed to find the wealth image for tooltip set!")
+                            end
+                        end, 0.1)
+                    end
+                   
                     --local CurrentEffectLevel = Image.new()
                 WealthDisplayHolder:AddComponent(WealthDisplay)
-                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "[[col:black]]Wealth Factors: [[/col]]")
+                WealthDisplayHolder:AddComponent(WealthIcon)
+                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Wealth Factors:")
                 WealthFactorsBlurb:Resize(190, 40)
                 --wealth factors list
             WealthHolder:AddComponent(WealthTitleHolder)

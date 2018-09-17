@@ -31,16 +31,17 @@
 
 --# type global RELIGION_DETAIL = {
 --# _name: string, _UIName: string, _image: string, _description: string, _thresholds: vector<number>, _bundles: map<number, string>,
---# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>
+--# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, UIEffects: vector<string>
 --# }
 --# type global RELIGION_NAME = 
 --# "hum_sigmar" | "hum_ulric" | "hum_mannann" | "hum_myrmida" | "hum_taal" | "hum_lady" | "hum_ursun"
 --# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_vaul" | "elf_hekarti"
---# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea"
+--# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea" |
+--# "lzd_sotek" 
 
 --# type global TAX_DETAIL = {
---# _level: number, _UIName: string, _bundle: string,
---# _wealthEffects: number, _unitProdEffects: map<string, number>}
+--# _level: number, _UIName: string, _UIEffects:vector<string>, _bundle: string, 
+--# _wealthEffects: number, _unitProdEffects: number}
 
 --# type global UNIT_DETAIL = {
 --# _set: vector<string>, _UIname: string, _UIimage: string

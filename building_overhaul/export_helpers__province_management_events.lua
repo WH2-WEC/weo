@@ -179,7 +179,7 @@ core:add_listener(
             pm:log("Set the current fpd to ["..fpd._province.."]")
             pm:log("\t The active capital is ["..fpd._activeCapital.."] ")
             pm:log("\t tax rate is ["..fpd._taxRate.."]")
-            pm:log("\t wealth level is ["..fpd._wealth.."]")
+            pm:log("\t wealth is ["..fpd._wealth.."] and the Wealth level is ["..fpd._wealthLevel.."] ")
             pm:log("\t the religion levels are:")
             for religion, value in pairs(fpd._religionLevels) do
                 pm:log("\t\t religion: ["..religion.."], value: ["..value.."]")

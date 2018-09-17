@@ -54,6 +54,7 @@ function province_manager.init()
     self._religionDetails = {} --:map<string, RELIGION_DETAIL>
     --consequence bundles
     self._wealthResults = {} --:map<string, map<number, string>> -- subculture to level to bundle
+    self._wealthResultsUI = {} --:map<string, map<number, vector<string>>> --subculture to level to effect text
     self._wealthThresholds = {} --:map<string, vector<number>> -- subculture to threshold set
     --tax level effects: struct definition in types files
     self._taxResults = {} --:map<string,map<number, TAX_DETAIL>> --subculture to level, detail
@@ -189,7 +190,8 @@ function faction_province_detail.new(model, faction, province, capital)
     self._numRegions = 0 --:number
     self._regionChangeFlag = false
 
-    self._wealth = 0 --:number
+    self._wealth = 30 --:number
+    self._wealthLevel = 30 --:number
     self._taxRate = 3 --:number
     self._religions = {} --:map<string, number>
     self._religionLevels = {} --:map<string, number>
@@ -412,14 +414,11 @@ function faction_province_detail.evaluate_unit_generation(self)
     end
     --tax rate
     if self._model._taxResults[subculture] == nil then
-        self:log("No tax implementation for wealth on this subculture")
+        self:log("No tax implementation for unit prod on this subculture")
     else
         local tax_wealth_effect = self._model._taxResults[subculture][self._taxRate]._unitProdEffects
-        for unit, quantity in pairs(tax_wealth_effect) do
-            if self._unitProduction[unit] == nil then
-                self._unitProduction[unit] = 0 
-            end
-            self._unitProduction[unit] = self._unitProduction[unit] + quantity
+        for unit, prod in pairs(self._unitProduction) do
+            self._unitProduction[unit] = math.ceil(self._unitProduction[unit]*tax_wealth_effect)
         end
     end
     --production permissions
@@ -484,6 +483,7 @@ function faction_province_detail.evaluate_wealth(self)
     end
 
     local level = FindThresholdFit(self._model._wealthThresholds[subculture], self._wealth)
+    self._wealthLevel = level
     table.insert(self._desiredEffects, self._model._wealthResults[subculture][level])
 end
 
@@ -623,13 +623,15 @@ function province_manager.create_religion(self, religion_key, religion_detail)
     end
 end
 
---v function(self: PM, subculture: string, quantity: number, effect_bundle: string)
-function province_manager.add_wealth_threshold_for_subculture(self, subculture, quantity, effect_bundle)
+--v function(self: PM, subculture: string, quantity: number, effect_bundle: string, UIEffect: vector<string>)
+function province_manager.add_wealth_threshold_for_subculture(self, subculture, quantity, effect_bundle, UIEffect)
     if is_string(subculture) and is_number(quantity) and is_string(effect_bundle) then
         if self._wealthResults[subculture] == nil then
             self._wealthResults[subculture] = {}
             self._wealthThresholds[subculture] = {}
+            self._wealthResultsUI[subculture] = {}
         end
+        self._wealthResultsUI[subculture][quantity] = UIEffect
         self._wealthResults[subculture][quantity] = effect_bundle
         table.insert(self._wealthThresholds[subculture], quantity)
     end

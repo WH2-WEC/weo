@@ -467,7 +467,7 @@
 --# assume CORE.add_ui_created_callback: method(function())
 --# assume CORE.get_screen_resolution: method() --> (number, number)
 --# assume CORE.trigger_event: method(event_name: string)
-
+--# assume CORE.cache_and_set_tooltip_for_component_state: method(uic: CA_UIC, state: string, tooltip: string)
 --CA CAMPAIGN_UI
 --# assume CA_CampaignUI.TriggerCampaignScriptEvent: function(cqi: CA_CQI, event: string)
 
