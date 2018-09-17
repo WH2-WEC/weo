@@ -12,13 +12,15 @@ emp_detail_3 = {
         "[[col:green]] +5% Unit Generation (All Units) [[/col]]",
         "[[col:green]] +5% Income (Province Wide) [[/col]]",
         "[[col:red]] -4 Public Order[[//col]]",
-        "[[col:red]] -10 Wealth[[//col]]"
+        "[[col:red]] -15 Wealth[[//col]]"
     },
     _bundle = "wh2_dlc10_dark_elf_fortress_gate",
-    _wealthEffects = -1,
+    _wealthEffects = -15,
     _unitProdEffects = 1.05
 }
 
 
 pm:add_tax_level_for_subculture("wh_main_sc_emp_empire", 3, emp_detail_3)
 
+pm:add_building_wealth_effect("wh_main_special_settlement_altdorf_1_emp", 15)
+pm:add_building_wealth_effect("wh_main_emp_port_1", 10)

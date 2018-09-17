@@ -122,6 +122,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                             end
                         end, 0.1)
                     end
+                
                 WealthDisplayHolder:AddComponent(WealthBlurb)
                 WealthDisplayHolder:AddComponent(WealthDisplay)
                 WealthDisplayHolder:AddComponent(WealthIcon)
@@ -130,21 +131,26 @@ local function PopulatePanel(DetailsFrame, fpd)
                 --wealth factors list
                 local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
                 local WealthFactorList = ListView.new(UIPANELNAME.."_WEALTH_FACTORS_LIST", DetailsFrame, "VERTICAL")
+                --[[
                 local WealthFactorsDivider1 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_1", DetailsFrame, "ui/skins/default/panel_back_divider.png")
-                WealthFactorsDivider1:Resize(215, 6)
+                WealthFactorsDivider1:Resize(215, 3)
                 WealthFactorList:AddComponent(WealthFactorsDivider1)
+                --]]
+                local WealthFactorBufferDummy = Container.new(FlowLayout.VERTICAL)
+                WealthFactorBufferDummy:AddGap(7)
+                WealthFactorList:AddContainer(WealthFactorBufferDummy)
                 for factor, quantity in pairs(fpd._UIWealthFactors) do
                     local factor_string = factor
                     if string.find(factor, "wh_") or string.find(factor, "wh2_") then
                         -- we are assumign this means the factor is a settlement
                         factor_string = effect.get_localised_string("regions_onscreen_"..factor)
                     end
-                    local front_tag = "[[col:green]]+"
+                    local front_tag = "[[col:dark_g]]+"
                     if quantity < 0 then
                         front_tag = "[[col:red]]-"
                     end
-                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string.."   "..front_tag..quantity.."[[/col]]")
-                    FactorElement:Resize(100, 30)
+                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string.."\t"..front_tag..quantity.."[[/col]]")
+                    FactorElement:Resize(215, 30)
                     WealthFactorList:AddComponent(FactorElement) 
                 end
                 --[[

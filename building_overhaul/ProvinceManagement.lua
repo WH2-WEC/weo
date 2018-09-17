@@ -479,9 +479,8 @@ function faction_province_detail.evaluate_wealth(self)
     else
         local tax_wealth_effect = self._model._taxResults[subculture][self._taxRate]._wealthEffects
         self._wealth = self._wealth + tax_wealth_effect
-        self._UIWealthFactors["tax"] = tax_wealth_effect
+        self._UIWealthFactors["Province Taxes"] = tax_wealth_effect
     end
-
     local level = FindThresholdFit(self._model._wealthThresholds[subculture], self._wealth)
     self._wealthLevel = level
     table.insert(self._desiredEffects, self._model._wealthResults[subculture][level])
