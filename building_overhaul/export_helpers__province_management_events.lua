@@ -178,6 +178,12 @@ core:add_listener(
             pm._currentFPD = fpd
             pm:log("Set the current fpd to ["..fpd._province.."]")
             pm:log("\t The active capital is ["..fpd._activeCapital.."] ")
+            for key, object in pairs(fpd._regions) do
+                pm:log("\tRegion: ".. key)
+                for building, _ in pairs(object._buildings) do
+                    pm:log("\t\tHas building: ".. building)
+                end
+            end
             pm:log("\t tax rate is ["..fpd._taxRate.."]")
             pm:log("\t wealth is ["..fpd._wealth.."] and the Wealth level is ["..fpd._wealthLevel.."] ")
             pm:log("\t the religion levels are:")
