@@ -94,8 +94,10 @@ local function PopulatePanel(DetailsFrame, fpd)
                     if fpd._wealth < 50 then
                         colour = "red"
                     end
-                    local WealthDisplay = Text.new(UIPANELNAME.."_DY_WEALTH", DetailsFrame, "NORMAL", "Wealth:  [[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
-                    WealthDisplay:Resize(100, 40)
+                    local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Wealth:")
+                    WealthBlurb:Resize(70, 30)
+                    local WealthDisplay = Text.new(UIPANELNAME.."_WEALTH_DISPLAY", DetailsFrame, "TITLE", "[[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
+                    WealthDisplay:Resize(30, 30)
                     local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
                     WealthIcon:Resize(23, 23)
                     local contentComponent = WealthIcon:GetContentComponent()
@@ -120,6 +122,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                             end
                         end, 0.1)
                     end
+                WealthDisplayHolder:AddComponent(WealthBlurb)
                 WealthDisplayHolder:AddComponent(WealthDisplay)
                 WealthDisplayHolder:AddComponent(WealthIcon)
                 local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Wealth Factors:")
