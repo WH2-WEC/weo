@@ -94,7 +94,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                     if fpd._wealth < 50 then
                         colour = "red"
                     end
-                    local WealthDisplay = Text.new(UIPANELNAME.."_DY_WEALTH", DetailsFrame, "NORMAL", "Wealth: \t[[col:"..colour.."]] "..fpd._wealth.."[[/col]]")
+                    local WealthDisplay = Text.new(UIPANELNAME.."_DY_WEALTH", DetailsFrame, "NORMAL", "Wealth:  [[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
                     WealthDisplay:Resize(100, 40)
                     local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
                     WealthIcon:Resize(23, 23)
@@ -120,13 +120,15 @@ local function PopulatePanel(DetailsFrame, fpd)
                             end
                         end, 0.1)
                     end
-                   
-                    --local CurrentEffectLevel = Image.new()
                 WealthDisplayHolder:AddComponent(WealthDisplay)
                 WealthDisplayHolder:AddComponent(WealthIcon)
                 local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Wealth Factors:")
                 WealthFactorsBlurb:Resize(190, 40)
                 --wealth factors list
+                local WealthFactorsList = Container.new(FlowLayout.VERTICAL)
+                for factor, quantity in pairs(fpd._UIWealthFactors) do
+
+                end
             WealthHolder:AddComponent(WealthTitleHolder)
             WealthHolder:AddComponent(WealthDisplayHolder)
             WealthHolder:AddComponent(WealthFactorsBlurb)
