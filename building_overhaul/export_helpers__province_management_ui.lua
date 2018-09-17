@@ -95,8 +95,8 @@ local function PopulatePanel(DetailsFrame, fpd)
                         colour = "red"
                     end
                     local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Wealth:")
-                    WealthBlurb:Resize(70, 30)
-                    local WealthDisplay = Text.new(UIPANELNAME.."_WEALTH_DISPLAY", DetailsFrame, "TITLE", "[[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
+                    WealthBlurb:Resize(60, 30)
+                    local WealthDisplay = Text.new(UIPANELNAME.."_WEALTH_DISPLAY", DetailsFrame, "HEADER", "[[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
                     WealthDisplay:Resize(30, 30)
                     local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
                     WealthIcon:Resize(23, 23)
@@ -125,16 +125,38 @@ local function PopulatePanel(DetailsFrame, fpd)
                 WealthDisplayHolder:AddComponent(WealthBlurb)
                 WealthDisplayHolder:AddComponent(WealthDisplay)
                 WealthDisplayHolder:AddComponent(WealthIcon)
-                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Wealth Factors:")
-                WealthFactorsBlurb:Resize(190, 40)
+                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Factors:")
+                WealthFactorsBlurb:Resize(150, 30)
                 --wealth factors list
-                local WealthFactorsList = Container.new(FlowLayout.VERTICAL)
+                local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
+                local WealthFactorList = ListView.new(UIPANELNAME.."_WEALTH_FACTORS_LIST", DetailsFrame, "VERTICAL")
+                local WealthFactorsDivider1 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_1", DetailsFrame, "ui/skins/default/panel_back_divider.png")
+                WealthFactorsDivider1:Resize(215, 6)
+                WealthFactorList:AddComponent(WealthFactorsDivider1)
                 for factor, quantity in pairs(fpd._UIWealthFactors) do
-
+                    local factor_string = factor
+                    if string.find(factor, "wh_") or string.find(factor, "wh2_") then
+                        -- we are assumign this means the factor is a settlement
+                        factor_string = effect.get_localised_string("regions_onscreen_"..factor)
+                    end
+                    local front_tag = "[[col:green]]+"
+                    if quantity < 0 then
+                        front_tag = "[[col:red]]-"
+                    end
+                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string.."   "..front_tag..quantity.."[[/col]]")
+                    FactorElement:Resize(100, 30)
+                    WealthFactorList:AddComponent(FactorElement) 
                 end
+                --[[
+                local WealthFactorsDivider2 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_2", DetailsFrame, "ui/skins/default/panel_back_divider.png")
+                WealthFactorsDivider2:Resize(215, 6)
+                WealthFactorList:AddComponent(WealthFactorsDivider2)
+                --]]
+                WealthFactorsContainer:AddComponent(WealthFactorList)
             WealthHolder:AddComponent(WealthTitleHolder)
             WealthHolder:AddComponent(WealthDisplayHolder)
             WealthHolder:AddComponent(WealthFactorsBlurb)
+            WealthHolder:AddComponent(WealthFactorsContainer)
             
         HorizontalHolder_2:AddComponent(UnitProductionHolder)
         HorizontalHolder_2:AddGap(fX/10)
