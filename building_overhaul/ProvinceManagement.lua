@@ -82,8 +82,9 @@ function province_manager.error_checker(self)
     function safeCall(func)
         local status, result = pcall(func)
         if not status then
-            RCLOG(tostring(result))
-            RCLOG(debug.traceback());
+            PMLOG("ERROR")
+            PMLOG(tostring(result))
+            PMLOG(debug.traceback());
         end
         return result;
     end
@@ -349,6 +350,9 @@ function faction_province_detail.evaluate_religion(self)
                     if self._UIReligionFactors[region._key] == nil then
                         self._UIReligionFactors[region._key] = {}
                     end
+                    if self._UIReligionFactors[region._key][religion] == nil then
+                        self._UIReligionFactors[region._key][religion] = 0
+                    end
                     self._UIReligionFactors[region._key][religion] = self._UIReligionFactors[region._key][religion] + quantity
                 end
             end
@@ -468,7 +472,7 @@ function faction_province_detail.evaluate_wealth(self)
         local religion_detail = self._model._religionDetails[religion]
         if not religion_detail._wealthEffects[level] == nil then
             --cache the increase for the UI 
-            self._UIWealthFactors[religion] =  (self._wealth * religion_detail._wealthEffects[level]) - self._wealth
+            self._UIWealthFactors["RELIGION_"..religion] =  (self._wealth * religion_detail._wealthEffects[level]) - self._wealth
             --apply the modifier
             self._wealth = self._wealth * religion_detail._wealthEffects[level]            
         end

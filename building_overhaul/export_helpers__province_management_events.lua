@@ -156,7 +156,9 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1]  = funct
     end)
     if not status then
         --# assume err: string
-        pm:log(err)
+        pm:log("ERROR")
+        pm:log(tostring(err))
+        pm:log(debug.traceback());
     end
     
 end
