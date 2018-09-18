@@ -140,31 +140,44 @@ local function PopulatePanel(DetailsFrame, fpd)
                 WealthFactorBufferDummy:AddGap(7)
                 WealthFactorList:AddContainer(WealthFactorBufferDummy)
                 for factor, quantity in pairs(fpd._UIWealthFactors) do
-                    local factor_string = factor
-                    local factorImage = "ui/campaign ui/effect_bundles/icon_effects_raiding.png"
-                    if string.find(factor, "wh_") or string.find(factor, "wh2_") then
-                        -- we are assumign this means the factor is a settlement
-                        factor_string = effect.get_localised_string("regions_onscreen_"..factor)
-                        factorImage = "ui/campaign ui/effect_bundles/strategic_location.png"
+                    if quantity == 0 then
+                        pm:log("UI: Skipping factor ["..factor.."] because it is 0 ")
+                    else
+                        pm:log("UI: generating wealth factor UI for ["..factor.."] at quantity ["..quantity.."] ")
+                        local factor_string = factor
+                        local factorImage = "ui/campaign ui/effect_bundles/icon_effects_raiding.png"
+                        if string.find(factor, "wh_") or string.find(factor, "wh2_") then
+                            -- we are assumign this means the factor is a settlement
+                            factor_string = effect.get_localised_string("regions_onscreen_"..factor)
+                            factorImage = "ui/campaign ui/effect_bundles/strategic_location.png"
+                        end
+                        if string.find(factor, "RELIGION_") then
+                            local religion_name = string.gsub(factor, "RELIGION_", "")
+                            factor_string = religion_name
+                            local religion = pm._religionDetails[religion_name]
+                            if not not religion then
+                                factorImage = religion._UIImage
+                            end
+                        end
+                        if factor == "Province Taxes" then
+                            factorImage = "ui/campaign ui/effect_bundles/income.png"
+                        end
+                        local front_tag = "[[col:dark_g]]+"
+                        if quantity < 0 then
+                            front_tag = "[[col:red]]-"
+                        end
+                        local FactorElementsHolder = Container.new(FlowLayout.HORIZONTAL)
+                        local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
+                        FactorImage:Resize(20, 20)
+                        local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
+                        local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
+                        FactorElement:Resize(130, 30)
+                        QuantityElement:Resize(100, 30)
+                        FactorElementsHolder:AddComponent(FactorImage)
+                        FactorElementsHolder:AddComponent(FactorElement)
+                        FactorElementsHolder:AddComponent(QuantityElement)
+                        WealthFactorList:AddContainer(FactorElementsHolder)
                     end
-                    if factor == "Province Taxes" then
-                        factorImage = "ui/campaign ui/effect_bundles/income.png"
-                    end
-                    local front_tag = "[[col:dark_g]]+"
-                    if quantity < 0 then
-                        front_tag = "[[col:red]]-"
-                    end
-                    local FactorElementsHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
-                    FactorImage:Resize(20, 20)
-                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
-                    local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
-                    FactorElement:Resize(130, 30)
-                    QuantityElement:Resize(100, 30)
-                    FactorElementsHolder:AddComponent(FactorImage)
-                    FactorElementsHolder:AddComponent(FactorElement)
-                    FactorElementsHolder:AddComponent(QuantityElement)
-                    WealthFactorList:AddContainer(FactorElementsHolder)
                 end
                 --[[
                 local WealthFactorsDivider2 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_2", DetailsFrame, "ui/skins/default/panel_back_divider.png")
