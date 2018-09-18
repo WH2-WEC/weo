@@ -209,3 +209,138 @@ core:add_listener(
     true
 )
 
+--controller
+
+core:add_listener(
+    "TaxRateChanges",
+    "UITriggerScriptEvent",
+    function(context)
+        return context:trigger():starts_with("PMUI|IncreaseTaxes|")
+    end,
+    function(context)
+        local trigger = context:trigger() --:string
+        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi())
+        local subculture = faction:subculture()
+        local province = string.gsub(trigger, "PMUI|IncreaseTaxes|", "")
+        local fpd = pm._factionProvinceDetails[faction:name()][province]
+        --messy code, written while high
+        local old_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not old_effect then
+            old_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not old_effect then
+                old_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
+        fpd._taxRate = fpd._taxRate + 1
+        local new_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not new_effect then
+            new_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not new_effect then
+                new_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
+       --messy code, written while high
+        if new_effect == nil then
+            if not not old_effect then
+                local toremove --:int
+                local effects = fpd._desiredEffects
+                for i = 1, #effects do 
+                    if effects[i] == old_effect then
+                        toremove = i 
+                        break
+                    end
+                end
+                if toremove then
+                    table.remove(effects, toremove)
+                end
+                fpd:clear_active_effects()
+                fpd:apply_all_effects()
+            end
+            return
+        end
+        --# assume new_effect: string
+        if not not old_effect then
+            --# assume old_effect: string
+            local effects = fpd._desiredEffects
+            for i = 1, #effects do 
+                if effects[i] == old_effect then
+                    effects[i] = new_effect
+                    break
+                end
+            end
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        else
+            table.insert(fpd._desiredEffects, new_effect)
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        end
+    end,
+    true
+)
+
+core:add_listener(
+    "TaxRateChanges",
+    "UITriggerScriptEvent",
+    function(context)
+        return context:trigger():starts_with("PMUI|DecreaseTaxes|")
+    end,
+    function(context)
+        local trigger = context:trigger() --:string
+        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi())
+        local subculture = faction:subculture()
+        local province = string.gsub(trigger, "PMUI|DecreaseTaxes|", "")
+        local fpd = pm._factionProvinceDetails[faction:name()][province]
+        local old_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not old_effect then
+            old_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not old_effect then
+                old_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
+        fpd._taxRate = fpd._taxRate - 1
+        local new_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not new_effect then
+            new_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not new_effect then
+                new_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
+        if new_effect == nil then
+            if not not old_effect then
+                local toremove --:int
+                local effects = fpd._desiredEffects
+                for i = 1, #effects do 
+                    if effects[i] == old_effect then
+                        toremove = i 
+                        break
+                    end
+                end
+                if toremove then
+                    table.remove(effects, toremove)
+                end
+                fpd:clear_active_effects()
+                fpd:apply_all_effects()
+            end
+            return
+        end
+        --# assume new_effect: string
+        if not not old_effect then
+            --# assume old_effect: string
+            local effects = fpd._desiredEffects
+            for i = 1, #effects do 
+                if effects[i] == old_effect then
+                    effects[i] = new_effect
+                    break
+                end
+            end
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        else
+            table.insert(fpd._desiredEffects, new_effect)
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        end
+    end,
+    true
+)

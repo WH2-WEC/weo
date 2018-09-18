@@ -3,7 +3,7 @@ local UIBUTTONNAME = "REGION_DETAILS_BUTTON"
 local UIPANELNAME = "REGION_DETAILS_PANEL"
 
 --v function(SliderImage: IMAGE, fpd: FPD, subculture: string, offset: number?)
-local function SliderTooltip(SliderImage, fpd, subculture, offset)
+local function TaxEffectTooltip(SliderImage, fpd, subculture, offset)
     if offset == nil then
         offset = 0
     end
@@ -24,16 +24,57 @@ local function SliderTooltip(SliderImage, fpd, subculture, offset)
     end
 end
 
+--v function(ReligionBundle: IMAGE, fpd: FPD, religion_detail: RELIGION_DETAIL)
+local function ReligionEffectTooltip(ReligionBundle, fpd, religion_detail)
+    local level = fpd._religionLevels[religion_detail._name]
+    local effects = religion_detail._UIEffects[level]
+    local factors = fpd._UIReligionFactors[religion_detail._name]
+    local name = religion_detail._UIName
+    local description = religion_detail._UIDescription
+    pm:log(level)
+    pm:log(name)
+    pm:log(description)
+    local tt = "\t[[col:yellow]]"..name.."[[/col]]\n"..description.."\n"
+    if not not effects then
+        for i = 1, #effects do
+            tt = tt.."\t"..effects[i].."\n"
+        end
+    else
+        tt = tt.."\t No Effects \n"
+    end
+    local tt = tt.."[[col:yellow]] Changes Last Turn: [[/col]]\n"
+    if not not factors then
+    for factor, quantity in pairs(factors) do
+            if quantity == 0 then
 
+            else
+            local factor_string = factor
+            if string.find(factor, "wh_") or string.find(factor, "wh2_") then
+                factor_string = effect.get_localised_string(factor)
+            end
+            local colour = "red"
+            if quantity > 0 then
+                colour = "dark_g"
+            end
+            tt = tt.."\t"..factor_string.."\t".."[[col:"..colour.."]]"..tostring(quantity).."[[/col]]"
+            end
+        end
+    end
+    ReligionBundle:GetContentComponent():SetTooltipText(tt, true)
+end
 
 --v function(DetailsFrame: FRAME,fpd: FPD)
 local function PopulatePanel(DetailsFrame, fpd)
-    local fX, fY = DetailsFrame:Bounds()
+    local fpX, fpY = DetailsFrame:Position()
+    local fbX, fbY = DetailsFrame:Bounds()
     local sX, sY = core:get_screen_resolution()
     local FrameContainer = Container.new(FlowLayout.VERTICAL)
     local subculture = cm:get_faction(cm:get_local_faction(true)):subculture()
     --if subculture_has_religion_and_tax[subculture] then
         local HorizontalHolder_1 = Container.new(FlowLayout.HORIZONTAL)
+            ---------
+            --TAXES--
+            ---------
             local TaxRateHolder = Container.new(FlowLayout.VERTICAL)
                 local TaxRateTitleHolder = Container.new(FlowLayout.HORIZONTAL)
                     local TaxRateTitle = Text.new(UIPANELNAME.."_TAX_RATE_TITLE", DetailsFrame,  "HEADER", "Tax Rate")
@@ -45,7 +86,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                     local IncrementButton = Button.new("TAXincrementButton", DetailsFrame, "CIRCULAR", "ui/skins/default/icon_maximize.png");
                     IncrementButton:Resize(38, 38);
                     local SliderImage = Image.new(UIPANELNAME.."_TAX_RATE_SLIDER", DetailsFrame, "ui/custom/pmui/tax_"..fpd._taxRate..".png")
-                        SliderTooltip(SliderImage, fpd, subculture)
+                        TaxEffectTooltip(SliderImage, fpd, subculture)
                     SliderImage:Resize(190, 40)
                     local DecrementButton = Button.new("TAXdecrementButton", DetailsFrame, "CIRCULAR", "ui/skins/default/icon_minimize.png");
                     DecrementButton:Resize(38, 38);
@@ -56,11 +97,11 @@ local function PopulatePanel(DetailsFrame, fpd)
                             IncrementButton:SetDisabled(true)
                         end
                         DecrementButton:SetDisabled(false)
-                        SliderTooltip(SliderImage, fpd, subculture, 1)
+                        TaxEffectTooltip(SliderImage, fpd, subculture, 1)
                         local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
                         if not not factorImage then
                             --# assume factorImage: IMAGE
-                            SliderTooltip(factorImage, fpd, subculture, 1)
+                            TaxEffectTooltip(factorImage, fpd, subculture, 1)
                         end
                         CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|IncreaseTaxes|"..fpd._province)
                     end)
@@ -70,11 +111,11 @@ local function PopulatePanel(DetailsFrame, fpd)
                             DecrementButton:SetDisabled(true)
                         end
                         IncrementButton:SetDisabled(false)
-                        SliderTooltip(SliderImage, fpd, subculture, -1)
+                        TaxEffectTooltip(SliderImage, fpd, subculture, -1)
                         local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
                         if not not factorImage then
                             --# assume factorImage: IMAGE
-                            SliderTooltip(factorImage, fpd, subculture, -1)
+                            TaxEffectTooltip(factorImage, fpd, subculture, -1)
                         end
                         CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|DecreaseTaxes|"..fpd._province)
                     end)
@@ -84,14 +125,59 @@ local function PopulatePanel(DetailsFrame, fpd)
                 TaxSliderHolder:AddComponent(IncrementButton)
             TaxRateHolder:AddComponent(TaxRateTitleHolder)
             TaxRateHolder:AddComponent(TaxSliderHolder)
+            ------------
+            --RELIGION--
+            ------------
             local ReligionHolder = Container.new(FlowLayout.VERTICAL)
+                local ReligionTitleHolder = Container.new(FlowLayout.HORIZONTAL)
+                    local ReligionTitle = Text.new(UIPANELNAME.."_RELIGION_TITLE", DetailsFrame, "HEADER", "Religious Cults:")
+                    ReligionTitle:Resize(190, 35)
+                ReligionTitleHolder:AddGap(45)
+                ReligionTitleHolder:AddComponent(ReligionTitle)
+                ReligionTitleHolder:AddGap(45)
+                local ReligionListHolder = Container.new(FlowLayout.VERTICAL)
+                    local ReligionListView = ListView.new(UIPANELNAME.."_RELIGION_LISTVIEW", DetailsFrame, "VERTICAL")
+                    ReligionListView:Resize(200, 175)
+                        local ReligionListBufferContainer = Container.new(FlowLayout.HORIZONTAL)
+                        ReligionListBufferContainer:AddGap(7)
+                    ReligionListView:AddContainer(ReligionListBufferContainer)
+                    for religion, quantity in pairs(fpd._religionLevels) do
+                        if quantity == 0 then
+                            pm:log("UI: Ignoring religion ["..religion.."] because it is 0")
+                        else
+                            if not not pm._religionDetails[religion] then
+                                rd = pm._religionDetails[religion]
+                                local ReligionItemContainer = Container.new(FlowLayout.HORIZONTAL)
+                                    local religionImage = Image.new(UIPANELNAME.."_RELIGION_LIST_ITEM_IMAGE_"..religion, DetailsFrame, rd._UIImage)
+                                    religionImage:Resize(20,20)
+                                    ReligionEffectTooltip(religionImage, fpd, rd)
+                                    local religionName = Text.new(UIPANELNAME.."_RELIGION_LIST_ITEM_FACTOR_"..religion, DetailsFrame, "NORMAL", rd._UIName)
+                                    religionName:Resize(140, 30)
+                                    local religionLevel = Text.new(UIPANELNAME.."_RELIGION_LIST_ITEM_LEVEL_"..religion, DetailsFrame, "HEADER", "[[col:dark_g]]"..tostring(rd._UILevels[quantity]).."[[/col]]")
+                                    religionLevel:Resize(20, 20)
+                                ReligionItemContainer:AddComponent(religionLevel)
+                                ReligionItemContainer:AddComponent(religionImage)
+                                ReligionItemContainer:AddComponent(religionName)
+                                ReligionListView:AddContainer(ReligionItemContainer)
+                            end
+                        end
+                    end
+                ReligionListHolder:AddComponent(ReligionListView)
+            ReligionHolder:AddComponent(ReligionTitleHolder)
+            ReligionHolder:AddComponent(ReligionListHolder)
+        ----------------------------------------------
         HorizontalHolder_1:AddComponent(TaxRateHolder)
-        HorizontalHolder_1:AddGap(fX/10)
+        HorizontalHolder_1:AddGap(fbX/10)
         HorizontalHolder_1:AddComponent(ReligionHolder)
     --end
         local HorizontalHolder_2 = Container.new(FlowLayout.VERTICAL)
+            --------------
+            --UNITS PROD--
+            --------------
             local UnitProductionHolder = Container.new(FlowLayout.VERTICAL)
-
+            ----------
+            --WEALTH--
+            ----------
             local WealthHolder = Container.new(FlowLayout.VERTICAL)
                 local WealthTitleHolder = Container.new(FlowLayout.HORIZONTAL)
                     local WealthTitle = Text.new(UIPANELNAME.."_WEALTH_TITLE", DetailsFrame,  "HEADER", "Wealth")
@@ -141,6 +227,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                 --wealth factors list
                 local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
                 local WealthFactorList = ListView.new(UIPANELNAME.."_WEALTH_FACTORS_LIST", DetailsFrame, "VERTICAL")
+                WealthFactorList:Resize(200, 175)
                 --[[
                 local WealthFactorsDivider1 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_1", DetailsFrame, "ui/skins/default/panel_back_divider.png")
                 WealthFactorsDivider1:Resize(215, 3)
@@ -180,7 +267,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                         local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
                         FactorImage:Resize(20, 20)
                         if factor == "Province Taxes" then
-                            SliderTooltip(FactorImage, fpd, subculture, 0)
+                            TaxEffectTooltip(FactorImage, fpd, subculture, 0)
                         end
                         local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
                         local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
@@ -204,14 +291,13 @@ local function PopulatePanel(DetailsFrame, fpd)
             WealthHolder:AddComponent(WealthFactorsContainer)
             
         HorizontalHolder_2:AddComponent(UnitProductionHolder)
-        HorizontalHolder_2:AddGap(fX/10)
+        HorizontalHolder_2:AddGap(fbX/10)
         HorizontalHolder_2:AddComponent(WealthHolder)
     if HorizontalHolder_1 then
         FrameContainer:AddComponent(HorizontalHolder_1)
     end
-    --FrameContainer:AddGap(15)
-    FrameContainer:AddComponent(HorizontalHolder_2)
-    Util.centreComponentOnComponent(FrameContainer, DetailsFrame)   
+        FrameContainer:AddComponent(HorizontalHolder_2)
+        Util.centreComponentOnComponent(FrameContainer, DetailsFrame)  
 end
 
 
@@ -230,10 +316,10 @@ local function CreatePanel()
     if not not SettlementPanel then
         local sX, sY = core:get_screen_resolution()
         local pX, pY = SettlementPanel:Dimensions()
-        ProvinceDetailsFrame:Resize(1060, 565)
+        ProvinceDetailsFrame:Resize(1100, 650)
         local fX, fY = ProvinceDetailsFrame:Bounds()
         local pPosX, pPosY = SettlementPanel:Position()
-        ProvinceDetailsFrame:MoveTo(pPosX, pPosY - fY + 20)
+        ProvinceDetailsFrame:MoveTo(pPosX - 100, pPosY - fY + 20)
         --create a close button and move it to top right.
 
         --set the panel title.
@@ -333,138 +419,3 @@ core:add_listener(
 )
 
 
---controller
-
-core:add_listener(
-    "TaxRateChanges",
-    "UITriggerScriptEvent",
-    function(context)
-        return context:trigger():starts_with("PMUI|IncreaseTaxes|")
-    end,
-    function(context)
-        local trigger = context:trigger() --:string
-        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi())
-        local subculture = faction:subculture()
-        local province = string.gsub(trigger, "PMUI|IncreaseTaxes|", "")
-        local fpd = pm._factionProvinceDetails[faction:name()][province]
-        --messy code, written while high
-        local old_effect = pm._taxResults[subculture] --:WHATEVER
-        if not not old_effect then
-            old_effect = pm._taxResults[subculture][fpd._taxRate]
-            if not not old_effect then
-                old_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
-            end
-        end
-        fpd._taxRate = fpd._taxRate + 1
-        local new_effect = pm._taxResults[subculture] --:WHATEVER
-        if not not new_effect then
-            new_effect = pm._taxResults[subculture][fpd._taxRate]
-            if not not new_effect then
-                new_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
-            end
-        end
-       --messy code, written while high
-        if new_effect == nil then
-            if not not old_effect then
-                local toremove --:int
-                local effects = fpd._desiredEffects
-                for i = 1, #effects do 
-                    if effects[i] == old_effect then
-                        toremove = i 
-                        break
-                    end
-                end
-                if toremove then
-                    table.remove(effects, toremove)
-                end
-                fpd:clear_active_effects()
-                fpd:apply_all_effects()
-            end
-            return
-        end
-        --# assume new_effect: string
-        if not not old_effect then
-            --# assume old_effect: string
-            local effects = fpd._desiredEffects
-            for i = 1, #effects do 
-                if effects[i] == old_effect then
-                    effects[i] = new_effect
-                    break
-                end
-            end
-            fpd:clear_active_effects()
-            fpd:apply_all_effects()
-        else
-            table.insert(fpd._desiredEffects, new_effect)
-            fpd:clear_active_effects()
-            fpd:apply_all_effects()
-        end
-    end,
-    true
-)
-
-core:add_listener(
-    "TaxRateChanges",
-    "UITriggerScriptEvent",
-    function(context)
-        return context:trigger():starts_with("PMUI|DecreaseTaxes|")
-    end,
-    function(context)
-        local trigger = context:trigger() --:string
-        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi())
-        local subculture = faction:subculture()
-        local province = string.gsub(trigger, "PMUI|DecreaseTaxes|", "")
-        local fpd = pm._factionProvinceDetails[faction:name()][province]
-        local old_effect = pm._taxResults[subculture] --:WHATEVER
-        if not not old_effect then
-            old_effect = pm._taxResults[subculture][fpd._taxRate]
-            if not not old_effect then
-                old_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
-            end
-        end
-        fpd._taxRate = fpd._taxRate - 1
-        local new_effect = pm._taxResults[subculture] --:WHATEVER
-        if not not new_effect then
-            new_effect = pm._taxResults[subculture][fpd._taxRate]
-            if not not new_effect then
-                new_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
-            end
-        end
-        if new_effect == nil then
-            if not not old_effect then
-                local toremove --:int
-                local effects = fpd._desiredEffects
-                for i = 1, #effects do 
-                    if effects[i] == old_effect then
-                        toremove = i 
-                        break
-                    end
-                end
-                if toremove then
-                    table.remove(effects, toremove)
-                end
-                fpd:clear_active_effects()
-                fpd:apply_all_effects()
-            end
-            return
-        end
-        --# assume new_effect: string
-        if not not old_effect then
-            --# assume old_effect: string
-            local effects = fpd._desiredEffects
-            for i = 1, #effects do 
-                if effects[i] == old_effect then
-                    effects[i] = new_effect
-                    break
-                end
-            end
-            fpd:clear_active_effects()
-            fpd:apply_all_effects()
-        else
-            table.insert(fpd._desiredEffects, new_effect)
-            fpd:clear_active_effects()
-            fpd:apply_all_effects()
-        end
-    end,
-    true
-)

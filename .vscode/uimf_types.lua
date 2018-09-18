@@ -144,6 +144,8 @@
 --# assume CONTAINER.GetContentComponent: method() --> CA_UIC
 --# assume CONTAINER.AddGap: method(num: number)
 --# assume CONTAINER.PositionRelativeTo: method(component: WHATEVER, xDiff: number, yDiff: number)
+--# assume CONTAINER.MoveTo: method(x: number, y: number)
+--# assume CONTAINER.Bounds: method() --> (number, number)
 
 --listview
 --# assume LIST_VIEW.AddComponent: method(component: WHATEVER)

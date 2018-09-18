@@ -33,9 +33,12 @@ local sigmar_detail = {
     _unitProdEffects = {
         [900] = {}
     },
-    UIEffects = {
+    _UIEffects = {
         [900] = {"[[col:green]] +10 Wealth[[/col]]",
                 "[[col:green]] +25 Unit Generation for Sigmarite Units [[/col]]"}
+    },
+    _UILevels = {
+        [900] = 5
     }
 } --:RELIGION_DETAIL
 local manann_detail = {
@@ -53,9 +56,12 @@ local manann_detail = {
     _unitProdEffects = {
         [50] = {}
     },
-    UIEffects = {
+    _UIEffects = {
         [50] = {"[[col:green]] 0 [[/col]]",
                 "[[col:green]] 0 [[/col]]"}
+    },
+    _UILevels = {
+        [50] = 1
     }
 } --:RELIGION_DETAIL
 pm:add_tax_level_for_subculture("wh_main_sc_emp_empire", 3, emp_detail_3)

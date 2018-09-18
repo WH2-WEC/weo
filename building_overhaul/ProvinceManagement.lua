@@ -622,7 +622,7 @@ end
 --v function(self: PM, religion_key: RELIGION_NAME, religion_detail: RELIGION_DETAIL)
 function province_manager.create_religion(self, religion_key, religion_detail)
     if is_string(religion_key) and is_table(religion_detail) then
-        self._religionDetails[religion_key] = religion_detail
+        self._religionDetails[religion_detail._name] = religion_detail
     end
 end
 
