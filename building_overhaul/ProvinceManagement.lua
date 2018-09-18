@@ -480,9 +480,9 @@ function faction_province_detail.evaluate_wealth(self)
         local religion_detail = self._model._religionDetails[religion]
         if not not religion_detail._wealthEffects[level] then
             --cache the increase for the UI 
-            self._UIWealthFactors["RELIGION_"..religion] =  (self._wealth * religion_detail._wealthEffects[level]) - self._wealth
+            self._UIWealthFactors["RELIGION_"..religion] = religion_detail._wealthEffects[level]
             --apply the modifier
-            self._wealth = self._wealth * religion_detail._wealthEffects[level]            
+            self._wealth = self._wealth + religion_detail._wealthEffects[level]            
         end
     end
     local level = FindThresholdFit(self._model._wealthThresholds[subculture], self._wealth)
