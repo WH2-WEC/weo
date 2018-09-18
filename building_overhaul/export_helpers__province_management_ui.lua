@@ -94,8 +94,8 @@ local function PopulatePanel(DetailsFrame, fpd)
                     if fpd._wealth < 50 then
                         colour = "red"
                     end
-                    local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Wealth:")
-                    WealthBlurb:Resize(60, 30)
+                    local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Current Total:")
+                    WealthBlurb:Resize(130, 30)
                     local WealthDisplay = Text.new(UIPANELNAME.."_WEALTH_DISPLAY", DetailsFrame, "HEADER", "[[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
                     WealthDisplay:Resize(30, 30)
                     local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
@@ -126,7 +126,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                 WealthDisplayHolder:AddComponent(WealthBlurb)
                 WealthDisplayHolder:AddComponent(WealthDisplay)
                 WealthDisplayHolder:AddComponent(WealthIcon)
-                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Factors:")
+                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Change Factors:")
                 WealthFactorsBlurb:Resize(150, 30)
                 --wealth factors list
                 local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
@@ -141,17 +141,30 @@ local function PopulatePanel(DetailsFrame, fpd)
                 WealthFactorList:AddContainer(WealthFactorBufferDummy)
                 for factor, quantity in pairs(fpd._UIWealthFactors) do
                     local factor_string = factor
+                    local factorImage = "ui/campaign ui/effect_bundles/icon_effects_raiding.png"
                     if string.find(factor, "wh_") or string.find(factor, "wh2_") then
                         -- we are assumign this means the factor is a settlement
                         factor_string = effect.get_localised_string("regions_onscreen_"..factor)
+                        factorImage = "ui/campaign ui/effect_bundles/strategic_location.png"
+                    end
+                    if factor == "Province Taxes" then
+                        factorImage = "ui/campaign ui/effect_bundles/income.png"
                     end
                     local front_tag = "[[col:dark_g]]+"
                     if quantity < 0 then
                         front_tag = "[[col:red]]-"
                     end
-                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string.."\t"..front_tag..quantity.."[[/col]]")
-                    FactorElement:Resize(215, 30)
-                    WealthFactorList:AddComponent(FactorElement) 
+                    local FactorElementsHolder = Container.new(FlowLayout.HORIZONTAL)
+                    local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
+                    FactorImage:Resize(20, 20)
+                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
+                    local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
+                    FactorElement:Resize(130, 30)
+                    QuantityElement:Resize(100, 30)
+                    FactorElementsHolder:AddComponent(FactorImage)
+                    FactorElementsHolder:AddComponent(FactorElement)
+                    FactorElementsHolder:AddComponent(QuantityElement)
+                    WealthFactorList:AddContainer(FactorElementsHolder)
                 end
                 --[[
                 local WealthFactorsDivider2 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_2", DetailsFrame, "ui/skins/default/panel_back_divider.png")
@@ -191,11 +204,10 @@ local function CreatePanel()
     if not not SettlementPanel then
         local sX, sY = core:get_screen_resolution()
         local pX, pY = SettlementPanel:Dimensions()
-        ProvinceDetailsFrame:Resize(pX, sY*(1/2))
+        ProvinceDetailsFrame:Resize(1060, 565)
         local fX, fY = ProvinceDetailsFrame:Bounds()
         local pPosX, pPosY = SettlementPanel:Position()
         ProvinceDetailsFrame:MoveTo(pPosX, pPosY - fY + 20)
-        find_uicomponent(SettlementPanel, "button_focus"):PropagatePriority(50)
         --create a close button and move it to top right.
 
         --set the panel title.
@@ -215,10 +227,12 @@ local function UIOnSettlementSelected()
     if not not existingElement then
         --# assume existingElement: BUTTON
         existingElement:SetVisible(true)
+        existingElement:Resize(56, 56)
         existingElement:MoveTo(8, 1016)
     else
         local ButtonParent = find_uicomponent(core:get_ui_root(), "layout") --, "info_panel_holder", "primary_info_panel_holder", "info_panel_background", "ProvinceInfoPopup", "parchment_banner"
         local DetailsButton = Button.new(UIBUTTONNAME, ButtonParent, "CIRCULAR", "ui/skins/default/icon_province_details.png")
+        DetailsButton:Resize(56, 56)
         DetailsButton:MoveTo(8, 1016)
         DetailsButton:RegisterForClick(function() CreatePanel() end)
     end

@@ -24,3 +24,8 @@ pm:add_tax_level_for_subculture("wh_main_sc_emp_empire", 3, emp_detail_3)
 
 pm:add_building_wealth_effect("wh_main_special_settlement_altdorf_1_emp", 15)
 pm:add_building_wealth_effect("wh_main_emp_port_1", 10)
+
+
+
+pm:add_building_religion_effect("wh_main_special_settlement_altdorf_1_emp", "hum_sigmar", 1000)
+pm:add_building_religion_effect("wh_main_emp_port_1", "hum_mannann", 50)

@@ -31,7 +31,7 @@
 
 --# type global RELIGION_DETAIL = {
 --# _name: string, _UIName: string, _image: string, _description: string, _thresholds: vector<number>, _bundles: map<number, string>,
---# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, UIEffects: vector<string>
+--# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, UIEffects: map<number, vector<string>>
 --# }
 --# type global RELIGION_NAME = 
 --# "hum_sigmar" | "hum_ulric" | "hum_mannann" | "hum_myrmida" | "hum_taal" | "hum_lady" | "hum_ursun"
