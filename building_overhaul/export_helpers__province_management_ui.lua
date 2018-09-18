@@ -57,6 +57,11 @@ local function PopulatePanel(DetailsFrame, fpd)
                         end
                         DecrementButton:SetDisabled(false)
                         SliderTooltip(SliderImage, fpd, subculture, 1)
+                        local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
+                        if not not factorImage then
+                            --# assume factorImage: IMAGE
+                            SliderTooltip(factorImage, fpd, subculture, 1)
+                        end
                         CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|IncreaseTaxes|"..fpd._province)
                     end)
                     DecrementButton:RegisterForClick(function()
@@ -66,6 +71,11 @@ local function PopulatePanel(DetailsFrame, fpd)
                         end
                         IncrementButton:SetDisabled(false)
                         SliderTooltip(SliderImage, fpd, subculture, -1)
+                        local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
+                        if not not factorImage then
+                            --# assume factorImage: IMAGE
+                            SliderTooltip(factorImage, fpd, subculture, -1)
+                        end
                         CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|DecreaseTaxes|"..fpd._province)
                     end)
 
@@ -90,8 +100,8 @@ local function PopulatePanel(DetailsFrame, fpd)
                 WealthTitleHolder:AddComponent(WealthTitle)
                 WealthTitleHolder:AddGap(45)
                 local WealthDisplayHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local colour = "green"
-                    if fpd._wealth < 50 then
+                    local colour = "dark_g"
+                    if fpd._wealth < 30 then
                         colour = "red"
                     end
                     local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Current Total:")
@@ -169,6 +179,9 @@ local function PopulatePanel(DetailsFrame, fpd)
                         local FactorElementsHolder = Container.new(FlowLayout.HORIZONTAL)
                         local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
                         FactorImage:Resize(20, 20)
+                        if factor == "Province Taxes" then
+                            SliderTooltip(FactorImage, fpd, subculture, 0)
+                        end
                         local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
                         local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
                         FactorElement:Resize(140, 30)
