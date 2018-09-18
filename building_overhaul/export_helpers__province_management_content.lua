@@ -15,7 +15,7 @@ emp_detail_3 = {
         "[[col:red]] -15 Wealth[[//col]]"
     },
     _bundle = "wh2_dlc10_dark_elf_fortress_gate",
-    _wealthEffects = -15,
+    _wealthEffects = -4,
     _unitProdEffects = 1.05
 }
 local sigmar_detail = {
@@ -28,7 +28,7 @@ local sigmar_detail = {
         [900] = "wh_dlc08_bundle_nurgle_plague"
     },
     _wealthEffects = {
-        [900] = 10
+        [900] = 2
     },
     _unitProdEffects = {
         [900] = {}
@@ -48,7 +48,7 @@ local manann_detail = {
         [50] = "wh2_dlc10_power_of_nature"
     },
     _wealthEffects = {
-        [50] = 0
+        [50] = 1
     },
     _unitProdEffects = {
         [50] = {}
@@ -60,8 +60,8 @@ local manann_detail = {
 } --:RELIGION_DETAIL
 pm:add_tax_level_for_subculture("wh_main_sc_emp_empire", 3, emp_detail_3)
 
-pm:add_building_wealth_effect("wh_main_special_settlement_altdorf_1_emp", 15)
-pm:add_building_wealth_effect("wh_main_emp_port_1", 10)
+pm:add_building_wealth_effect("wh_main_special_settlement_altdorf_1_emp", 4)
+pm:add_building_wealth_effect("wh_main_emp_port_1", 1)
 
 
 pm:create_religion("hum_sigmar", sigmar_detail)
