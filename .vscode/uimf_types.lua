@@ -138,6 +138,7 @@
 --# assume TEXT.SetText: method(str: string)
 --# assume TEXT.Bounds: method() --> (number, number)
 --# assume TEXT.Resize: method(x: number, y: number)
+--# assume TEXT.SetVisible: method(visible: boolean)
 --container
 --# assume CONTAINER.AddComponent: method(component: WHATEVER)
 --# assume CONTAINER.GetContentComponent: method() --> CA_UIC

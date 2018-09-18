@@ -126,8 +126,8 @@ local function PopulatePanel(DetailsFrame, fpd)
                 WealthDisplayHolder:AddComponent(WealthBlurb)
                 WealthDisplayHolder:AddComponent(WealthDisplay)
                 WealthDisplayHolder:AddComponent(WealthIcon)
-                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Change Factors:")
-                WealthFactorsBlurb:Resize(150, 30)
+                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Changes Last Turn:")
+                WealthFactorsBlurb:Resize(160, 30)
                 --wealth factors list
                 local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
                 local WealthFactorList = ListView.new(UIPANELNAME.."_WEALTH_FACTORS_LIST", DetailsFrame, "VERTICAL")
@@ -317,10 +317,62 @@ core:add_listener(
     end,
     function(context)
         local trigger = context:trigger() --:string
-        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi()):name()
+        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi())
+        local subculture = faction:subculture()
         local province = string.gsub(trigger, "PMUI|IncreaseTaxes|", "")
-        local fpd = pm._factionProvinceDetails[faction][province]
+        local fpd = pm._factionProvinceDetails[faction:name()][province]
+        --messy code, written while high
+        local old_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not old_effect then
+            old_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not old_effect then
+                old_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
         fpd._taxRate = fpd._taxRate + 1
+        local new_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not new_effect then
+            new_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not new_effect then
+                new_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
+       --messy code, written while high
+        if new_effect == nil then
+            if not not old_effect then
+                local toremove --:int
+                local effects = fpd._desiredEffects
+                for i = 1, #effects do 
+                    if effects[i] == old_effect then
+                        toremove = i 
+                        break
+                    end
+                end
+                if toremove then
+                    table.remove(effects, toremove)
+                end
+                fpd:clear_active_effects()
+                fpd:apply_all_effects()
+            end
+            return
+        end
+        --# assume new_effect: string
+        if not not old_effect then
+            --# assume old_effect: string
+            local effects = fpd._desiredEffects
+            for i = 1, #effects do 
+                if effects[i] == old_effect then
+                    effects[i] = new_effect
+                    break
+                end
+            end
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        else
+            table.insert(fpd._desiredEffects, new_effect)
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        end
     end,
     true
 )
@@ -333,10 +385,60 @@ core:add_listener(
     end,
     function(context)
         local trigger = context:trigger() --:string
-        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi()):name()
+        local faction = cm:model():faction_for_command_queue_index(context:faction_cqi())
+        local subculture = faction:subculture()
         local province = string.gsub(trigger, "PMUI|DecreaseTaxes|", "")
-        local fpd = pm._factionProvinceDetails[faction][province]
+        local fpd = pm._factionProvinceDetails[faction:name()][province]
+        local old_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not old_effect then
+            old_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not old_effect then
+                old_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
         fpd._taxRate = fpd._taxRate - 1
+        local new_effect = pm._taxResults[subculture] --:WHATEVER
+        if not not new_effect then
+            new_effect = pm._taxResults[subculture][fpd._taxRate]
+            if not not new_effect then
+                new_effect = pm._taxResults[subculture][fpd._taxRate]._bundle
+            end
+        end
+        if new_effect == nil then
+            if not not old_effect then
+                local toremove --:int
+                local effects = fpd._desiredEffects
+                for i = 1, #effects do 
+                    if effects[i] == old_effect then
+                        toremove = i 
+                        break
+                    end
+                end
+                if toremove then
+                    table.remove(effects, toremove)
+                end
+                fpd:clear_active_effects()
+                fpd:apply_all_effects()
+            end
+            return
+        end
+        --# assume new_effect: string
+        if not not old_effect then
+            --# assume old_effect: string
+            local effects = fpd._desiredEffects
+            for i = 1, #effects do 
+                if effects[i] == old_effect then
+                    effects[i] = new_effect
+                    break
+                end
+            end
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        else
+            table.insert(fpd._desiredEffects, new_effect)
+            fpd:clear_active_effects()
+            fpd:apply_all_effects()
+        end
     end,
     true
 )
