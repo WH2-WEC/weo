@@ -29,15 +29,17 @@
 --# assume global class PM
 --# assume global class FPD
 
---# type global RELIGION_DETAIL = {
---# _name: string, _UIName: string, _image: string, _description: string, _thresholds: vector<number>, _bundles: map<number, string>,
---# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, UIEffects: map<number, vector<string>>
---# }
+
 --# type global RELIGION_NAME = 
---# "hum_sigmar" | "hum_ulric" | "hum_mannann" | "hum_myrmida" | "hum_taal" | "hum_lady" | "hum_ursun"
+--# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmida" | "hum_taal" | "hum_lady" | "hum_ursun"
 --# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_vaul" | "elf_hekarti"
 --# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea" |
 --# "lzd_sotek" 
+
+--# type global RELIGION_DETAIL = {
+--# _name: RELIGION_NAME, _UIName: string, _UIImage: string, _UIDescription: string, _thresholds: vector<number>, _bundles: map<number, string>,
+--# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, UIEffects: map<number, vector<string>>
+--# }
 
 --# type global TAX_DETAIL = {
 --# _level: number, _UIName: string, _UIEffects:vector<string>, _bundle: string, 
