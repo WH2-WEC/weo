@@ -20,7 +20,7 @@ emp_detail_3 = {
 }
 local sigmar_detail = {
     _name = "hum_sigmar",
-    _UIName = "The Cult of Sigmar",
+    _UIName = "Cult of Sigmar",
     _UIImage = "ui/custom/religions/sigmar.png",
     _UIDescription = "The first Emperor of Man, raised to Godhood by the Ulric himself.",
     _thresholds = {900},
@@ -40,7 +40,7 @@ local sigmar_detail = {
 } --:RELIGION_DETAIL
 local manann_detail = {
     _name = "hum_manann",
-    _UIName = "The Cult of Manann",
+    _UIName = "Cult of Manann",
     _UIImage = "ui/custom/religions/Manann.png",
     _UIDescription = "The god of the sea idk I need someone to write these shits for me.",
     _thresholds = {50},

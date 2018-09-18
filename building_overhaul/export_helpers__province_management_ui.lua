@@ -153,9 +153,9 @@ local function PopulatePanel(DetailsFrame, fpd)
                         end
                         if string.find(factor, "RELIGION_") then
                             local religion_name = string.gsub(factor, "RELIGION_", "")
-                            factor_string = religion_name
                             local religion = pm._religionDetails[religion_name]
                             if not not religion then
+                                factor_string = religion._UIName
                                 factorImage = religion._UIImage
                             end
                         end
@@ -171,8 +171,8 @@ local function PopulatePanel(DetailsFrame, fpd)
                         FactorImage:Resize(20, 20)
                         local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
                         local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
-                        FactorElement:Resize(130, 30)
-                        QuantityElement:Resize(100, 30)
+                        FactorElement:Resize(140, 30)
+                        QuantityElement:Resize(50, 30)
                         FactorElementsHolder:AddComponent(FactorImage)
                         FactorElementsHolder:AddComponent(FactorElement)
                         FactorElementsHolder:AddComponent(QuantityElement)
