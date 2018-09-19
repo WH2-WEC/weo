@@ -31,9 +31,6 @@ local function ReligionEffectTooltip(ReligionBundle, fpd, religion_detail)
     local factors = fpd._UIReligionFactors[religion_detail._name]
     local name = religion_detail._UIName
     local description = religion_detail._UIDescription
-    pm:log(level)
-    pm:log(name)
-    pm:log(description)
     local tt = "\t[[col:yellow]]"..name.."[[/col]]\n"..description.."\n"
     if not not effects then
         for i = 1, #effects do
@@ -68,7 +65,6 @@ local function PopulatePanel(DetailsFrame, fpd)
     local fpX, fpY = DetailsFrame:Position()
     local fbX, fbY = DetailsFrame:Bounds()
     local sX, sY = core:get_screen_resolution()
-    local FrameContainer = Container.new(FlowLayout.VERTICAL)
     local subculture = cm:get_faction(cm:get_local_faction(true)):subculture()
     --if subculture_has_religion_and_tax[subculture] then
         local HorizontalHolder_1 = Container.new(FlowLayout.HORIZONTAL)
@@ -130,16 +126,17 @@ local function PopulatePanel(DetailsFrame, fpd)
             ------------
             local ReligionHolder = Container.new(FlowLayout.VERTICAL)
                 local ReligionTitleHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local ReligionTitle = Text.new(UIPANELNAME.."_RELIGION_TITLE", DetailsFrame, "HEADER", "Religious Cults:")
+                    local ReligionTitle = Text.new(UIPANELNAME.."_RELIGION_TITLE", DetailsFrame, "HEADER", "Religious Cults")
                     ReligionTitle:Resize(190, 35)
                 ReligionTitleHolder:AddGap(45)
                 ReligionTitleHolder:AddComponent(ReligionTitle)
                 ReligionTitleHolder:AddGap(45)
                 local ReligionListHolder = Container.new(FlowLayout.VERTICAL)
                     local ReligionListView = ListView.new(UIPANELNAME.."_RELIGION_LISTVIEW", DetailsFrame, "VERTICAL")
+                    ReligionListView:Scale(0.5)
                     ReligionListView:Resize(200, 175)
                         local ReligionListBufferContainer = Container.new(FlowLayout.HORIZONTAL)
-                        ReligionListBufferContainer:AddGap(7)
+                        ReligionListBufferContainer:AddGap(15)
                     ReligionListView:AddContainer(ReligionListBufferContainer)
                     for religion, quantity in pairs(fpd._religionLevels) do
                         if quantity == 0 then
@@ -170,134 +167,122 @@ local function PopulatePanel(DetailsFrame, fpd)
         HorizontalHolder_1:AddGap(fbX/10)
         HorizontalHolder_1:AddComponent(ReligionHolder)
     --end
-        local HorizontalHolder_2 = Container.new(FlowLayout.VERTICAL)
-            --------------
-            --UNITS PROD--
-            --------------
-            local UnitProductionHolder = Container.new(FlowLayout.VERTICAL)
-            ----------
-            --WEALTH--
-            ----------
-            local WealthHolder = Container.new(FlowLayout.VERTICAL)
-                local WealthTitleHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local WealthTitle = Text.new(UIPANELNAME.."_WEALTH_TITLE", DetailsFrame,  "HEADER", "Wealth")
-                    WealthTitle:Resize(190, 35)
-                WealthTitleHolder:AddGap(45)
-                WealthTitleHolder:AddComponent(WealthTitle)
-                WealthTitleHolder:AddGap(45)
-                local WealthDisplayHolder = Container.new(FlowLayout.HORIZONTAL)
-                    local colour = "dark_g"
-                    if fpd._wealth < 30 then
-                        colour = "red"
-                    end
-                    local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Current Total:")
-                    WealthBlurb:Resize(130, 30)
-                    local WealthDisplay = Text.new(UIPANELNAME.."_WEALTH_DISPLAY", DetailsFrame, "HEADER", "[[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
-                    WealthDisplay:Resize(30, 30)
-                    local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
-                    WealthIcon:Resize(23, 23)
-                    local contentComponent = WealthIcon:GetContentComponent()
-                    contentComponent:SetCanResizeHeight(true)
-                    contentComponent:SetCanResizeWidth(true)
-                    contentComponent:Resize(24,24)
-                    contentComponent:SetCanResizeHeight(false)
-                    contentComponent:SetCanResizeWidth(false)
-                    if pm._wealthResults[subculture][fpd._wealthLevel] == nil then
-                        pm:log("Not setting any wealth tooltip")
-                    else
-                        cm:callback(function()
-                            local IconUIC = find_uicomponent(core:get_ui_root(), "REGION_DETAILS_PANEL_ICON_WEALTH")
-                            if not not IconUIC then
-                                local tt = ""
-                                for i = 1, #pm._wealthResultsUI[subculture][fpd._wealthLevel] do
-                                    tt = tt .. pm._wealthResultsUI[subculture][fpd._wealthLevel][i] .. "\n"
-                                end
-                                IconUIC:SetTooltipText(tt, true)
-                            else
-                                pm:log("UI: failed to find the wealth image for tooltip set!")
-                            end
-                        end, 0.1)
-                    end
-                
-                WealthDisplayHolder:AddComponent(WealthBlurb)
-                WealthDisplayHolder:AddComponent(WealthDisplay)
-                WealthDisplayHolder:AddComponent(WealthIcon)
-                local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Changes Last Turn:")
-                WealthFactorsBlurb:Resize(160, 30)
-                --wealth factors list
-                local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
-                local WealthFactorList = ListView.new(UIPANELNAME.."_WEALTH_FACTORS_LIST", DetailsFrame, "VERTICAL")
-                WealthFactorList:Resize(200, 175)
-                --[[
-                local WealthFactorsDivider1 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_1", DetailsFrame, "ui/skins/default/panel_back_divider.png")
-                WealthFactorsDivider1:Resize(215, 3)
-                WealthFactorList:AddComponent(WealthFactorsDivider1)
-                --]]
-                local WealthFactorBufferDummy = Container.new(FlowLayout.VERTICAL)
-                WealthFactorBufferDummy:AddGap(7)
-                WealthFactorList:AddContainer(WealthFactorBufferDummy)
-                for factor, quantity in pairs(fpd._UIWealthFactors) do
-                    if quantity == 0 then
-                        pm:log("UI: Skipping factor ["..factor.."] because it is 0 ")
-                    else
-                        pm:log("UI: generating wealth factor UI for ["..factor.."] at quantity ["..quantity.."] ")
-                        local factor_string = factor
-                        local factorImage = "ui/campaign ui/effect_bundles/icon_effects_raiding.png"
-                        if string.find(factor, "wh_") or string.find(factor, "wh2_") then
-                            -- we are assumign this means the factor is a settlement
-                            factor_string = effect.get_localised_string("regions_onscreen_"..factor)
-                            factorImage = "ui/campaign ui/effect_bundles/strategic_location.png"
-                        end
-                        if string.find(factor, "RELIGION_") then
-                            local religion_name = string.gsub(factor, "RELIGION_", "")
-                            local religion = pm._religionDetails[religion_name]
-                            if not not religion then
-                                factor_string = religion._UIName
-                                factorImage = religion._UIImage
-                            end
-                        end
-                        if factor == "Province Taxes" then
-                            factorImage = "ui/campaign ui/effect_bundles/income.png"
-                        end
-                        local front_tag = "[[col:dark_g]]+"
-                        if quantity < 0 then
-                            front_tag = "[[col:red]]-"
-                        end
-                        local FactorElementsHolder = Container.new(FlowLayout.HORIZONTAL)
-                        local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
-                        FactorImage:Resize(20, 20)
-                        if factor == "Province Taxes" then
-                            TaxEffectTooltip(FactorImage, fpd, subculture, 0)
-                        end
-                        local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
-                        local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
-                        FactorElement:Resize(140, 30)
-                        QuantityElement:Resize(50, 30)
-                        FactorElementsHolder:AddComponent(FactorImage)
-                        FactorElementsHolder:AddComponent(FactorElement)
-                        FactorElementsHolder:AddComponent(QuantityElement)
-                        WealthFactorList:AddContainer(FactorElementsHolder)
-                    end
+    local HorizontalHolder_2 = Container.new(FlowLayout.VERTICAL)
+        --------------
+        --UNITS PROD--
+        --------------
+        local UnitProductionHolder = Container.new(FlowLayout.VERTICAL)
+        ----------
+        --WEALTH--
+        ----------
+        local WealthHolder = Container.new(FlowLayout.VERTICAL)
+            local WealthTitleHolder = Container.new(FlowLayout.HORIZONTAL)
+                local WealthTitle = Text.new(UIPANELNAME.."_WEALTH_TITLE", DetailsFrame,  "HEADER", "Wealth")
+                WealthTitle:Resize(190, 35)
+            WealthTitleHolder:AddGap(45)
+            WealthTitleHolder:AddComponent(WealthTitle)
+            WealthTitleHolder:AddGap(45)
+            local WealthDisplayHolder = Container.new(FlowLayout.HORIZONTAL)
+                local colour = "dark_g"
+                if fpd._wealth < 30 then
+                    colour = "red"
                 end
-                --[[
-                local WealthFactorsDivider2 = Image.new(UIPANELNAME.."_WEALTH_FACTORS_DIVIDER_2", DetailsFrame, "ui/skins/default/panel_back_divider.png")
-                WealthFactorsDivider2:Resize(215, 6)
-                WealthFactorList:AddComponent(WealthFactorsDivider2)
-                --]]
-                WealthFactorsContainer:AddComponent(WealthFactorList)
-            WealthHolder:AddComponent(WealthTitleHolder)
-            WealthHolder:AddComponent(WealthDisplayHolder)
-            WealthHolder:AddComponent(WealthFactorsBlurb)
-            WealthHolder:AddComponent(WealthFactorsContainer)
+                local WealthBlurb = Text.new(UIPANELNAME.."_WEALTH_TEXT", DetailsFrame, "NORMAL", "Current Total:")
+                WealthBlurb:Resize(130, 30)
+                local WealthDisplay = Text.new(UIPANELNAME.."_WEALTH_DISPLAY", DetailsFrame, "HEADER", "[[col:"..colour.."]]"..fpd._wealth.."[[/col]]")
+                WealthDisplay:Resize(30, 30)
+                local WealthIcon = Button.new(UIPANELNAME.."_ICON_WEALTH", DetailsFrame, "CIRCULAR", "ui/custom/pmui/WealthIcon.png")
+                WealthIcon:Resize(23, 23)
+                local contentComponent = WealthIcon:GetContentComponent()
+                contentComponent:SetCanResizeHeight(true)
+                contentComponent:SetCanResizeWidth(true)
+                contentComponent:Resize(24,24)
+                contentComponent:SetCanResizeHeight(false)
+                contentComponent:SetCanResizeWidth(false)
+                if pm._wealthResults[subculture][fpd._wealthLevel] == nil then
+                    pm:log("Not setting any wealth tooltip")
+                else
+                    cm:callback(function()
+                        local IconUIC = find_uicomponent(core:get_ui_root(), "REGION_DETAILS_PANEL_ICON_WEALTH")
+                        if not not IconUIC then
+                            local tt = ""
+                            for i = 1, #pm._wealthResultsUI[subculture][fpd._wealthLevel] do
+                                tt = tt .. pm._wealthResultsUI[subculture][fpd._wealthLevel][i] .. "\n"
+                            end
+                            IconUIC:SetTooltipText(tt, true)
+                        else
+                            pm:log("UI: failed to find the wealth image for tooltip set!")
+                        end
+                    end, 0.1)
+                end
             
-        HorizontalHolder_2:AddComponent(UnitProductionHolder)
-        HorizontalHolder_2:AddGap(fbX/10)
-        HorizontalHolder_2:AddComponent(WealthHolder)
-    if HorizontalHolder_1 then
-        FrameContainer:AddComponent(HorizontalHolder_1)
-    end
-        FrameContainer:AddComponent(HorizontalHolder_2)
-        Util.centreComponentOnComponent(FrameContainer, DetailsFrame)  
+            WealthDisplayHolder:AddComponent(WealthBlurb)
+            WealthDisplayHolder:AddComponent(WealthDisplay)
+            WealthDisplayHolder:AddComponent(WealthIcon)
+            local WealthFactorsBlurb = Text.new(UIPANELNAME.."_WEALTH_FACTORS_TITLE", DetailsFrame, "NORMAL", "Changes Last Turn:")
+            WealthFactorsBlurb:Resize(160, 30)
+            --wealth factors list
+            local WealthFactorsContainer = Container.new(FlowLayout.VERTICAL)
+            local WealthFactorList = ListView.new(UIPANELNAME.."_WEALTH_FACTORS_LIST", DetailsFrame, "VERTICAL")
+            WealthFactorList:Scale(0.5)
+            WealthFactorList:Resize(200, 225)
+            local WealthFactorBufferDummy = Container.new(FlowLayout.VERTICAL)
+            WealthFactorBufferDummy:AddGap(7)
+            WealthFactorList:AddContainer(WealthFactorBufferDummy)
+            for factor, quantity in pairs(fpd._UIWealthFactors) do
+                if quantity == 0 then
+                    pm:log("UI: Skipping factor ["..factor.."] because it is 0 ")
+                else
+                    pm:log("UI: generating wealth factor UI for ["..factor.."] at quantity ["..quantity.."] ")
+                    local factor_string = factor
+                    local factorImage = "ui/campaign ui/effect_bundles/icon_effects_raiding.png"
+                    if string.find(factor, "wh_") or string.find(factor, "wh2_") then
+                        -- we are assumign this means the factor is a settlement
+                        factor_string = effect.get_localised_string("regions_onscreen_"..factor)
+                        factorImage = "ui/campaign ui/effect_bundles/strategic_location.png"
+                    end
+                    if string.find(factor, "RELIGION_") then
+                        local religion_name = string.gsub(factor, "RELIGION_", "")
+                        local religion = pm._religionDetails[religion_name]
+                        if not not religion then
+                            factor_string = religion._UIName
+                            factorImage = religion._UIImage
+                        end
+                    end
+                    if factor == "Province Taxes" then
+                        factorImage = "ui/campaign ui/effect_bundles/income.png"
+                    end
+                    local front_tag = "[[col:dark_g]]+"
+                    if quantity < 0 then
+                        front_tag = "[[col:red]]-"
+                    end
+                    local FactorElementsHolder = Container.new(FlowLayout.HORIZONTAL)
+                    local FactorImage = Image.new(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_"..factor, DetailsFrame, factorImage)
+                    FactorImage:Resize(20, 20)
+                    if factor == "Province Taxes" then
+                        TaxEffectTooltip(FactorImage, fpd, subculture, 0)
+                    end
+                    local FactorElement = Text.new(UIPANELNAME.."_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", factor_string)
+                    local QuantityElement = Text.new(UIPANELNAME.."_DY_WEALTH_FACTOR_"..factor, DetailsFrame, "NORMAL", front_tag..quantity.."[[/col]]")
+                    FactorElement:Resize(140, 30)
+                    QuantityElement:Resize(60, 30)
+                    FactorElementsHolder:AddComponent(FactorImage)
+                    FactorElementsHolder:AddComponent(FactorElement)
+                    FactorElementsHolder:AddComponent(QuantityElement)
+                    WealthFactorList:AddContainer(FactorElementsHolder)
+                end
+            end
+            WealthFactorsContainer:AddComponent(WealthFactorList)
+        WealthHolder:AddComponent(WealthTitleHolder)
+        WealthHolder:AddComponent(WealthDisplayHolder)
+        WealthHolder:AddComponent(WealthFactorsBlurb)
+        WealthHolder:AddComponent(WealthFactorsContainer)  
+    HorizontalHolder_2:AddComponent(UnitProductionHolder)
+    HorizontalHolder_2:AddGap(fbX/10)
+    HorizontalHolder_2:AddComponent(WealthHolder)
+    HorizontalHolder_1:MoveTo(500, 300)
+    HorizontalHolder_2:MoveTo(500, 300)
+
 end
 
 
@@ -316,10 +301,10 @@ local function CreatePanel()
     if not not SettlementPanel then
         local sX, sY = core:get_screen_resolution()
         local pX, pY = SettlementPanel:Dimensions()
-        ProvinceDetailsFrame:Resize(1100, 650)
+        ProvinceDetailsFrame:Resize(1060, 565)
         local fX, fY = ProvinceDetailsFrame:Bounds()
         local pPosX, pPosY = SettlementPanel:Position()
-        ProvinceDetailsFrame:MoveTo(pPosX - 100, pPosY - fY + 20)
+        ProvinceDetailsFrame:MoveTo(pPosX, pPosY - fY)
         --create a close button and move it to top right.
 
         --set the panel title.

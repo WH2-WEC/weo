@@ -74,3 +74,11 @@ pm:create_religion("hum_sigmar", sigmar_detail)
 pm:create_religion("hum_manann", manann_detail)
 pm:add_building_religion_effect("wh_main_special_settlement_altdorf_1_emp", "hum_sigmar", 1000)
 pm:add_building_religion_effect("wh_main_emp_port_1", "hum_manann", 50)
+
+pm:add_building_unit_production_effect("wh_main_emp_barracks_1", "", 15)
+pm:add_building_unit_production_effect("wh_main_special_settlement_altdorf_1_emp", "", 15)
+
+local state_troop_detail = {
+    _UIName = "State Troop Regiments",
+    _UIImage = "blank",
+}
