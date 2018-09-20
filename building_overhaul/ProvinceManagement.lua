@@ -51,6 +51,7 @@ function province_manager.init()
     self._unitProdEffects = {} --:map<string, map<string, number>> -- building to unit, quantity
     self._unitProdReqs = {} --:map<string, map<string, vector<string>>> -- subculture to unit to list of required buildings
     self._unitProdUIImages = {} --:map<string, string>
+    self._unitProdUILandUnits = {} --:map<string, string>
     --religion detail: struct definition in the types file
     self._religionDetails = {} --:map<string, RELIGION_DETAIL>
     --consequence bundles
@@ -649,6 +650,13 @@ function province_manager.add_tax_level_for_subculture(self, subculture, level, 
         self._taxResults[subculture][level] = tax_detail
     end
 end
+
+--v function(self: PM, main_unit: string, land_unit: string, ui_image: string)
+function province_manager.add_unit_ui_detail(self, main_unit, land_unit, ui_image)
+    self._unitProdUIImages[main_unit] = ui_image
+    self._unitProdUILandUnits[main_unit] = land_unit
+end
+
 
 
 province_manager.init()

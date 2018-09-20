@@ -1340,6 +1340,7 @@ VANILLA_LAND_UNITS = {
 for key, row in pairs(VANILA_MAIN_UNITS) do
 	local ui_grouping = row.ui_unit_group_land
 	if UI_UNIT_GROUPING[ui_grouping] then
-		pm._unitProdUIImages[key] = "ui/common ui/unit_category_icons/"..UI_UNIT_GROUPING[ui_grouping].icon..".png"
+        pm._unitProdUIImages[key] = "ui/common ui/unit_category_icons/"..UI_UNIT_GROUPING[ui_grouping].icon..".png"
+        pm._unitProdUILandUnits[key] = "land_units_onscreen_name_"..row.land_unit
 	end
 end
