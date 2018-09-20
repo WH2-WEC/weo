@@ -147,8 +147,8 @@ local function PopulatePanel(DetailsFrame, fpd)
                     local ReligionListView = ListView.new(UIPANELNAME.."_RELIGION_LISTVIEW", DetailsFrame, "VERTICAL")
                     ReligionListView:Scale(0.5)
                     ReligionListView:Resize(200, 175)
-                        local ReligionListBufferContainer = Container.new(FlowLayout.HORIZONTAL)
-                        ReligionListBufferContainer:AddGap(15)
+                        local ReligionListBufferContainer = Container.new(FlowLayout.VERTICAL)
+                        ReligionListBufferContainer:AddGap(7)
                     ReligionListView:AddContainer(ReligionListBufferContainer)
                     for religion, quantity in pairs(fpd._religionLevels) do
                         if quantity == 0 then
