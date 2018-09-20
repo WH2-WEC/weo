@@ -411,7 +411,7 @@ function faction_province_detail.evaluate_unit_generation(self)
                 if self._unitProduction[unit] == nil then
                     self._unitProduction[unit] = 0 
                 end
-                self._unitProduction[unit] = self._unitProduction[unit] + quantity
+                self._unitProduction[unit] = math.ceil(self._unitProduction[unit]*quantity)
             end
         end
     end

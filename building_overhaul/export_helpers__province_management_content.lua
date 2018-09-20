@@ -75,10 +75,33 @@ pm:create_religion("hum_manann", manann_detail)
 pm:add_building_religion_effect("wh_main_special_settlement_altdorf_1_emp", "hum_sigmar", 1000)
 pm:add_building_religion_effect("wh_main_emp_port_1", "hum_manann", 50)
 
-pm:add_building_unit_production_effect("wh_main_emp_barracks_1", "", 15)
-pm:add_building_unit_production_effect("wh_main_special_settlement_altdorf_1_emp", "", 15)
+EMP_BUILDING_POP_EFFECTS = {
+	[0] = { ["building"] = "wh_main_emp_barracks_1", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_crossbowmen", ["effect_scope"] = "building_to_faction_own", ["value"] = 5, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[1] = { ["building"] = "wh_main_emp_barracks_1", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_spearmen_0", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[2] = { ["building"] = "wh_main_emp_barracks_1", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_spearmen_1", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[3] = { ["building"] = "wh_main_emp_barracks_1", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_swordsmen", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[4] = { ["building"] = "wh_main_emp_barracks_2", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_crossbowmen", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[5] = { ["building"] = "wh_main_emp_barracks_2", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_halberdiers", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[6] = { ["building"] = "wh_main_emp_barracks_2", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_spearmen_0", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[7] = { ["building"] = "wh_main_emp_barracks_2", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_spearmen_1", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[8] = { ["building"] = "wh_main_emp_barracks_2", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_swordsmen", ["effect_scope"] = "building_to_faction_own", ["value"] = 15, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[9] = { ["building"] = "wh_main_emp_barracks_3", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_crossbowmen", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[10] = { ["building"] = "wh_main_emp_barracks_3", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_greatswords", ["effect_scope"] = "building_to_faction_own", ["value"] = 8, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[11] = { ["building"] = "wh_main_emp_barracks_3", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_halberdiers", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[12] = { ["building"] = "wh_main_emp_barracks_3", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_spearmen_0", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[13] = { ["building"] = "wh_main_emp_barracks_3", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_spearmen_1", ["effect_scope"] = "building_to_faction_own", ["value"] = 10, ["value_damaged"] = 0, ["value_ruined"] = 0 },
+	[14] = { ["building"] = "wh_main_emp_barracks_3", ["effect"] = "wec_script_var_pools_wh_main_emp_inf_swordsmen", ["effect_scope"] = "building_to_faction_own", ["value"] = 15, ["value_damaged"] = 0, ["value_ruined"] = 0 }
+}--:map<integer, map<string, WHATEVER>>
+for i = 0, 14 do
+    local table = EMP_BUILDING_POP_EFFECTS[i]
+    pm:add_building_unit_production_effect(table.building, string.gsub(table.effect, "wec_script_var_pools_", ""), table.value)
+end
 
-local state_troop_detail = {
-    _UIName = "State Troop Regiments",
-    _UIImage = "blank",
+
+
+TABEL = {
+{ ["additive_mod"] = 0, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_harasser" },
+{ ["additive_mod"] = 0, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_harasser_flanker" },
+{ ["additive_mod"] = 1000, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_harasser_highvalue" },
+{ ["additive_mod"] = 0, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_no_skirmish" }
 }
