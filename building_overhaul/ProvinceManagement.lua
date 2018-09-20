@@ -50,6 +50,7 @@ function province_manager.init()
     self._religionEffects = {} --:map<string, map<string, number>> -- building to religion, quantity
     self._unitProdEffects = {} --:map<string, map<string, number>> -- building to unit, quantity
     self._unitProdReqs = {} --:map<string, map<string, vector<string>>> -- subculture to unit to list of required buildings
+    self._unitProdUIImages = {} --:map<string, string>
     --religion detail: struct definition in the types file
     self._religionDetails = {} --:map<string, RELIGION_DETAIL>
     --consequence bundles

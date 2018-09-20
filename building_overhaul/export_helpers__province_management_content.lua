@@ -96,12 +96,3 @@ for i = 0, 14 do
     local table = EMP_BUILDING_POP_EFFECTS[i]
     pm:add_building_unit_production_effect(table.building, string.gsub(table.effect, "wec_script_var_pools_", ""), table.value)
 end
-
-
-
-TABEL = {
-{ ["additive_mod"] = 0, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_harasser" },
-{ ["additive_mod"] = 0, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_harasser_flanker" },
-{ ["additive_mod"] = 1000, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_harasser_highvalue" },
-{ ["additive_mod"] = 0, ["multiplier"] = 1, ["usage_group"] = "ranged_stalkers_no_skirmish" }
-}
