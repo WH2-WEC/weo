@@ -31,8 +31,8 @@
 
 
 --# type global RELIGION_NAME = 
---# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmida" | "hum_taal" | "hum_lady" | "hum_ursun"
---# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_vaul" | "elf_hekarti"
+--# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmidia " | "hum_taal" | "hum_lady" | "hum_ursun"
+--# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_anath_reama" | "elf_hekarti"
 --# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea" |
 --# "lzd_sotek" 
 
@@ -46,9 +46,6 @@
 --# _level: number, _UIName: string, _UIEffects:vector<string>, _bundle: string, 
 --# _wealthEffects: number, _unitProdEffects: number}
 
---# type global UNIT_DETAIL = {
---# _set: vector<string>, _UIname: string, _UIimage: string
---#}
 
 
 --imperium
@@ -88,6 +85,4 @@
 --# _key: string, _scriptedObjectives: (vector<SCRIPTED_MISSION_OBJECTIVE>)?, 
 --# _successCallback: (function())?, _additionalOperations: (function(mm: MISSION_MANAGER))?
 --# }
-
-
 
