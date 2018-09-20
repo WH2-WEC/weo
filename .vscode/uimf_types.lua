@@ -66,7 +66,7 @@
 --# assume UTIL.getComponentWithName: function(name: string) --> COMPONENT_TYPE
 --# assume UTIL.centreComponentOnScreen: function(component: WHATEVER)
 --# assume UTIL.centreComponentOnComponent: function(component: WHATEVER, other_component: WHATEVER)    
-
+--# assume UTIL.recurseThroughChildrenApplyingFunction: function(parent: WHATEVER, callback:function(child: WHATEVER))
 
 
 
@@ -146,6 +146,7 @@
 --# assume CONTAINER.PositionRelativeTo: method(component: WHATEVER, xDiff: number, yDiff: number)
 --# assume CONTAINER.MoveTo: method(x: number, y: number)
 --# assume CONTAINER.Bounds: method() --> (number, number)
+--# assume CONTAINER.RecursiveRetrieveAllComponents: method() --> vector<WHATEVER>
 
 --listview
 --# assume LIST_VIEW.AddComponent: method(component: WHATEVER)

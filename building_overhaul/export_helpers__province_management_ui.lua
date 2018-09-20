@@ -59,6 +59,18 @@ local function ReligionEffectTooltip(ReligionBundle, fpd, religion_detail)
     end
     ReligionBundle:GetContentComponent():SetTooltipText(tt, true)
 end
+--v [NO_CHECK] function (vec:  vector<WHATEVER>) --> ()
+local function all_sizes(vec)
+    for i = 1, #vec do
+        local comp = vec[i]
+        local boundX, boundY = comp:Bounds() --:number, number
+        pm:log("Component: "..tostring(comp.name).." X: "..boundX.. ", Y: ".. boundY)
+        if Container.isContainer(comp) then
+            all_sizes(comp:RecursiveRetrieveAllComponents())
+        end
+    end
+end
+
 
 --v function(DetailsFrame: FRAME,fpd: FPD)
 local function PopulatePanel(DetailsFrame, fpd)
@@ -167,11 +179,48 @@ local function PopulatePanel(DetailsFrame, fpd)
         HorizontalHolder_1:AddGap(fbX/10)
         HorizontalHolder_1:AddComponent(ReligionHolder)
     --end
-    local HorizontalHolder_2 = Container.new(FlowLayout.VERTICAL)
+    local HorizontalHolder_2 = Container.new(FlowLayout.HORIZONTAL)
         --------------
         --UNITS PROD--
         --------------
         local UnitProductionHolder = Container.new(FlowLayout.VERTICAL)
+            local UnitTitleHolder = Container.new(FlowLayout.HORIZONTAL)
+                local UnitTitle = Text.new(UIPANELNAME.."_UNIT_TITLE", DetailsFrame,  "HEADER", "Unit Production")
+                UnitTitle:Resize(190, 35)
+            UnitTitleHolder:AddGap(45)
+            UnitTitleHolder:AddComponent(UnitTitle)
+            UnitTitleHolder:AddGap(45)
+            local UnitListHolder = Container.new(FlowLayout.VERTICAL)
+                local UnitList = ListView.new(UIPANELNAME.."_UNIT_PROD_LIST", DetailsFrame, "VERTICAL")
+                UnitList:Scale(0.5)
+                UnitList:Resize(250, 300)
+                local UnitBufferDummy = Container.new(FlowLayout.VERTICAL)
+                UnitBufferDummy:AddGap(7)
+                UnitList:AddContainer(UnitBufferDummy)
+                for unit, production in pairs(fpd._unitProduction) do
+                    if production == 0 then
+
+                    else
+                        local UnitItemContainer = Container.new(FlowLayout.HORIZONTAL)
+                        local UnitImage = Image.new(UIPANELNAME.."_UNIT_LIST_IMAGE"..unit, DetailsFrame, pm._unitProdUIImages[unit])
+                        UnitImage:Resize(20, 20)
+                        local UnitName = Text.new(UIPANELNAME.."_UNIT_LIST_NAME"..unit, DetailsFrame, "NORMAL", effect.get_localised_string(pm._unitProdUILandUnits[unit])) --
+                        UnitName:Resize(160, 30)
+                        local front_tag = "[[col:dark_g]]+"
+                        if production < 0 then
+                            front_tag = "[[col:red]]-"
+                        end
+                        local QuantityElement = Text.new(UIPANELNAME.."_DY_UNIT_PROD_"..unit, DetailsFrame, "NORMAL", front_tag..production.."[[/col]]%")
+                        QuantityElement:Resize(60, 30)
+                        UnitItemContainer:AddComponent(UnitImage)
+                        UnitItemContainer:AddComponent(UnitName)
+                        UnitItemContainer:AddComponent(QuantityElement)
+                        UnitList:AddContainer(UnitItemContainer)
+                    end
+                end
+            UnitListHolder:AddComponent(UnitList)
+        UnitProductionHolder:AddComponent(UnitTitleHolder)
+        UnitProductionHolder:AddComponent(UnitListHolder)
         ----------
         --WEALTH--
         ----------
@@ -281,8 +330,11 @@ local function PopulatePanel(DetailsFrame, fpd)
     HorizontalHolder_2:AddGap(fbX/10)
     HorizontalHolder_2:AddComponent(WealthHolder)
     HorizontalHolder_1:MoveTo(500, 300)
-    HorizontalHolder_2:MoveTo(500, 300)
-
+    HorizontalHolder_2:MoveTo(500, 450)
+    CntX, CntY = HorizontalHolder_2:Bounds()
+    pm:log("Container 2: X:"..CntX..", Y: "..CntY)
+    local why_is_container_2_so_big = HorizontalHolder_2:RecursiveRetrieveAllComponents()
+    all_sizes(why_is_container_2_so_big)
 end
 
 
