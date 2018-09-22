@@ -46,7 +46,22 @@
 --# _level: number, _UIName: string, _UIEffects:vector<string>, _bundle: string, 
 --# _wealthEffects: number, _unitProdEffects: number}
 
-
+--# type global PM_SAVE = {
+--# _name: string,
+--# _wealth: number,
+--# _taxRate: number,
+--# _religions: map<string, number>,
+--# _partialUnits: map<string, number>,
+--# _activeCapital: string,
+--# _activeEffects: vector<string>,
+--# _desiredEffects: vector<string>,
+--# _activeEffectsClear: bool,
+--# _producableUnits: map<string, {_bool: boolean, _reason: string}>,
+--# _religionLevels: map<string, number>,
+--# _wealthLevel: number,
+--# _UIWealthFactors: map<string, number>,
+--# _UIReligionFactors: map<string, map<string, number>>
+--#}
 
 --imperium
 --# assume global class IMPERIUM_EFFECTS_MANAGER
