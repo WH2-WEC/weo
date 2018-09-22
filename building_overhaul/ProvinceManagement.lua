@@ -493,11 +493,81 @@ end
 
 
 
---v function(self: PM) --> map<string, map<string, WHATEVER>>
+--v function(self: PM) 
 function province_manager.save(self)
-    self._saveData = {}
     for faction, province_object_pair in pairs(self._factionProvinceDetails) do
         for province, fpd in pairs(province_object_pair) do
+            local name = fpd._name
+            local data_string = ""
+            --wealth
+            data_string = data_string.."|_wealth:"..fpd._wealth
+            --wealthLevel
+            data_string = data_string.."|_wealthLevel:"..fpd._wealthLevel
+            --tax rate 
+            data_string = data_string.."|_taxRate:"..fpd._taxRate
+            --religions
+            data_string = data_string.."|_religions:M:"
+            for religion, value in pairs(fpd._religions) do
+                data_string = data_string..religion.."<"..value..">"
+            end
+            data_string = data_string.."|_religionLevels:M:"
+            --religionLevels
+            for religion, value in pairs(fpd._religionLevels) do
+                data_string = data_string..religion.."<"..value..">"
+            end
+            --unitGen
+            data_string = data_string.."|_unitProduction:M:"
+            for unit, value in pairs(fpd._unitProduction) do
+                data_string = data_string..unit.."<"..value..">"
+            end
+            --partial_units
+            data_string = data_string.."|_partialUnits:M:"
+            for unit, value in pairs(fpd._partialUnits) do
+                data_string = data_string..unit.."<"..value..">"
+            end
+            --capital
+            data_string = data_string.."|_activeCapital:"..fpd._activeCapital
+            --correct_capital
+            --no need to save if it is false
+            if fpd._correctCapital == true then
+                data_string = data_string.."|_correctCapital:true"
+            end
+            --effects clear
+            data_string = data_string.."|_activeEffectsClear:"..tostring(fpd._activeEffectsClear)
+            if fpd._activeEffectsClear == false then
+                --active effects
+                --no need to save when its clear
+                data_string = data_string.."|_activeEffects:V:"
+                for i = 1, #fpd._activeEffects do
+                    data_string = data_string.."<"..fpd._activeEffects[i]..">"
+                end
+            end
+            --desired effects
+            data_string = data_string.."|_desiredEffects:V:"
+            for i = 1, #fpd._desiredEffects do
+                data_string = data_string.."<"..fpd._desiredEffects[i]..">"
+            end
+            --UI factors
+            --no need to save unless the FPD is human
+            if cm:get_faction(fpd._faction):is_human() then
+                data_string = data_string.."|_UIWealthFactors:M:"
+                for factor, value in pairs(fpd._UIWealthFactors) do
+                    data_string = data_string .. factor .. "<"..value..">"
+                end
+                data_string = data_string.."|_UIReligionFactors:M:"
+                for religion, factortable in pairs(fpd._UIReligionFactors) do
+                    data_string = data_string..religion.."{"
+                    for factor, value in pairs(factortable) do
+                        data_string = data_string..factor.."<"..value..">"
+                    end
+                    data_string = data_string.."}"
+                end
+            end
+            --end
+            data_string = data_string.."|"
+            cm:set_saved_value("WEC_FPD_"..fpd._name, data_string)
+            self:log("Saved FPD: "..fpd._name.." with savestring ["..data_string.."]")
+            --[[
             self._saveData[faction..province] = {}
             local savetable = self._saveData[faction..province]
             savetable._wealth = fpd._wealth
@@ -509,15 +579,11 @@ function province_manager.save(self)
             savetable._desiredEffects = fpd._desiredEffects
             savetable._activeEffectsClear = fpd._activeEffectsClear
             savetable._producableUnits = fpd._producableUnits
+            --]]
         end
     end
-    return self._saveData
 end
 
---v function(self: PM, savedata: map<string, map<string, WHATEVER>>)
-function province_manager.load(self, savedata)
-    self._saveData = savedata
-end
 
 --v [NO_CHECK] function(self: PM,fpd: FPD)
 function province_manager.load_fpd(self, fpd)
@@ -665,27 +731,6 @@ _G.pm:log("province manager initialised")
 
 cm:add_saving_game_callback(
     function(context)
-        local status, err = pcall( function(context--:WHATEVER
-        )
-            local savedata = _G.pm:save() 
-            cm:save_named_value("WEC_PM_SAVEDATA", savedata, context)
-        end, context)
-        if not status then 
-            --# assume err: string
-            PMLOG(err)
-        end
-    end
-)
-cm:add_loading_game_callback(
-    function(context)
-        local status, err = pcall(function(context--:WHATEVER
-        )
-            local savedata = cm:load_named_value("WEC_PM_SAVEDATA", {}, context)
-            _G.pm:load(savedata)
-        end, context)
-        if not status then 
-            --# assume err: string
-            PMLOG(err)
-        end
-    end
+        _G.pm:save()
+    end 
 )
