@@ -585,13 +585,107 @@ function province_manager.save(self)
 end
 
 
---v [NO_CHECK] function(self: PM,fpd: FPD)
-function province_manager.load_fpd(self, fpd)
-    --no check because kailua doesn't aprove this way of doing it
-    self:log("LOADING: data for FPD ["..fpd._name.."] ")
-    local savetable = self._saveData[fpd._name]
-    for key, value in pairs(savetable) do
-        fpd[key] = value
+--v [NO_CHECK] function(self: PM, fpd: FPD, data:string)
+function province_manager.load_fpd(self, fpd, data)
+    local last_div = 1 --:int
+    local next_div = nil --:int
+    local sets = {} --:map<int, int>
+    while true do
+        local next_div = string.find(data, "|", last_div + 1)
+        if not next_div then
+            break;
+        end
+        sets[last_div] = next_div
+        last_div = next_div
+    end
+    for set_start, set_end in pairs(sets) do
+        local set = string.sub(data, set_start + 1, set_end - 1)
+        if string.find(set, ":M:") then
+            --its a map!
+            local new_set = string.gsub(set, "M:", "")
+            local index_end = string.find(new_set, ":")
+            local index = string.sub(new_set, 1, index_end - 1)
+            local map_set = string.sub(new_set, index_end + 1)
+            fpd[index] = {}
+            local current_key_start = 1
+            while true do
+                local next_open
+                local is_complex = false
+                local next_simple = string.find(map_set, "<")
+                local next_complex = string.find(map_set, "{")
+                if next_simple and next_complex then
+                    if next_simple < next_complex then
+                        next_open = next_simple
+                    else
+                        next_open = next_complex
+                        is_complex = true
+                    end
+                elseif not not next_simple then
+                    next_open = next_simple
+                elseif not not next_complex then
+                    next_open = next_complex
+                    is_complex = true
+                else
+                    break;
+                end
+                local key = string.sub(map_set, current_key_start, next_open - 1)
+                local next_close
+                if not is_complex then
+                    next_close = string.find(map_set, ">", next_open)
+                    local value = string.sub(map_set, next_open+1, next_close -1)
+                    if not string.find(value, "%a") then
+                        value = tonumber(value)
+                    end
+                    fpd[index][key] = value
+                else
+                    fpd[index][key] = {}
+                    next_close = string.find(map_set, "}", next_open)
+                    local complex_set = string.sub(map_set, next_open+1, next_close-1)
+                    local complex_key_start = 1
+                    while true do
+                        local complex_open = string.find(complex_set, "<", complex_key_start)
+                        if not complex_open then
+                            break
+                        end
+                        local complex_end = string.find(complex_set, ">", complex_open+1)
+                        local subkey = string.sub(complex_set, complex_key_start, complex_open-1)
+                        local subvalue = string.sub(complex_set, complex_open+1, complex_end -1)
+                        if not string.find(subvalue, "%a") then
+                            subvalue = tonumber(subvalue)
+                        end
+                        complex_key_start = complex_end+1
+                        fdp[index][key][subkey] = subvalue
+                    end
+                end
+                current_key_start = next_open+1
+            end
+        elseif string.find(set, ":V:") then
+            --its a vector!
+            local new_set = string.gsub(set, "V:", "")
+            local index_end = string.find(new_set, ":")
+            local index = string.sub(new_set,1, index_end - 1 )
+            fpd[index] = {}
+            local vec_set = string.sub(new_set, index_end+1)
+            local search_start = 1
+            while true do
+                local next_open = string.find(vec_set, "<", search_start)
+                if not next_open then
+                    break;
+                end
+                local next_close = string.find(vec_set, ">", next_open)
+                local value = string.sub(vec_set, next_open+1, next_close-1)
+                if not string.find(value, "%a") then
+                    value = tonumber(value)
+                end
+                table.insert(fpd[index], value)
+            end
+        else
+            --its a simple value
+            local index_end = string.find(set, ":")
+            local index = string.sub(set,1, index_end - 1)
+            local value = string.sub(set, index_end + 1)
+            fpd[index] = value
+        end
     end
 end
 
@@ -603,8 +697,9 @@ function province_manager.create_faction_province_detail(self, faction_name, pro
         self._factionProvinceDetails[faction_name] = {}
     end
     self._factionProvinceDetails[faction_name][province_name] = fpd
-    if not self._saveData[fpd._name] == nil then
-        self:load_fpd(fpd)
+    local savedata = cm:get_saved_value("WEC_FPD_"..fpd._name) --:string
+    if not not savedata then
+        self:load_fpd(fpd, savedata)
     else
         self:log("No saved data found for new FPD")
         --we don't need to preform this if we're loading
