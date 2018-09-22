@@ -571,7 +571,8 @@ end
 --v function(self: PM, fpd: FPD, data:string)
 function province_manager.load_fpd(self, fpd, data)
     --# assume fpd: WHATEVER -- a lighter nocheck for the function
-    --v function(text: string | number | boolean | CA_CQI)
+--[[    --v function(text: string | number | boolean | CA_CQI)
+        
     local function LOG(text)
         if not __write_output_to_logfile then
             return;
@@ -585,10 +586,10 @@ function province_manager.load_fpd(self, fpd, data)
         popLog :flush()
         popLog :close()
     end
-
+]]
     self:log("Loading FPD: ["..fpd._name.."]")
-    LOG("Loading FPD: ["..fpd._name.."]")
-    LOG("Operating on Data ["..data.."]")
+    --LOG("Loading FPD: ["..fpd._name.."]")
+    --LOG("Operating on Data ["..data.."]")
     local last_div = 1 --:int
     local next_div = nil --:int
     local sets = {} --:map<int, int>
@@ -598,14 +599,14 @@ function province_manager.load_fpd(self, fpd, data)
             break;
         end
         sets[last_div] = next_div
-        LOG("Found div set ["..last_div.."] to ["..next_div.."]")
+        --LOG("Found div set ["..last_div.."] to ["..next_div.."]")
         last_div = next_div
     end
     for set_start, set_end in pairs(sets) do
         local set = string.sub(data, set_start + 1, set_end - 1)
-        LOG("Operating on substring ["..set.."] ")
+        --LOG("Operating on substring ["..set.."] ")
         if string.find(set, ":M:") then
-            LOG("Set is a map!")
+            --LOG("Set is a map!")
             --its a map!
             local new_set = string.gsub(set, "M:", "")
             local index_end = string.find(new_set, ":")
@@ -613,11 +614,11 @@ function province_manager.load_fpd(self, fpd, data)
             local map_set = string.sub(new_set, index_end + 1)
             fpd[index] = {}
             local current_key_start = 1
-            LOG("STARTING WHILE #1")
+            --LOG("STARTING WHILE #1")
             while true do
                 local next_open = string.find(map_set, "<", current_key_start)
                 if not next_open then
-                    LOG("BREAKING WHILE #1")
+                    --LOG("BREAKING WHILE #1")
                     break
                 end
                 local key = string.sub(map_set, current_key_start, next_open - 1)
@@ -631,7 +632,7 @@ function province_manager.load_fpd(self, fpd, data)
                 current_key_start = next_close + 1
             end
         elseif string.find(set, ":MM:") then
-            LOG("Set is a double map!")
+            --LOG("Set is a double map!")
             --double map!
             local new_set = string.gsub(set, "MM:", "")
             local index_end = string.find(new_set, ":")
@@ -639,24 +640,24 @@ function province_manager.load_fpd(self, fpd, data)
             local map_set = string.sub(new_set, index_end + 1)
             fpd[index] = {}
             local current_key_start = 1
-            LOG("STARTING WHILE #2")
+            --LOG("STARTING WHILE #2")
             while true do
                 local next_open = string.find(map_set, "{", current_key_start)
                 if not next_open then
-                    LOG("BREAKING WHILE #2")
+                    --LOG("BREAKING WHILE #2")
                     break
                 end
                 local key = string.sub(map_set, current_key_start, next_open -1)
                 fpd[index][key] = {}
                 local next_close = string.find(map_set, "}", next_open)
                 local sub_set = string.sub(map_set, next_open+1, next_close-1)
-                LOG("Operating on Subset ["..sub_set.."]")
-                LOG("STARTING WHILE #2 STAGE 2")
+                --LOG("Operating on Subset ["..sub_set.."]")
+                --LOG("STARTING WHILE #2 STAGE 2")
                 local current_subkey_start = 1
                 while true do
                     local next_sub_open = string.find(sub_set, "<", current_subkey_start)
                     if not next_sub_open then
-                        LOG("BREAKING WHILE #2 STAGE 2")
+                        --LOG("BREAKING WHILE #2 STAGE 2")
                         break
                     end
                     local subkey = string.sub(sub_set, current_subkey_start, next_sub_open-1)
@@ -668,7 +669,7 @@ function province_manager.load_fpd(self, fpd, data)
                 current_key_start = next_close + 1
             end
         elseif string.find(set, ":V:") then
-            LOG("Set is a vector!")
+            --LOG("Set is a vector!")
             --its a vector!
             local new_set = string.gsub(set, "V:", "")
             local index_end = string.find(new_set, ":")
@@ -676,11 +677,11 @@ function province_manager.load_fpd(self, fpd, data)
             fpd[index] = {}
             local vec_set = string.sub(new_set, index_end+1)
             local search_start = 1
-            LOG("STARTING WHILE #3")
+            --LOG("STARTING WHILE #3")
             while true do
                 local next_open = string.find(vec_set, "<", search_start)
                 if not next_open then
-                    LOG("BREAKING WHILE #3")
+                    --LOG("BREAKING WHILE #3")
                     break;
                 end
                 local next_close = string.find(vec_set, ">", next_open)
