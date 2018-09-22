@@ -64,6 +64,8 @@ local function OnTurnStartProvince(fpd)
             fpd._unitProduction[unit] = (total * 100) + fpd._partialUnits[unit] 
         end
     end
+    pm:log("Saving FPD")
+    pm:save_fpd(fpd)
     pm:log("turn start process complete!")
 end
 
@@ -274,6 +276,7 @@ core:add_listener(
             fpd:clear_active_effects()
             fpd:apply_all_effects()
         end
+        pm:save_fpd(fpd)
     end,
     true
 )
@@ -340,6 +343,9 @@ core:add_listener(
             fpd:clear_active_effects()
             fpd:apply_all_effects()
         end
+        pm:save_fpd(fpd)
     end,
     true
 )
+
+

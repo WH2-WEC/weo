@@ -493,100 +493,102 @@ end
 
 
 
---v function(self: PM) 
-function province_manager.save(self)
-    for faction, province_object_pair in pairs(self._factionProvinceDetails) do
-        for province, fpd in pairs(province_object_pair) do
-            local name = fpd._name
-            local data_string = ""
-            --wealth
-            data_string = data_string.."|_wealth:"..fpd._wealth
-            --wealthLevel
-            data_string = data_string.."|_wealthLevel:"..fpd._wealthLevel
-            --tax rate 
-            data_string = data_string.."|_taxRate:"..fpd._taxRate
-            --religions
-            data_string = data_string.."|_religions:M:"
-            for religion, value in pairs(fpd._religions) do
-                data_string = data_string..religion.."<"..value..">"
-            end
-            data_string = data_string.."|_religionLevels:M:"
-            --religionLevels
-            for religion, value in pairs(fpd._religionLevels) do
-                data_string = data_string..religion.."<"..value..">"
-            end
-            --unitGen
-            data_string = data_string.."|_unitProduction:M:"
-            for unit, value in pairs(fpd._unitProduction) do
-                data_string = data_string..unit.."<"..value..">"
-            end
-            --partial_units
-            data_string = data_string.."|_partialUnits:M:"
-            for unit, value in pairs(fpd._partialUnits) do
-                data_string = data_string..unit.."<"..value..">"
-            end
-            --capital
-            data_string = data_string.."|_activeCapital:"..fpd._activeCapital
-            --correct_capital
-            --no need to save if it is false
-            if fpd._correctCapital == true then
-                data_string = data_string.."|_correctCapital:true"
-            end
-            --effects clear
-            data_string = data_string.."|_activeEffectsClear:"..tostring(fpd._activeEffectsClear)
-            if fpd._activeEffectsClear == false then
-                --active effects
-                --no need to save when its clear
-                data_string = data_string.."|_activeEffects:V:"
-                for i = 1, #fpd._activeEffects do
-                    data_string = data_string.."<"..fpd._activeEffects[i]..">"
-                end
-            end
-            --desired effects
-            data_string = data_string.."|_desiredEffects:V:"
-            for i = 1, #fpd._desiredEffects do
-                data_string = data_string.."<"..fpd._desiredEffects[i]..">"
-            end
-            --UI factors
-            --no need to save unless the FPD is human
-            if cm:get_faction(fpd._faction):is_human() then
-                data_string = data_string.."|_UIWealthFactors:M:"
-                for factor, value in pairs(fpd._UIWealthFactors) do
-                    data_string = data_string .. factor .. "<"..value..">"
-                end
-                data_string = data_string.."|_UIReligionFactors:M:"
-                for religion, factortable in pairs(fpd._UIReligionFactors) do
-                    data_string = data_string..religion.."{"
-                    for factor, value in pairs(factortable) do
-                        data_string = data_string..factor.."<"..value..">"
-                    end
-                    data_string = data_string.."}"
-                end
-            end
-            --end
-            data_string = data_string.."|"
-            cm:set_saved_value("WEC_FPD_"..fpd._name, data_string)
-            self:log("Saved FPD: "..fpd._name.." with savestring ["..data_string.."]")
-            --[[
-            self._saveData[faction..province] = {}
-            local savetable = self._saveData[faction..province]
-            savetable._wealth = fpd._wealth
-            savetable._taxRate = fpd._taxRate
-            savetable._religions = fpd._religions
-            savetable._partialUnits = fpd._partialUnits
-            savetable._activeCapital = fpd._activeCapital
-            savetable._activeEffects = fpd._activeEffects
-            savetable._desiredEffects = fpd._desiredEffects
-            savetable._activeEffectsClear = fpd._activeEffectsClear
-            savetable._producableUnits = fpd._producableUnits
-            --]]
+--v function(self: PM, fpd: FPD) 
+function province_manager.save_fpd(self, fpd)
+    local name = fpd._name
+    local data_string = ""
+    --wealth
+    data_string = data_string.."|_wealth:"..fpd._wealth
+    --wealthLevel
+    data_string = data_string.."|_wealthLevel:"..fpd._wealthLevel
+    --tax rate 
+    data_string = data_string.."|_taxRate:"..fpd._taxRate
+    --religions
+    data_string = data_string.."|_religions:M:"
+    for religion, value in pairs(fpd._religions) do
+        data_string = data_string..religion.."<"..value..">"
+    end
+    data_string = data_string.."|_religionLevels:M:"
+    --religionLevels
+    for religion, value in pairs(fpd._religionLevels) do
+        data_string = data_string..religion.."<"..value..">"
+    end
+    --unitGen
+    data_string = data_string.."|_unitProduction:M:"
+    for unit, value in pairs(fpd._unitProduction) do
+        data_string = data_string..unit.."<"..value..">"
+    end
+    --partial_units
+    data_string = data_string.."|_partialUnits:M:"
+    for unit, value in pairs(fpd._partialUnits) do
+        data_string = data_string..unit.."<"..value..">"
+    end
+    --capital
+    data_string = data_string.."|_activeCapital:"..fpd._activeCapital
+    --correct_capital
+    --no need to save if it is false
+    if fpd._correctCapital == true then
+        data_string = data_string.."|_correctCapital:true"
+    end
+    --effects clear
+    data_string = data_string.."|_activeEffectsClear:"..tostring(fpd._activeEffectsClear)
+    if fpd._activeEffectsClear == false then
+        --active effects
+        --no need to save when its clear
+        data_string = data_string.."|_activeEffects:V:"
+        for i = 1, #fpd._activeEffects do
+            data_string = data_string.."<"..fpd._activeEffects[i]..">"
         end
     end
+    --desired effects
+    data_string = data_string.."|_desiredEffects:V:"
+    for i = 1, #fpd._desiredEffects do
+        data_string = data_string.."<"..fpd._desiredEffects[i]..">"
+    end
+    --UI factors
+    --no need to save unless the FPD is human
+    if cm:get_faction(fpd._faction):is_human() then
+        data_string = data_string.."|_UIWealthFactors:M:"
+        for factor, value in pairs(fpd._UIWealthFactors) do
+            data_string = data_string .. factor .. "<"..value..">"
+        end
+        data_string = data_string.."|_UIReligionFactors:MM:"
+        for religion, factortable in pairs(fpd._UIReligionFactors) do
+            data_string = data_string..religion.."{"
+            for factor, value in pairs(factortable) do
+                data_string = data_string..factor.."<"..value..">"
+            end
+            data_string = data_string.."}"
+        end
+    end
+    --end
+    data_string = data_string.."|"
+    cm:set_saved_value("WEC_FPD_"..fpd._name, data_string)
+    self:log("Saved FPD: "..fpd._name.." with savestring ["..data_string.."]")
 end
 
 
---v [NO_CHECK] function(self: PM, fpd: FPD, data:string)
+--v function(self: PM, fpd: FPD, data:string)
 function province_manager.load_fpd(self, fpd, data)
+    --# assume fpd: WHATEVER -- a lighter nocheck for the function
+    --v function(text: string | number | boolean | CA_CQI)
+    local function LOG(text)
+        if not __write_output_to_logfile then
+            return;
+        end
+    
+        local logText = tostring(text)
+        local logTimeStamp = os.date("%d, %m %Y %X")
+        local popLog = io.open("loading_test.txt","a")
+        --# assume logTimeStamp: string
+        popLog :write("PM :  [".. logTimeStamp .. "]:  "..logText .. "  \n")
+        popLog :flush()
+        popLog :close()
+    end
+
+    self:log("Loading FPD: ["..fpd._name.."]")
+    LOG("Loading FPD: ["..fpd._name.."]")
+    LOG("Operating on Data ["..data.."]")
     local last_div = 1 --:int
     local next_div = nil --:int
     local sets = {} --:map<int, int>
@@ -596,11 +598,14 @@ function province_manager.load_fpd(self, fpd, data)
             break;
         end
         sets[last_div] = next_div
+        LOG("Found div set ["..last_div.."] to ["..next_div.."]")
         last_div = next_div
     end
     for set_start, set_end in pairs(sets) do
         local set = string.sub(data, set_start + 1, set_end - 1)
+        LOG("Operating on substring ["..set.."] ")
         if string.find(set, ":M:") then
+            LOG("Set is a map!")
             --its a map!
             local new_set = string.gsub(set, "M:", "")
             local index_end = string.find(new_set, ":")
@@ -608,58 +613,62 @@ function province_manager.load_fpd(self, fpd, data)
             local map_set = string.sub(new_set, index_end + 1)
             fpd[index] = {}
             local current_key_start = 1
+            LOG("STARTING WHILE #1")
             while true do
-                local next_open
-                local is_complex = false
-                local next_simple = string.find(map_set, "<")
-                local next_complex = string.find(map_set, "{")
-                if next_simple and next_complex then
-                    if next_simple < next_complex then
-                        next_open = next_simple
-                    else
-                        next_open = next_complex
-                        is_complex = true
-                    end
-                elseif not not next_simple then
-                    next_open = next_simple
-                elseif not not next_complex then
-                    next_open = next_complex
-                    is_complex = true
-                else
-                    break;
+                local next_open = string.find(map_set, "<", current_key_start)
+                if not next_open then
+                    LOG("BREAKING WHILE #1")
+                    break
                 end
                 local key = string.sub(map_set, current_key_start, next_open - 1)
-                local next_close
-                if not is_complex then
-                    next_close = string.find(map_set, ">", next_open)
-                    local value = string.sub(map_set, next_open+1, next_close -1)
-                    if not string.find(value, "%a") then
-                        value = tonumber(value)
-                    end
-                    fpd[index][key] = value
-                else
-                    fpd[index][key] = {}
-                    next_close = string.find(map_set, "}", next_open)
-                    local complex_set = string.sub(map_set, next_open+1, next_close-1)
-                    local complex_key_start = 1
-                    while true do
-                        local complex_open = string.find(complex_set, "<", complex_key_start)
-                        if not complex_open then
-                            break
-                        end
-                        local complex_end = string.find(complex_set, ">", complex_open+1)
-                        local subkey = string.sub(complex_set, complex_key_start, complex_open-1)
-                        local subvalue = string.sub(complex_set, complex_open+1, complex_end -1)
-                        if not string.find(subvalue, "%a") then
-                            subvalue = tonumber(subvalue)
-                        end
-                        complex_key_start = complex_end+1
-                        fdp[index][key][subkey] = subvalue
-                    end
+                local next_close = string.find(map_set, ">", next_open)
+                local value = string.sub(map_set, next_open+1, next_close -1) 
+                if not string.find(value, "%a") then
+                    --# assume value: number
+                    value = tonumber(value) 
                 end
-                current_key_start = next_open+1
+                fpd[index][key] = value
+                current_key_start = next_close + 1
+            end
+        elseif string.find(set, ":MM:") then
+            LOG("Set is a double map!")
+            --double map!
+            local new_set = string.gsub(set, "MM:", "")
+            local index_end = string.find(new_set, ":")
+            local index = string.sub(new_set, 1, index_end - 1)
+            local map_set = string.sub(new_set, index_end + 1)
+            fpd[index] = {}
+            local current_key_start = 1
+            LOG("STARTING WHILE #2")
+            while true do
+                local next_open = string.find(map_set, "{", current_key_start)
+                if not next_open then
+                    LOG("BREAKING WHILE #2")
+                    break
+                end
+                local key = string.sub(map_set, current_key_start, next_open -1)
+                fpd[index][key] = {}
+                local next_close = string.find(map_set, "}", next_open)
+                local sub_set = string.sub(map_set, next_open+1, next_close-1)
+                LOG("Operating on Subset ["..sub_set.."]")
+                LOG("STARTING WHILE #2 STAGE 2")
+                local current_subkey_start = 1
+                while true do
+                    local next_sub_open = string.find(sub_set, "<", current_subkey_start)
+                    if not next_sub_open then
+                        LOG("BREAKING WHILE #2 STAGE 2")
+                        break
+                    end
+                    local subkey = string.sub(sub_set, current_subkey_start, next_sub_open-1)
+                    local next_sub_close = string.find(sub_set, ">", next_sub_open+1)
+                    local subvalue = string.sub(sub_set, next_sub_open+1, next_sub_close-1)
+                    fpd[index][key][subkey] = subvalue
+                    current_subkey_start = next_sub_close + 1
+                end
+                current_key_start = next_close + 1
             end
         elseif string.find(set, ":V:") then
+            LOG("Set is a vector!")
             --its a vector!
             local new_set = string.gsub(set, "V:", "")
             local index_end = string.find(new_set, ":")
@@ -667,9 +676,11 @@ function province_manager.load_fpd(self, fpd, data)
             fpd[index] = {}
             local vec_set = string.sub(new_set, index_end+1)
             local search_start = 1
+            LOG("STARTING WHILE #3")
             while true do
                 local next_open = string.find(vec_set, "<", search_start)
                 if not next_open then
+                    LOG("BREAKING WHILE #3")
                     break;
                 end
                 local next_close = string.find(vec_set, ">", next_open)
@@ -678,12 +689,17 @@ function province_manager.load_fpd(self, fpd, data)
                     value = tonumber(value)
                 end
                 table.insert(fpd[index], value)
+                search_start = next_close + 1
             end
+            
         else
             --its a simple value
             local index_end = string.find(set, ":")
             local index = string.sub(set,1, index_end - 1)
             local value = string.sub(set, index_end + 1)
+            if not string.find(value, "%a") then
+                value = tonumber(value)
+            end
             fpd[index] = value
         end
     end
@@ -824,8 +840,3 @@ province_manager.init()
 _G.pm:log("province manager initialised")
 
 
-cm:add_saving_game_callback(
-    function(context)
-        _G.pm:save()
-    end 
-)
