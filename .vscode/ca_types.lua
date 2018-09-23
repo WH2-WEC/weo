@@ -282,6 +282,7 @@
 --# assume CA_CHAR.display_position_x: method() --> number
 --# assume CA_CHAR.display_position_y: method() --> number
 --# assume CA_CHAR.character_subtype_key: method() --> string
+--# assume CA_CHAR.has_skill: method(skill:string) --> boolean
 --# assume CA_CHAR.region: method() --> CA_REGION
 --# assume CA_CHAR.faction: method() --> CA_FACTION
 --# assume CA_CHAR.military_force: method() --> CA_MILITARY_FORCE
