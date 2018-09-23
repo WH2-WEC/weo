@@ -254,21 +254,7 @@ local function sfo_add_unit_caps()
         end
     end
 
-    
-    for name, _ in pairs(groups) do
-        if string.find(name, "special") then
-            rm:set_ui_name_for_group(name, "Special Units")
-            rm:add_character_quantity_limit_for_group(name, 6)
-        end
-        if string.find(name, "elite") then
-            rm:set_ui_name_for_group(name, "Elite Units")
-            rm:add_character_quantity_limit_for_group(name, 4)
-        end
-        if string.find(name, "rare") then
-            rm:set_ui_name_for_group(name, "Rare Units")
-            rm:add_character_quantity_limit_for_group(name, 2)
-        end
-    end
+
 end
 --v function()
 function sfo_apply_cap_bundle()
@@ -297,6 +283,22 @@ core:add_listener(
         if context:choice() == 1 or context:choice() == 2 then
             sfo_add_unit_caps()
             cm:set_saved_value("SFO_APPLY_CAPS", true)
+            cm:callback(function()
+                for name, _ in pairs(groups) do
+                    if string.find(name, "special") then
+                        rm:set_ui_name_for_group(name, "Special Units")
+                        rm:add_character_quantity_limit_for_group(name, 6)
+                    end
+                    if string.find(name, "elite") then
+                        rm:set_ui_name_for_group(name, "Elite Units")
+                        rm:add_character_quantity_limit_for_group(name, 4)
+                    end
+                    if string.find(name, "rare") then
+                        rm:set_ui_name_for_group(name, "Rare Units")
+                        rm:add_character_quantity_limit_for_group(name, 2)
+                    end
+                end
+            end, 5)
         end
         if context:choice() == 2 or context:choice() == 3 then
             sfo_apply_cap_bundle()
@@ -304,8 +306,25 @@ core:add_listener(
     end,
     false)
 
+
 if cm:get_saved_value("SFO_APPLY_CAPS") then
     sfo_add_unit_caps()
+    events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+        for name, _ in pairs(groups) do
+            if string.find(name, "special") then
+                rm:set_ui_name_for_group(name, "Special Units")
+                rm:add_character_quantity_limit_for_group(name, 6)
+            end
+            if string.find(name, "elite") then
+                rm:set_ui_name_for_group(name, "Elite Units")
+                rm:add_character_quantity_limit_for_group(name, 4)
+            end
+            if string.find(name, "rare") then
+                rm:set_ui_name_for_group(name, "Rare Units")
+                rm:add_character_quantity_limit_for_group(name, 2)
+            end
+        end
+    end
 end
     
     
