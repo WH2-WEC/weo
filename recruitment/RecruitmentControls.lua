@@ -57,11 +57,17 @@ function recruiter_manager.init()
     self._unitWeights = {} --:map<string, number>
     --ui
     self._UIGroupNames = {} --:map<string, string>
-    self._UIUnitProfiles = {} --:map<string, TOOLTIPIMAGE>
+    self._UIUnitProfiles = {} --:map<string, RM_UIPROFILE>
     --unit to pool quantity
     self._unitPoolQuantities = {} --:map<string, map<string, number>>
     self._unitPools = {} --:map<string, boolean>
     self._unitPoolMaximums = {} --:map<string, number>
+    --subtypes that have overrides are marked here.
+    self._subtypeHasOverrides = {} --:map<string, map<string, boolean>> --marks which subtypes have overrides for which units
+    self._subtypeGroupOverrides = {} --:map<string, map<string, string>> --marks which subtypes fully override the group
+    self._subtypeTraits = {} --:map<string, map<string, number>> --units to the traits and number
+    self._subtypeSkills = {} --:map<string, map<string, number>> --unit string to the skill and number to change
+    self._UIProfileOverrides = {} --:map<string,map<string, RM_UIPROFILE>> --subtype to unit to override
     --place instance in _G. 
     _G.rm = self
 end
@@ -274,7 +280,7 @@ end
 ------------------
 
 --get the map of units to their UI
---v function(self: RECRUITER_MANAGER) --> map<string, TOOLTIPIMAGE>
+--v function(self: RECRUITER_MANAGER) --> map<string, RM_UIPROFILE>
 function recruiter_manager.get_unit_ui_profiles(self)
     return self._UIUnitProfiles
 end
@@ -287,7 +293,7 @@ end
 
 --set the UI profile for a unit.
 --publically available function
---v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: TOOLTIPIMAGE)
+--v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: RM_UIPROFILE)
 function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
     if not (is_string(UIprofile._image) and is_string(UIprofile._text)) then
         self:log("ERROR: set_ui_profile_for_unit called but the supplied profile table isn't properly formatted. /n It needs to have a _text and _image field which are both strings!")
@@ -301,7 +307,7 @@ function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
 end
 
 --get the UI profile for a unit.
---v function(self: RECRUITER_MANAGER, unitID: string) --> TOOLTIPIMAGE
+--v function(self: RECRUITER_MANAGER, unitID: string) --> RM_UIPROFILE
 function recruiter_manager.get_ui_profile_for_unit(self, unitID)
     return self:get_unit_ui_profiles()[unitID]
 end
@@ -405,7 +411,7 @@ function recruiter_character.new(manager, cqi)
     self._staleQueueFlag = true --:boolean -- flags for the queue needing to be refreshed entirely.
     self._staleArmyFlag = true --:boolean --flags for the army needing to be refreshed entirely.
     self._rawQueueFlag = true --:boolean --flags for when the queue needing refresh needs to have refunds done
-    
+    self._UIProfileOverrides = {} --:map<string, RM_UIPROFILE> --overrides the UI profile stored in the model
     return self
 end
 
@@ -709,6 +715,34 @@ function recruiter_character.is_unit_restricted(self, unitID)
     self:log("is unit restricted returning ["..tostring(self:get_unit_restrictions()[unitID]).."] for unit ["..unitID.."]")
     return self:get_unit_restrictions()[unitID]
 end
+
+--update 23/9 
+--v function(self: RECRUITER_CHARACTER, unitID: string, UIProfile: RM_UIPROFILE)
+function recruiter_character.set_ui_profile_override_for_unit(self, unitID, UIProfile)
+    self._UIProfileOverrides[unitID] = UIProfile
+end
+--v function(self: RECRUITER_CHARACTER, unitID: string)
+function recruiter_character.remove_ui_profile_override_for_unit(self, unitID)
+    self._UIProfileOverrides[unitID] = nil
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string) --> boolean
+function recruiter_character.has_ui_profile_override_for_unit(self, unitID)
+    return not not self._UIProfileOverrides[unitID]
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string) -->  RM_UIPROFILE
+function recruiter_character.get_ui_profile_override_for_unit(self, unitID)
+    if self._UIProfileOverrides[unitID] == nil then
+        self._UIProfileOverrides[unitID] = {
+            _image = "",
+            _text = ""
+        }
+    end
+    return self._UIProfileOverrides[unitID]
+end
+
+
 --# assume RECRUITER_MANAGER.current_character: method() --> RECRUITER_CHARACTER
 --enforce the restriction for a specific unit onto the UI.
 --v function(self: RECRUITER_CHARACTER, unitID: string)
@@ -767,6 +801,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -849,6 +886,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -935,6 +975,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -1009,6 +1052,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -1156,11 +1202,26 @@ end
 
 
 --get the list of groups for a specific unit
---v function(self: RECRUITER_MANAGER, unitID: string) -->vector<string>
-function recruiter_manager.get_groups_for_unit(self, unitID)
+--v function(self: RECRUITER_MANAGER, unitID: string, cqi: CA_CQI?) -->vector<string>
+function recruiter_manager.get_groups_for_unit(self, unitID, cqi)
     if self._unitToGroupNames[unitID] == nil then
         --if the unit has no groups, give it a default blank list
         self._unitToGroupNames[unitID] = {}
+    end
+    if cqi then
+        local char = cm:get_character_by_cqi(cqi)
+        local char_sub = char:character_subtype_key()
+        local is_human = char:faction():is_human()
+        if self._subtypeGroupOverrides[char_sub] then
+            if self._subtypeGroupOverrides[char_sub][unitID] then
+                local FakeGroups = {} --:vector<string>
+                FakeGroups[1] = self._subtypeGroupOverrides[char_sub][unitID] 
+                if is_human then
+                    self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unitID, self._UIProfileOverrides[char_sub][unitID])
+                end
+                return FakeGroups
+            end
+        end
     end
     return self._unitToGroupNames[unitID]
 end
@@ -1202,8 +1263,38 @@ end
 
 
 --get the weight of a specific unit
---v function(self: RECRUITER_MANAGER, unitID: string) --> number
-function recruiter_manager.get_weight_for_unit(self, unitID)
+--v function(self: RECRUITER_MANAGER, unitID: string, cqi: CA_CQI?) --> number
+function recruiter_manager.get_weight_for_unit(self, unitID, cqi)
+    if cqi then
+        local char = cm:get_character_by_cqi(cqi)
+        local is_human = char:faction():is_human()
+        local char_sub = char:character_subtype_key()
+        if self._subtypeSkills[unitID] then
+            for skill, weight in pairs(self._subtypeSkills[unitID]) do
+                if char:has_skill(skill) then
+                    if is_human then
+                        self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unitID, self._UIProfileOverrides[char_sub][unitID])
+                    end
+                    return weight
+                end
+            end
+        end
+        if self._subtypeTraits[unitID] then
+            for trait, weight in pairs(self._subtypeTraits[unitID]) do
+                if char:has_trait(trait) then
+                    if is_human then
+                        self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unitID, self._UIProfileOverrides[char_sub][unitID])
+                    end
+                    return weight
+                end
+            end
+            if is_human then
+                if (self._subtypeGroupOverrides[char_sub] == nil) and (self._subtypeGroupOverrides[char_sub][unitID] == nil) then
+                    self:get_character_by_cqi(cqi):remove_ui_profile_override_for_unit(unitID)
+                end
+            end
+        end
+    end
     if self._unitWeights[unitID] == nil then
         self._unitWeights[unitID] = 1
     end
@@ -1230,7 +1321,6 @@ end
 
 --unit checks framework--
 -------------------------
-
 
 
 --get the list of checks for a specific unit
@@ -1575,6 +1665,51 @@ end
 
 
 
+--overrides a group categorization and unit profile for a subtype ALWAYS.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, override_group: string, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_group_override(self, subtype, unit, override_group, profile_override)
+    self._subtypeGroupOverrides[subtype] = {}
+    self._subtypeGroupOverrides[subtype][unit] = override_group
+    if self._UIProfileOverrides[subtype] == nil then
+        self._UIProfileOverrides[subtype] = {}
+    end
+    self._UIProfileOverrides[subtype][unit] = profile_override
+end
+
+--overrides a weight for a unit for a subtype when a skill is possessed.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, skill: string, override_weight: number, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_skill_weight_override(self, subtype, unit, skill, override_weight, profile_override)
+    if self._subtypeHasOverrides[subtype] == nil then
+        self._subtypeHasOverrides[subtype] = {}
+    end
+    self._subtypeHasOverrides[subtype][unit] = true
+    if self._subtypeSkills[unit] == nil then
+        self._subtypeSkills[unit] = {}
+    end
+    self._subtypeSkills[unit][skill] = override_weight
+    if self._UIProfileOverrides[subtype] == nil then
+        self._UIProfileOverrides[subtype] = {}
+    end
+    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
+        self._UIProfileOverrides[subtype][unit] = profile_override
+    end
+end
+
+--overrides a weight for a unit for a subtype when a trait is possessed.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, trait: string, override_weight: number, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_trait_weight_override(self, subtype, unit, trait, override_weight, profile_override)
+    if self._subtypeHasOverrides[subtype] == nil then
+        self._subtypeHasOverrides[subtype] = {}
+    end
+    self._subtypeHasOverrides[subtype][unit] = true
+    if self._subtypeTraits[unit] == nil then
+        self._subtypeTraits[unit] = {}
+    end
+    self._subtypeTraits[unit][trait] = override_weight
+    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
+        self._UIProfileOverrides[subtype][unit] = profile_override
+    end
+end
 
 
 
