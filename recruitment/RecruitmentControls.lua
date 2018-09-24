@@ -1211,14 +1211,10 @@ function recruiter_manager.get_groups_for_unit(self, unitID, cqi)
     if cqi then
         local char = cm:get_character_by_cqi(cqi)
         local char_sub = char:character_subtype_key()
-        local is_human = char:faction():is_human()
         if self._subtypeGroupOverrides[char_sub] then
             if self._subtypeGroupOverrides[char_sub][unitID] then
                 local FakeGroups = {} --:vector<string>
                 FakeGroups[1] = self._subtypeGroupOverrides[char_sub][unitID] 
-                if is_human then
-                    self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unitID, self._UIProfileOverrides[char_sub][unitID])
-                end
                 return FakeGroups
             end
         end
@@ -1227,8 +1223,8 @@ function recruiter_manager.get_groups_for_unit(self, unitID, cqi)
 end
 
 --get the list of units for a specific group
---v function(self: RECRUITER_MANAGER, groupID: string) --> vector<string>
-function recruiter_manager.get_units_in_group(self, groupID)
+--v function(self: RECRUITER_MANAGER, groupID: string, cqi: CA_CQI?) --> vector<string>
+function recruiter_manager.get_units_in_group(self, groupID, cqi)
     if self._groupToUnits[groupID] == nil then
         --if the group hasn't been used at all, give it a default blank list.
         self._groupToUnits[groupID] = {}
@@ -1256,6 +1252,81 @@ function recruiter_manager.place_unit_in_group(self, unitID, groupID)
     end
     table.insert(self:get_units_in_group(groupID), unitID)
 end
+
+--overrides--
+-------------
+
+--checks if the given unit has a overriden group for the given cqi that does NOT match the given group
+--v function(self: RECRUITER_MANAGER, cqi: CA_CQI, unit: string, old_group: string) --> boolean
+function recruiter_manager.unit_has_group_override(self, cqi, unit, old_group)
+    local char = cm:get_character_by_cqi(cqi)
+    local char_sub = char:character_subtype_key()
+    local is_human = char:faction():is_human()
+    if self._subtypeGroupOverrides[char_sub] then
+        if self._subtypeGroupOverrides[char_sub][unit] then
+            if old_group == self._subtypeGroupOverrides[char_sub][unit] then
+                return false
+            else
+                if is_human then
+                    self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unit, self._UIProfileOverrides[char_sub][unit])
+                end
+                return true
+            end
+        end
+    end
+    return false
+end
+
+
+
+--overrides a group categorization and unit profile for a subtype ALWAYS.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, override_group: string, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_group_override(self, subtype, unit, override_group, profile_override)
+    self._subtypeGroupOverrides[subtype] = {}
+    self._subtypeGroupOverrides[subtype][unit] = override_group
+    if self._UIProfileOverrides[subtype] == nil then
+        self._UIProfileOverrides[subtype] = {}
+    end
+    self._UIProfileOverrides[subtype][unit] = profile_override
+end
+
+--overrides a weight for a unit for a subtype when a skill is possessed.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, skill: string, override_weight: number, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_skill_weight_override(self, subtype, unit, skill, override_weight, profile_override)
+    if self._subtypeHasOverrides[subtype] == nil then
+        self._subtypeHasOverrides[subtype] = {}
+    end
+    self._subtypeHasOverrides[subtype][unit] = true
+    if self._subtypeSkills[unit] == nil then
+        self._subtypeSkills[unit] = {}
+    end
+    self._subtypeSkills[unit][skill] = override_weight
+    if self._UIProfileOverrides[subtype] == nil then
+        self._UIProfileOverrides[subtype] = {}
+    end
+    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
+        self._UIProfileOverrides[subtype][unit] = profile_override
+    end
+end
+
+--overrides a weight for a unit for a subtype when a trait is possessed.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, trait: string, override_weight: number, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_trait_weight_override(self, subtype, unit, trait, override_weight, profile_override)
+    if self._subtypeHasOverrides[subtype] == nil then
+        self._subtypeHasOverrides[subtype] = {}
+    end
+    self._subtypeHasOverrides[subtype][unit] = true
+    if self._subtypeTraits[unit] == nil then
+        self._subtypeTraits[unit] = {}
+    end
+    self._subtypeTraits[unit][trait] = override_weight
+    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
+        self._UIProfileOverrides[subtype][unit] = profile_override
+    end
+end
+
+
+
 
 
 --unit weights--
@@ -1441,20 +1512,28 @@ end
 --add a checking function to a group for their quantity cap.
 --v function(self: RECRUITER_MANAGER, groupID: string)
 function recruiter_manager.add_group_check(self, groupID)
-    
     for i = 1, #self:get_units_in_group(groupID) do
     --define our check function
+        local unitID = self:get_units_in_group(groupID)[i]
         local check = function(rm --:RECRUITER_MANAGER
         )
+            local cqi = rm._currentCharacter
+            local char = cm:get_character_by_cqi(cqi)
+            local subtype = char:character_subtype_key()
+            if self:unit_has_group_override(cqi,unitID, groupID) then
+                groupID = rm._subtypeGroupOverrides[subtype][unitID]
+            end
             --declare total
             local total = 0 --:number
             --for each unit in the group, count that unit and add to total
             local units_in_group = rm:get_units_in_group(groupID)
             for j = 1, #units_in_group do
-                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
+                if not self:unit_has_group_override(cqi, units_in_group[j], groupID) then
+                    total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
+                end
             end
             --determine whether the total is above or equal to the group quantity limit
-            local result = total + (rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]) -1) >= rm:get_quantity_limit_for_group(groupID)
+            local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
             rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
             --return the result
             return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
@@ -1660,54 +1739,6 @@ function recruiter_manager.add_unit_set_to_pools(self, unitIDset, subculture, qu
                 end
             end
         end
-    end
-end
-
-
-
---overrides a group categorization and unit profile for a subtype ALWAYS.
---v function(self: RECRUITER_MANAGER, subtype: string, unit: string, override_group: string, profile_override: RM_UIPROFILE)
-function recruiter_manager.add_subtype_group_override(self, subtype, unit, override_group, profile_override)
-    self._subtypeGroupOverrides[subtype] = {}
-    self._subtypeGroupOverrides[subtype][unit] = override_group
-    if self._UIProfileOverrides[subtype] == nil then
-        self._UIProfileOverrides[subtype] = {}
-    end
-    self._UIProfileOverrides[subtype][unit] = profile_override
-end
-
---overrides a weight for a unit for a subtype when a skill is possessed.
---v function(self: RECRUITER_MANAGER, subtype: string, unit: string, skill: string, override_weight: number, profile_override: RM_UIPROFILE)
-function recruiter_manager.add_subtype_skill_weight_override(self, subtype, unit, skill, override_weight, profile_override)
-    if self._subtypeHasOverrides[subtype] == nil then
-        self._subtypeHasOverrides[subtype] = {}
-    end
-    self._subtypeHasOverrides[subtype][unit] = true
-    if self._subtypeSkills[unit] == nil then
-        self._subtypeSkills[unit] = {}
-    end
-    self._subtypeSkills[unit][skill] = override_weight
-    if self._UIProfileOverrides[subtype] == nil then
-        self._UIProfileOverrides[subtype] = {}
-    end
-    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
-        self._UIProfileOverrides[subtype][unit] = profile_override
-    end
-end
-
---overrides a weight for a unit for a subtype when a trait is possessed.
---v function(self: RECRUITER_MANAGER, subtype: string, unit: string, trait: string, override_weight: number, profile_override: RM_UIPROFILE)
-function recruiter_manager.add_subtype_trait_weight_override(self, subtype, unit, trait, override_weight, profile_override)
-    if self._subtypeHasOverrides[subtype] == nil then
-        self._subtypeHasOverrides[subtype] = {}
-    end
-    self._subtypeHasOverrides[subtype][unit] = true
-    if self._subtypeTraits[unit] == nil then
-        self._subtypeTraits[unit] = {}
-    end
-    self._subtypeTraits[unit][trait] = override_weight
-    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
-        self._UIProfileOverrides[subtype][unit] = profile_override
     end
 end
 
