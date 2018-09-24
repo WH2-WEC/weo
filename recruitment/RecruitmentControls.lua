@@ -1529,11 +1529,11 @@ function recruiter_manager.add_group_check(self, groupID)
             local units_in_group = rm:get_units_in_group(groupID)
             for j = 1, #units_in_group do
                 if not self:unit_has_group_override(cqi, units_in_group[j], groupID) then
-                    total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
+                    total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
                 end
             end
             --determine whether the total is above or equal to the group quantity limit
-            local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
+            local result = total + (rm:get_weight_for_unit(unitID, cqi) -1) >= rm:get_quantity_limit_for_group(groupID)
             rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
             --return the result
             return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
@@ -1599,15 +1599,23 @@ function recruiter_manager.add_unit_to_already_initialized_group(self, unitID, g
     --create a new check
     local check = function(rm --:RECRUITER_MANAGER
     )
+        local cqi = rm._currentCharacter
+        local char = cm:get_character_by_cqi(cqi)
+        local subtype = char:character_subtype_key()
+        if self:unit_has_group_override(cqi,unitID, groupID) then
+            groupID = rm._subtypeGroupOverrides[subtype][unitID]
+        end
         --declare total
         local total = 0 --:number
         --for each unit in the group, count that unit and add to total
         local units_in_group = rm:get_units_in_group(groupID)
         for j = 1, #units_in_group do
-            total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
+            if not self:unit_has_group_override(cqi, units_in_group[j], groupID) then
+                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
+            end
         end
         --determine whether the total is above or equal to the group quantity limit
-        local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
+        local result = total + (rm:get_weight_for_unit(unitID, cqi) -1) >= rm:get_quantity_limit_for_group(groupID)
         rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
         --return the result
         return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
