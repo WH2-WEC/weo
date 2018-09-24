@@ -1304,7 +1304,7 @@ function recruiter_manager.add_subtype_skill_weight_override(self, subtype, unit
     if self._UIProfileOverrides[subtype] == nil then
         self._UIProfileOverrides[subtype] = {}
     end
-    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
+    if (self._subtypeGroupOverrides[subtype] == nil) or (self._subtypeGroupOverrides[subtype][unit] == nil) then
         self._UIProfileOverrides[subtype][unit] = profile_override
     end
 end
