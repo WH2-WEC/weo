@@ -68,11 +68,11 @@ local function limit_character(character, groupID, difference)
                 local new_unit = subculture_default_units[character:faction():subculture()][cm:random_number(#subculture_default_units[character:faction():subculture()])]
                 cm:grant_unit_to_character(cm:char_lookup_str(character:cqi()), new_unit)
                 rm:log("removed unit ["..unit.."] and granted ["..new_unit.."] as a replacement unit!")
-                if rm:get_weight_for_unit(unit) >= diff then
+                if rm:get_weight_for_unit(unit, character:cqi()) >= diff then
                     rm:log("removed unit was sufficient!")
                     return
                 end
-                diff = diff - rm:get_weight_for_unit(unit);
+                diff = diff - rm:get_weight_for_unit(unit, character:cqi());
                 rm:log("removed unit was insufficient, repeating!")
             end
         end
@@ -94,7 +94,7 @@ local function rm_ai_character(character)
             local unit = unit_list:item_at(j):unit_key()
             local groups_list = rm:get_groups_for_unit(unit)
             for k = 1, #groups_list do
-                increment_group_total(group_totals, groups_list[k], rm:get_weight_for_unit(unit))
+                increment_group_total(group_totals, groups_list[k], rm:get_weight_for_unit(unit, character:cqi()))
             end
         end
         for groupID, quantity in pairs(group_totals) do

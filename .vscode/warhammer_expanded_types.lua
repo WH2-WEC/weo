@@ -11,7 +11,7 @@
 
 --# assume global class RECRUITER_MANAGER
 --# assume global class RECRUITER_CHARACTER
---# type global TOOLTIPIMAGE = {_image: string, _text: string}
+--# type global RM_UIPROFILE = {_image: string, _text: string}
 
 ---Geopolitics system
 --# assume global class GEOPOLITIC_FACTION
@@ -31,7 +31,7 @@
 
 
 --# type global RELIGION_NAME = 
---# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmidia " | "hum_taal" | "hum_lady" | "hum_ursun"
+--# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmidia " | "hum_taal" | "hum_lady" | "hum_ursun" | "hum_morr" | "hum_shallya"
 --# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_anath_reama" | "elf_hekarti"
 --# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea" |
 --# "lzd_sotek" 
