@@ -326,6 +326,33 @@ core:add_listener(
 -------------
 --transfers--
 -------------
+RM_TRANSFERS = {} --:map<string, CA_CQI>
+--v function() --> CA_CQI
+local function find_second_army()
+
+    --v function(ax: number, ay: number, bx: number, by: number) --> number
+    local function distance_2D(ax, ay, bx, by)
+        return (((bx - ax) ^ 2 + (by - ay) ^ 2) ^ 0.5);
+    end;
+
+    local first_char = cm:get_character_by_cqi(rm._currentCharacter)
+    local char_list = first_char:faction():character_list()
+    local closest_char --:CA_CHAR
+    local last_distance = 50 --:number
+    local ax, ay = first_char:logical_position_x(), first_char:logical_position_y()
+    for i = 0, char_list:num_items() do
+        local char = char_list:item_at(i)
+        if cm:char_is_mobile_general_with_army(char) then
+            local dist = distance_2D(ax, ay, char:logical_position_x(), char:logical_position_y())
+            if dist < last_distance then
+                last_distance = dist
+                closest_char = char
+            end
+        end
+    end
+
+    return closest_char:cqi()
+end
 
 --v function(panel: string, index: number) --> (string, boolean)
 local function GetUnitNameInExchange(panel, index)
@@ -359,6 +386,7 @@ local function LockExchangeButton(reason)
     if not not ok_button then
         ok_button:SetInteractive(false)
         ok_button:SetImage("ui/skins/default/icon_disband.png")
+        ok_button:SetTooltipText(reason, true)
     else
         rm:log("ERROR: could not find the exchange ok button!")
     end
@@ -387,10 +415,12 @@ local function are_armies_valid(first_army_count, second_army_count)
             local grouped_units = rm:get_units_in_group(groups[i])
             local group_total = 0 --:number
             for j = 1, #grouped_units do
-                if first_army_count[grouped_units[j]] == nil then
-                    first_army_count[grouped_units[j]] = 0
+                if not rm:unit_has_group_override(RM_TRANSFERS.first, grouped_units[j], groups[i]) then
+                    if first_army_count[grouped_units[j]] == nil then
+                        first_army_count[grouped_units[j]] = 0
+                    end
+                    group_total = group_total + (first_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.first))
                 end
-                group_total = group_total + (first_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j]))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
@@ -407,10 +437,12 @@ local function are_armies_valid(first_army_count, second_army_count)
             local grouped_units = rm:get_units_in_group(groups[i])
             local group_total = 0 --:number
             for j = 1, #grouped_units do
-                if second_army_count[grouped_units[j]] == nil then
-                    second_army_count[grouped_units[j]] = 0
+                if not rm:unit_has_group_override(RM_TRANSFERS.second, grouped_units[j], groups[i]) then
+                    if second_army_count[grouped_units[j]] == nil then
+                        second_army_count[grouped_units[j]] = 0
+                    end
+                    group_total = group_total + (second_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.second))
                 end
-                group_total = group_total + (second_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j]))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
@@ -475,7 +507,8 @@ core:add_listener(
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
             -- print_all_uicomponent_children(find_uicomponent(core:get_ui_root(), "unit_exchange"))
-
+            RM_TRANSFERS.first = rm._currentCharacter
+            RM_TRANSFERS.second = find_second_army()
             local first_army, second_army = count_armies()
             local valid_armies, reason = are_armies_valid(first_army, second_army)
             if valid_armies then
