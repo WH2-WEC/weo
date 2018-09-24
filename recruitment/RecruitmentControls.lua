@@ -1325,7 +1325,20 @@ function recruiter_manager.add_subtype_trait_weight_override(self, subtype, unit
     end
 end
 
-
+--gets the units placed into a group via override
+--v function(self: RECRUITER_MANAGER, groupID: string, subtype: string) --> vector<string>
+function recruiter_manager.get_override_joiners_for_group(self, groupID, subtype)
+    local units = {} --:vector<string>
+    local unitpairs = self._subtypeGroupOverrides[subtype]
+    if not not unitpairs then
+        for unit, group in pairs(unitpairs) do
+            if group == groupID then
+                table.insert(units, unit)
+            end
+        end
+    end
+    return units
+end
 
 
 
@@ -1531,6 +1544,10 @@ function recruiter_manager.add_group_check(self, groupID)
                 if not self:unit_has_group_override(cqi, units_in_group[j], groupID) then
                     total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
                 end
+            end
+            local joiners = rm:get_override_joiners_for_group(groupID, subtype)
+            for j = 1, #joiners do
+                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
             end
             --determine whether the total is above or equal to the group quantity limit
             local result = total + (rm:get_weight_for_unit(unitID, cqi) -1) >= rm:get_quantity_limit_for_group(groupID)

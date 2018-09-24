@@ -422,6 +422,13 @@ local function are_armies_valid(first_army_count, second_army_count)
                     group_total = group_total + (first_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.first))
                 end
             end
+            local joined_units = rm:get_override_joiners_for_group(groups[i], cm:get_character_by_cqi(RM_TRANSFERS.first):character_subtype_key())
+            for j = 1, #joined_units do
+                if first_army_count[joined_units[j]] == nil then
+                    first_army_count[joined_units[j]] = 0
+                end
+                group_total = group_total + (first_army_count[joined_units[j]] * rm:get_weight_for_unit(joined_units[j], RM_TRANSFERS.first))
+            end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
             end
@@ -443,6 +450,13 @@ local function are_armies_valid(first_army_count, second_army_count)
                     end
                     group_total = group_total + (second_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.second))
                 end
+            end
+            local joined_units = rm:get_override_joiners_for_group(groups[i], cm:get_character_by_cqi(RM_TRANSFERS.second):character_subtype_key())
+            for j = 1, #joined_units do
+                if first_army_count[joined_units[j]] == nil then
+                    first_army_count[joined_units[j]] = 0
+                end
+                group_total = group_total + (second_army_count[joined_units[j]] * rm:get_weight_for_unit(joined_units[j], RM_TRANSFERS.second))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
