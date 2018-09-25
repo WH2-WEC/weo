@@ -15,6 +15,7 @@ require("building_overhaul/ProvinceManagement")
 require("building_overhaul/export_helpers__province_management_events")
 require("building_overhaul/export_helpers__province_management_content")
 require("building_overhaul/export_helpers__province_management_ui")
+require("building_overhaul/export_helpers__tax_rate_content")
 --]]
 
 

@@ -250,7 +250,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                 contentComponent:Resize(24,24)
                 contentComponent:SetCanResizeHeight(false)
                 contentComponent:SetCanResizeWidth(false)
-                if pm._wealthResults[subculture][fpd._wealthLevel] == nil then
+                if (pm._wealthResults[subculture] == nil) or (pm._wealthResults[subculture][fpd._wealthLevel]) == nil then
                     pm:log("Not setting any wealth tooltip")
                 else
                     cm:callback(function()

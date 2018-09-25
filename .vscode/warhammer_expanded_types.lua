@@ -39,7 +39,7 @@
 --# type global RELIGION_DETAIL = {
 --# _name: RELIGION_NAME, _UIName: string, _UIImage: string, _UIDescription: string, _thresholds: vector<number>, _bundles: map<number, string>,
 --# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, _UIEffects: map<number, vector<string>>,
---# _UILevels: map<number, number>
+--# _UILevels: map<number, number>, _flatUnitProdEffect: number
 --# }
 
 --# type global TAX_DETAIL = {
