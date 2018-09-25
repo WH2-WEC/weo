@@ -494,7 +494,6 @@
 --# assume global is_boolean: function(arg: boolean) --> boolean
 --# assume global get_timestamp: function() --> string
 --# assume global script_error: function(msg: string)
---# assume global to_number: function(n: any) --> number
 
 -- CAMPAIGN
 --# assume global get_cm: function() --> CM

@@ -1,9 +1,5 @@
 pm = _G.pm
 
-pm:add_wealth_threshold_for_subculture("wh_main_sc_emp_empire", 1, "wec_religion_hum_ulric_1wh_main_sc_emp_empire", {
-    "[[col:green]] A temporary dummy [[/col]]",
-    "[[col:red]] To show how this shit works [[//col]] "
-})
 
 local sigmar_detail = {
     _name = "hum_sigmar",
