@@ -11,7 +11,7 @@ local function TaxEffectTooltip(SliderImage, fpd, subculture, offset)
     if not not pm._taxResults[subculture] then
         local detail = pm._taxResults[subculture][fpd._taxRate + offset]
             if not not detail then
-            local tt = detail._UIName .. "\n"
+            local tt = "[[col:yellow]]".. detail._UIName .. "[[/col]] \n"
             for i = 1, #detail._UIEffects do
                 tt = "\t"..tt..detail._UIEffects[i].."\n" 
             end

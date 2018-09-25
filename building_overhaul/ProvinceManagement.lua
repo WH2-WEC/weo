@@ -840,5 +840,5 @@ end
 
 province_manager.init()
 _G.pm:log("province manager initialised")
-
+_G.pm:error_checker()
 

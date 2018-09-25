@@ -228,19 +228,17 @@ local TAX_RATE_EFFECT_JUNCTIONS = {
 }--:vector<{effect_bundle_key: string, effect_key: string, effect_scope:string, value:number, advancement_stage: string}>
 
 details = {} --:map<string, map<string, WHATEVER>>
-
+pm:log("Generating Tax Details!")
 for i = 1, #TAX_RATE_EFFECT_JUNCTIONS do
     local instance = TAX_RATE_EFFECT_JUNCTIONS[i]
     local key = instance.effect_bundle_key
     if details[key] == nil then
         details[key] = {}
-        detail = details[key]
-        detail._level = string.sub(key, -1)
-        detail._UIName = effect.get_localised_string("effect_bundles_localised_title_"..key)
-        detail._UIEffects = {}
-        detail._bundle = key
+        details[key]._level = tonumber(string.sub(key, -1))
+        details[key]._UIName = effect.get_localised_string("effect_bundles_localised_title_"..key)
+        details[key]._UIEffects = {}
+        details[key]._bundle = key
     end
-    local detail = details[key]
     local db_effect = instance.effect_key
     local value = instance.value
     local col = "red"
@@ -248,18 +246,20 @@ for i = 1, #TAX_RATE_EFFECT_JUNCTIONS do
         col = "green"
     end
     local loc = effect.get_localised_string("effects_description_"..db_effect)
-    local effect_text = "[[col:"..col.."]]".. string.gsub(loc, "%+n", tostring(value))..[[/col]]
-    table.insert(detail._UIEffects, effect_text) 
+    local effect_text =  string.gsub(loc, '%+n', tostring(value))
+    local effect_text = string.gsub(effect_text, "%%", "", 1)
+    local effect_text = "[[col:"..col.."]]"..effect_text.."[[/col]]"
+    table.insert(details[key]._UIEffects, effect_text) 
     if string.find(db_effect, "script_var") then
         if string.find(db_effect, "wealth") then
-            detail._wealthEffects = value
+            details[key]._wealthEffects = value
         end
         if string.find(db_effect, "unit_pool_mod") then
-            detail._unitProdEffects = 1 + value/100
+            details[key]._unitProdEffects = 1 + value/100
         end
     end
 end
-
+pm:log("Adding Tax Details!")
 for key, detail in pairs(details) do
     --# assume detail: TAX_DETAIL
     local sc = string.sub(string.gsub(key, "wec_tax_", ""), 1, -3)

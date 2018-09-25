@@ -1,6 +1,6 @@
 pm = _G.pm
 
-pm:add_wealth_threshold_for_subculture("wh_main_sc_emp_empire", 1, "wh2_dlc10_dark_elf_fortress_gate", {
+pm:add_wealth_threshold_for_subculture("wh_main_sc_emp_empire", 1, "wec_religion_hum_ulric_1wh_main_sc_emp_empire", {
     "[[col:green]] A temporary dummy [[/col]]",
     "[[col:red]] To show how this shit works [[//col]] "
 })
@@ -12,7 +12,7 @@ local sigmar_detail = {
     _UIDescription = "The first Emperor of Man, raised to Godhood by the Ulric himself.",
     _thresholds = {900},
     _bundles = {
-        [900] = "wh_dlc08_bundle_nurgle_plague"
+        [900] = "wec_religion_hum_sigmar_5wh_main_sc_emp_empire"
     },
     _wealthEffects = {
         [900] = 2
@@ -36,7 +36,7 @@ local manann_detail = {
     _UIDescription = "The god of the sea idk I need someone to write these shits for me.",
     _thresholds = {50},
     _bundles = {
-        [50] = "wh2_dlc10_power_of_nature"
+        [50] = "wec_religion_hum_manann_1wh_main_sc_emp_empire"
     },
     _wealthEffects = {
         [50] = 1

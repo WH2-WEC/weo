@@ -1,5 +1,4 @@
 pm = _G.pm; rm = _G.rm; cm = get_cm(); events = get_events(); 
-pm:error_checker()
 
 
 
