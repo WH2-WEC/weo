@@ -30,6 +30,56 @@ local function RCSESSIONLOG()
 end
 RCSESSIONLOG()
 
+--ui utility to get the names of the units in the queue by reading the UI.
+--v function(index: number) --> string
+local function GetQueuedUnit(index)
+    local queuedUnit = find_uicomponent(core:get_ui_root(), "main_units_panel", "units", "QueuedLandUnit " .. index);
+    if not not queuedUnit then
+        queuedUnit:SimulateMouseOn();
+        local unitInfo = find_uicomponent(core:get_ui_root(), "UnitInfoPopup", "tx_unit-type");
+        local rawstring = unitInfo:GetStateText();
+        local infostart = string.find(rawstring, "unit/") + 5;
+        local infoend = string.find(rawstring, "]]") - 1;
+        local QueuedUnitName = string.sub(rawstring, infostart, infoend)
+        RCLOG("Found queued unit ["..QueuedUnitName.."] at ["..index.."] ")
+        return QueuedUnitName
+    else
+        return nil
+    end
+end
+
+--saving utility to get preserve queues between saves
+--v function(queue: map<string, number>) --> string
+local function SerializeQueueTable(queue)
+    local savestring = "RMSavedQueue|"
+    for unitID, quantity in pairs(queue) do
+        savestring = savestring.."["..unitID.."]<"..tostring(quantity)..">"
+    end
+    return savestring
+end
+
+--load again from a string
+--v function(savestring: string) --> map<string, number>
+local function DeserializeSaveString(savestring)
+    local queue = {} --:map<string, number>
+    local serial = string.gsub(savestring, "RMSavedQueue|", "")
+    local start_var = 1
+    while true do
+        local unit_start = string.find(serial, "[", start_var)
+        if not unit_start then
+            break
+        end
+        local unit_end = string.find(serial, "]", start_var)
+        local q_start = string.find(serial, "<", start_var)
+        local q_end = string.find(serial, ">", start_var)
+        local unit = string.sub(serial, unit_start + 1, unit_end - 1)
+        local quantity = tonumber(string.sub(serial, q_start+1, q_end -1))
+        queue[unit] = quantity
+        start_var = q_end + 1
+    end
+    return queue
+end
+
 
 --prototype for recruiter_manager
 local recruiter_manager = {} --# assume recruiter_manager: RECRUITER_MANAGER
@@ -42,6 +92,7 @@ function recruiter_manager.init()
         __tostring = function() return "RECRUITER_MANAGER" end
     }) --# assume self: RECRUITER_MANAGER
     self._recruiterCharacters = {} --:map<CA_CQI, RECRUITER_CHARACTER>
+    self._factionCharacters = {} --:map<string, vector<RECRUITER_CHARACTER>>
     self._currentCharacter = nil --:CA_CQI
     --quantity based limits
     self._characterUnitLimits = {} --:map<string, number>
@@ -83,6 +134,7 @@ end
 function recruiter_manager.full_reset(self)
     self:log("SCRIPT CALLED TO RESET THE RECRUITER MANAGER!!")
     self._recruiterCharacters = {} 
+    self._factionCharacters = {} 
     self._currentCharacter = nil 
     --quantity based limits
     self._characterUnitLimits = {} 
@@ -313,23 +365,6 @@ function recruiter_manager.get_ui_profile_for_unit(self, unitID)
 end
 
 
---ui utility to get the names of the units in the queue by reading the UI.
---v function(index: number) --> string
-local function GetQueuedUnit(index)
-    local queuedUnit = find_uicomponent(core:get_ui_root(), "main_units_panel", "units", "QueuedLandUnit " .. index);
-    if not not queuedUnit then
-        queuedUnit:SimulateMouseOn();
-        local unitInfo = find_uicomponent(core:get_ui_root(), "UnitInfoPopup", "tx_unit-type");
-        local rawstring = unitInfo:GetStateText();
-        local infostart = string.find(rawstring, "unit/") + 5;
-        local infoend = string.find(rawstring, "]]") - 1;
-        local QueuedUnitName = string.sub(rawstring, infostart, infoend)
-        RCLOG("Found queued unit ["..QueuedUnitName.."] at ["..index.."] ")
-        return QueuedUnitName
-    else
-        return nil
-    end
-end
 
 --unit pools--
 --------------
@@ -406,6 +441,9 @@ function recruiter_character.new(manager, cqi)
     self._manager = manager  -- stores the associated rm
     self._armyCounts = {} --:map<string, number> --stores the current number of each unit in the army
     self._queueCounts = {} --:map<string, number> --stores the current number of each unit in the queue
+    if not not cm:get_saved_value("RMSavedQueues:"..tostring(cqi)) then
+        self._queueCounts = DeserializeSaveString(cm:get_saved_value("RMSavedQueues:"..tostring(cqi)))
+    end
     self._restrictedUnits = {} --:map<string, boolean> -- stores the units currently restricted for the character
     self._UIStrings = {} --:map<string, string> --stores the string to explain why a unit is locked.
     self._staleQueueFlag = true --:boolean -- flags for the queue needing to be refreshed entirely.
@@ -650,6 +688,8 @@ function recruiter_character.refresh_queue(self)
             break
         end
     end
+    --save the queue
+    cm:set_saved_value("RMSavedQueues:"..tostring(self:cqi()), SerializeQueueTable(self._queueCounts))
     --set the queue fresh
     self:set_queue_fresh()
 end
@@ -1117,6 +1157,11 @@ end
 --v function(self: RECRUITER_MANAGER, cqi: CA_CQI) --> RECRUITER_CHARACTER
 function recruiter_manager.new_character(self, cqi)
     local new_char = recruiter_character.new(self, cqi)
+    local faction = cm:get_character_by_cqi(cqi):faction():name()
+    if self._factionCharacters[faction] == nil then
+        self._factionCharacters[faction] = {}
+    end
+    table.insert(self._factionCharacters[faction], new_char)
     self._recruiterCharacters[cqi] = new_char
     return new_char
 end
