@@ -30,6 +30,13 @@ require("building_overhaul/export_helpers__wealth_effects_content")
 --]]
 
 
+---[[cap tracker
+require("show_me_the_caps/CapTracker")
+require("show_me_the_caps/export_helpers__cap_tracking")
+--]]
+
+
+
 ---[[imperium effects
   require("imperium_effects/ImperiumEffects")
   require("imperium_effects/export_helpers__imperium_effects_core")

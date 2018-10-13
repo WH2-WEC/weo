@@ -372,6 +372,7 @@
 
 --BUILDING
 --# assume CA_BUILDING.name: method() --> string
+--# assume CA_BUILDING.is_null_interface: method() --> boolean
 --# assume CA_BUILDING.chain: method() --> string
 --# assume CA_BUILDING.superchain: method() --> string
 --# assume CA_BUILDING.faction: method() --> CA_FACTION
