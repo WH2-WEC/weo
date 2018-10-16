@@ -15,6 +15,8 @@ require("building_overhaul/ProvinceManagement")
 require("building_overhaul/export_helpers__province_management_events")
 require("building_overhaul/export_helpers__province_management_content")
 require("building_overhaul/export_helpers__province_management_ui")
+require("building_overhaul/export_helpers__tax_rate_content")
+require("building_overhaul/export_helpers__wealth_effects_content")
 --]]
 
 
@@ -26,6 +28,13 @@ require("building_overhaul/export_helpers__province_management_ui")
   --  require("geopolitics/export_helpers__geopolitics_data__")
   --  require("geopolitics/export_helpers__geopolitics_ui")
 --]]
+
+
+---[[cap tracker
+require("show_me_the_caps/CapTracker")
+require("show_me_the_caps/export_helpers__cap_tracking")
+--]]
+
 
 
 ---[[imperium effects

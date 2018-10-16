@@ -1,7 +1,7 @@
 pm = _G.pm
 local UIBUTTONNAME = "REGION_DETAILS_BUTTON"
 local UIPANELNAME = "REGION_DETAILS_PANEL"
-
+PM_TAX_BAR_LOCK = false 
 --v function(SliderImage: IMAGE, fpd: FPD, subculture: string, offset: number?)
 local function TaxEffectTooltip(SliderImage, fpd, subculture, offset)
     if offset == nil then
@@ -11,7 +11,7 @@ local function TaxEffectTooltip(SliderImage, fpd, subculture, offset)
     if not not pm._taxResults[subculture] then
         local detail = pm._taxResults[subculture][fpd._taxRate + offset]
             if not not detail then
-            local tt = detail._UIName .. "\n"
+            local tt = "[[col:yellow]]".. detail._UIName .. "[[/col]] \n"
             for i = 1, #detail._UIEffects do
                 tt = "\t"..tt..detail._UIEffects[i].."\n" 
             end
@@ -100,32 +100,38 @@ local function PopulatePanel(DetailsFrame, fpd)
                     DecrementButton:Resize(24, 24);
 
                     IncrementButton:RegisterForClick(function()
-                        SliderImage:SetImage("ui/custom/pmui/tax_"..(fpd._taxRate + 1)..".png")
-                        if (fpd._taxRate + 1) == 5 then
-                            IncrementButton:SetDisabled(true)
+                        if not PM_TAX_BAR_LOCK then
+                            PM_TAX_BAR_LOCK = true
+                            SliderImage:SetImage("ui/custom/pmui/tax_"..(fpd._taxRate + 1)..".png")
+                            if (fpd._taxRate + 1) == 5 then
+                                IncrementButton:SetDisabled(true)
+                            end
+                            DecrementButton:SetDisabled(false)
+                            TaxEffectTooltip(SliderImage, fpd, subculture, 1)
+                            local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
+                            if not not factorImage then
+                                --# assume factorImage: IMAGE
+                                TaxEffectTooltip(factorImage, fpd, subculture, 1)
+                            end
+                            CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|IncreaseTaxes|"..fpd._province)
                         end
-                        DecrementButton:SetDisabled(false)
-                        TaxEffectTooltip(SliderImage, fpd, subculture, 1)
-                        local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
-                        if not not factorImage then
-                            --# assume factorImage: IMAGE
-                            TaxEffectTooltip(factorImage, fpd, subculture, 1)
-                        end
-                        CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|IncreaseTaxes|"..fpd._province)
                     end)
                     DecrementButton:RegisterForClick(function()
-                        SliderImage:SetImage("ui/custom/pmui/tax_"..(fpd._taxRate - 1)..".png")
-                        if (fpd._taxRate - 1) == 1 then
-                            DecrementButton:SetDisabled(true)
+                        if not PM_TAX_BAR_LOCK then
+                            PM_TAX_BAR_LOCK = true
+                            SliderImage:SetImage("ui/custom/pmui/tax_"..(fpd._taxRate - 1)..".png")
+                            if (fpd._taxRate - 1) == 1 then
+                                DecrementButton:SetDisabled(true)
+                            end
+                            IncrementButton:SetDisabled(false)
+                            TaxEffectTooltip(SliderImage, fpd, subculture, -1)
+                            local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
+                            if not not factorImage then
+                                --# assume factorImage: IMAGE
+                                TaxEffectTooltip(factorImage, fpd, subculture, -1)
+                            end
+                            CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|DecreaseTaxes|"..fpd._province)
                         end
-                        IncrementButton:SetDisabled(false)
-                        TaxEffectTooltip(SliderImage, fpd, subculture, -1)
-                        local factorImage = Util.getComponentWithName(UIPANELNAME.."_WEALTH_FACTOR_IMAGE_Province Taxes")
-                        if not not factorImage then
-                            --# assume factorImage: IMAGE
-                            TaxEffectTooltip(factorImage, fpd, subculture, -1)
-                        end
-                        CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "PMUI|DecreaseTaxes|"..fpd._province)
                     end)
 
                 TaxSliderHolder:AddComponent(DecrementButton)
@@ -250,7 +256,7 @@ local function PopulatePanel(DetailsFrame, fpd)
                 contentComponent:Resize(24,24)
                 contentComponent:SetCanResizeHeight(false)
                 contentComponent:SetCanResizeWidth(false)
-                if pm._wealthResults[subculture][fpd._wealthLevel] == nil then
+                if (pm._wealthResults[subculture] == nil) or (pm._wealthResults[subculture][fpd._wealthLevel]) == nil then
                     pm:log("Not setting any wealth tooltip")
                 else
                     cm:callback(function()

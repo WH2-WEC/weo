@@ -1,5 +1,4 @@
 pm = _G.pm; rm = _G.rm; cm = get_cm(); events = get_events(); 
-pm:error_checker()
 
 
 
@@ -277,6 +276,7 @@ core:add_listener(
             fpd:apply_all_effects()
         end
         pm:save_fpd(fpd)
+        PM_TAX_BAR_LOCK = false--:boolean
     end,
     true
 )
@@ -344,6 +344,7 @@ core:add_listener(
             fpd:apply_all_effects()
         end
         pm:save_fpd(fpd)
+        PM_TAX_BAR_LOCK = false
     end,
     true
 )

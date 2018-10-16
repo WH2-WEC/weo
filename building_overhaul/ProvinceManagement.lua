@@ -823,6 +823,7 @@ end
 function province_manager.add_tax_level_for_subculture(self, subculture, level, tax_detail)
     if is_string(subculture) and is_number(level) and is_table(tax_detail) then
         if self._taxResults[subculture] == nil then
+            self:log("Adding tax levels for sc ["..subculture.."]")
             self._taxResults[subculture] = {}
         end
         self._taxResults[subculture][level] = tax_detail
@@ -839,5 +840,5 @@ end
 
 province_manager.init()
 _G.pm:log("province manager initialised")
-
+_G.pm:error_checker()
 

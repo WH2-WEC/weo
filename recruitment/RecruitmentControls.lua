@@ -30,6 +30,56 @@ local function RCSESSIONLOG()
 end
 RCSESSIONLOG()
 
+--ui utility to get the names of the units in the queue by reading the UI.
+--v function(index: number) --> string
+local function GetQueuedUnit(index)
+    local queuedUnit = find_uicomponent(core:get_ui_root(), "main_units_panel", "units", "QueuedLandUnit " .. index);
+    if not not queuedUnit then
+        queuedUnit:SimulateMouseOn();
+        local unitInfo = find_uicomponent(core:get_ui_root(), "UnitInfoPopup", "tx_unit-type");
+        local rawstring = unitInfo:GetStateText();
+        local infostart = string.find(rawstring, "unit/") + 5;
+        local infoend = string.find(rawstring, "]]") - 1;
+        local QueuedUnitName = string.sub(rawstring, infostart, infoend)
+        RCLOG("Found queued unit ["..QueuedUnitName.."] at ["..index.."] ")
+        return QueuedUnitName
+    else
+        return nil
+    end
+end
+
+--saving utility to get preserve queues between saves
+--v function(queue: map<string, number>) --> string
+local function SerializeQueueTable(queue)
+    local savestring = "RMSavedQueue|"
+    for unitID, quantity in pairs(queue) do
+        savestring = savestring.."["..unitID.."]<"..tostring(quantity)..">"
+    end
+    return savestring
+end
+
+--load again from a string
+--v function(savestring: string) --> map<string, number>
+local function DeserializeSaveString(savestring)
+    local queue = {} --:map<string, number>
+    local serial = string.gsub(savestring, "RMSavedQueue|", "")
+    local start_var = 1
+    while true do
+        local unit_start = string.find(serial, "[", start_var)
+        if not unit_start then
+            break
+        end
+        local unit_end = string.find(serial, "]", start_var)
+        local q_start = string.find(serial, "<", start_var)
+        local q_end = string.find(serial, ">", start_var)
+        local unit = string.sub(serial, unit_start + 1, unit_end - 1)
+        local quantity = tonumber(string.sub(serial, q_start+1, q_end -1))
+        queue[unit] = quantity
+        start_var = q_end + 1
+    end
+    return queue
+end
+
 
 --prototype for recruiter_manager
 local recruiter_manager = {} --# assume recruiter_manager: RECRUITER_MANAGER
@@ -42,6 +92,7 @@ function recruiter_manager.init()
         __tostring = function() return "RECRUITER_MANAGER" end
     }) --# assume self: RECRUITER_MANAGER
     self._recruiterCharacters = {} --:map<CA_CQI, RECRUITER_CHARACTER>
+    self._factionCharacters = {} --:map<string, vector<RECRUITER_CHARACTER>>
     self._currentCharacter = nil --:CA_CQI
     --quantity based limits
     self._characterUnitLimits = {} --:map<string, number>
@@ -57,11 +108,17 @@ function recruiter_manager.init()
     self._unitWeights = {} --:map<string, number>
     --ui
     self._UIGroupNames = {} --:map<string, string>
-    self._UIUnitProfiles = {} --:map<string, TOOLTIPIMAGE>
+    self._UIUnitProfiles = {} --:map<string, RM_UIPROFILE>
     --unit to pool quantity
     self._unitPoolQuantities = {} --:map<string, map<string, number>>
     self._unitPools = {} --:map<string, boolean>
     self._unitPoolMaximums = {} --:map<string, number>
+    --subtypes that have overrides are marked here.
+    self._subtypeHasOverrides = {} --:map<string, map<string, boolean>> --marks which subtypes have overrides for which units
+    self._subtypeGroupOverrides = {} --:map<string, map<string, string>> --marks which subtypes fully override the group
+    self._subtypeTraits = {} --:map<string, map<string, number>> --units to the traits and number
+    self._subtypeSkills = {} --:map<string, map<string, number>> --unit string to the skill and number to change
+    self._UIProfileOverrides = {} --:map<string,map<string, RM_UIPROFILE>> --subtype to unit to override
     --place instance in _G. 
     _G.rm = self
 end
@@ -77,6 +134,7 @@ end
 function recruiter_manager.full_reset(self)
     self:log("SCRIPT CALLED TO RESET THE RECRUITER MANAGER!!")
     self._recruiterCharacters = {} 
+    self._factionCharacters = {} 
     self._currentCharacter = nil 
     --quantity based limits
     self._characterUnitLimits = {} 
@@ -274,7 +332,7 @@ end
 ------------------
 
 --get the map of units to their UI
---v function(self: RECRUITER_MANAGER) --> map<string, TOOLTIPIMAGE>
+--v function(self: RECRUITER_MANAGER) --> map<string, RM_UIPROFILE>
 function recruiter_manager.get_unit_ui_profiles(self)
     return self._UIUnitProfiles
 end
@@ -287,7 +345,7 @@ end
 
 --set the UI profile for a unit.
 --publically available function
---v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: TOOLTIPIMAGE)
+--v function(self: RECRUITER_MANAGER, unitID: string, UIprofile: RM_UIPROFILE)
 function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
     if not (is_string(UIprofile._image) and is_string(UIprofile._text)) then
         self:log("ERROR: set_ui_profile_for_unit called but the supplied profile table isn't properly formatted. /n It needs to have a _text and _image field which are both strings!")
@@ -301,29 +359,12 @@ function recruiter_manager.set_ui_profile_for_unit(self, unitID, UIprofile)
 end
 
 --get the UI profile for a unit.
---v function(self: RECRUITER_MANAGER, unitID: string) --> TOOLTIPIMAGE
+--v function(self: RECRUITER_MANAGER, unitID: string) --> RM_UIPROFILE
 function recruiter_manager.get_ui_profile_for_unit(self, unitID)
     return self:get_unit_ui_profiles()[unitID]
 end
 
 
---ui utility to get the names of the units in the queue by reading the UI.
---v function(index: number) --> string
-local function GetQueuedUnit(index)
-    local queuedUnit = find_uicomponent(core:get_ui_root(), "main_units_panel", "units", "QueuedLandUnit " .. index);
-    if not not queuedUnit then
-        queuedUnit:SimulateMouseOn();
-        local unitInfo = find_uicomponent(core:get_ui_root(), "UnitInfoPopup", "tx_unit-type");
-        local rawstring = unitInfo:GetStateText();
-        local infostart = string.find(rawstring, "unit/") + 5;
-        local infoend = string.find(rawstring, "]]") - 1;
-        local QueuedUnitName = string.sub(rawstring, infostart, infoend)
-        RCLOG("Found queued unit ["..QueuedUnitName.."] at ["..index.."] ")
-        return QueuedUnitName
-    else
-        return nil
-    end
-end
 
 --unit pools--
 --------------
@@ -400,12 +441,15 @@ function recruiter_character.new(manager, cqi)
     self._manager = manager  -- stores the associated rm
     self._armyCounts = {} --:map<string, number> --stores the current number of each unit in the army
     self._queueCounts = {} --:map<string, number> --stores the current number of each unit in the queue
+    if not not cm:get_saved_value("RMSavedQueues:"..tostring(cqi)) then
+        self._queueCounts = DeserializeSaveString(cm:get_saved_value("RMSavedQueues:"..tostring(cqi)))
+    end
     self._restrictedUnits = {} --:map<string, boolean> -- stores the units currently restricted for the character
     self._UIStrings = {} --:map<string, string> --stores the string to explain why a unit is locked.
     self._staleQueueFlag = true --:boolean -- flags for the queue needing to be refreshed entirely.
     self._staleArmyFlag = true --:boolean --flags for the army needing to be refreshed entirely.
     self._rawQueueFlag = true --:boolean --flags for when the queue needing refresh needs to have refunds done
-    
+    self._UIProfileOverrides = {} --:map<string, RM_UIPROFILE> --overrides the UI profile stored in the model
     return self
 end
 
@@ -644,6 +688,8 @@ function recruiter_character.refresh_queue(self)
             break
         end
     end
+    --save the queue
+    cm:set_saved_value("RMSavedQueues:"..tostring(self:cqi()), SerializeQueueTable(self._queueCounts))
     --set the queue fresh
     self:set_queue_fresh()
 end
@@ -709,6 +755,34 @@ function recruiter_character.is_unit_restricted(self, unitID)
     self:log("is unit restricted returning ["..tostring(self:get_unit_restrictions()[unitID]).."] for unit ["..unitID.."]")
     return self:get_unit_restrictions()[unitID]
 end
+
+--update 23/9 
+--v function(self: RECRUITER_CHARACTER, unitID: string, UIProfile: RM_UIPROFILE)
+function recruiter_character.set_ui_profile_override_for_unit(self, unitID, UIProfile)
+    self._UIProfileOverrides[unitID] = UIProfile
+end
+--v function(self: RECRUITER_CHARACTER, unitID: string)
+function recruiter_character.remove_ui_profile_override_for_unit(self, unitID)
+    self._UIProfileOverrides[unitID] = nil
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string) --> boolean
+function recruiter_character.has_ui_profile_override_for_unit(self, unitID)
+    return not not self._UIProfileOverrides[unitID]
+end
+
+--v function(self: RECRUITER_CHARACTER, unitID: string) -->  RM_UIPROFILE
+function recruiter_character.get_ui_profile_override_for_unit(self, unitID)
+    if self._UIProfileOverrides[unitID] == nil then
+        self._UIProfileOverrides[unitID] = {
+            _image = "",
+            _text = ""
+        }
+    end
+    return self._UIProfileOverrides[unitID]
+end
+
+
 --# assume RECRUITER_MANAGER.current_character: method() --> RECRUITER_CHARACTER
 --enforce the restriction for a specific unit onto the UI.
 --v function(self: RECRUITER_CHARACTER, unitID: string)
@@ -767,6 +841,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -849,6 +926,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -935,6 +1015,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -1009,6 +1092,9 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                 if not not lockedOverlay then
                     if self:manager():unit_has_ui_profile(unitID) then
                         local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                        if self:has_ui_profile_override_for_unit(unitID) then
+                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                        end
                         lockedOverlay:SetVisible(true)
                         lockedOverlay:SetTooltipText(unit_profile._text)
                         lockedOverlay:SetImage(unit_profile._image)
@@ -1071,6 +1157,11 @@ end
 --v function(self: RECRUITER_MANAGER, cqi: CA_CQI) --> RECRUITER_CHARACTER
 function recruiter_manager.new_character(self, cqi)
     local new_char = recruiter_character.new(self, cqi)
+    local faction = cm:get_character_by_cqi(cqi):faction():name()
+    if self._factionCharacters[faction] == nil then
+        self._factionCharacters[faction] = {}
+    end
+    table.insert(self._factionCharacters[faction], new_char)
     self._recruiterCharacters[cqi] = new_char
     return new_char
 end
@@ -1156,18 +1247,29 @@ end
 
 
 --get the list of groups for a specific unit
---v function(self: RECRUITER_MANAGER, unitID: string) -->vector<string>
-function recruiter_manager.get_groups_for_unit(self, unitID)
+--v function(self: RECRUITER_MANAGER, unitID: string, cqi: CA_CQI?) -->vector<string>
+function recruiter_manager.get_groups_for_unit(self, unitID, cqi)
     if self._unitToGroupNames[unitID] == nil then
         --if the unit has no groups, give it a default blank list
         self._unitToGroupNames[unitID] = {}
+    end
+    if cqi then
+        local char = cm:get_character_by_cqi(cqi)
+        local char_sub = char:character_subtype_key()
+        if self._subtypeGroupOverrides[char_sub] then
+            if self._subtypeGroupOverrides[char_sub][unitID] then
+                local FakeGroups = {} --:vector<string>
+                FakeGroups[1] = self._subtypeGroupOverrides[char_sub][unitID] 
+                return FakeGroups
+            end
+        end
     end
     return self._unitToGroupNames[unitID]
 end
 
 --get the list of units for a specific group
---v function(self: RECRUITER_MANAGER, groupID: string) --> vector<string>
-function recruiter_manager.get_units_in_group(self, groupID)
+--v function(self: RECRUITER_MANAGER, groupID: string, cqi: CA_CQI?) --> vector<string>
+function recruiter_manager.get_units_in_group(self, groupID, cqi)
     if self._groupToUnits[groupID] == nil then
         --if the group hasn't been used at all, give it a default blank list.
         self._groupToUnits[groupID] = {}
@@ -1196,14 +1298,132 @@ function recruiter_manager.place_unit_in_group(self, unitID, groupID)
     table.insert(self:get_units_in_group(groupID), unitID)
 end
 
+--overrides--
+-------------
+
+--checks if the given unit has a overriden group for the given cqi that does NOT match the given group
+--v function(self: RECRUITER_MANAGER, cqi: CA_CQI, unit: string, old_group: string) --> boolean
+function recruiter_manager.unit_has_group_override(self, cqi, unit, old_group)
+    local char = cm:get_character_by_cqi(cqi)
+    local char_sub = char:character_subtype_key()
+    local is_human = char:faction():is_human()
+    if self._subtypeGroupOverrides[char_sub] then
+        if self._subtypeGroupOverrides[char_sub][unit] then
+            if old_group == self._subtypeGroupOverrides[char_sub][unit] then
+                return false
+            else
+                if is_human then
+                    self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unit, self._UIProfileOverrides[char_sub][unit])
+                end
+                return true
+            end
+        end
+    end
+    return false
+end
+
+
+
+--overrides a group categorization and unit profile for a subtype ALWAYS.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, override_group: string, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_group_override(self, subtype, unit, override_group, profile_override)
+    self._subtypeGroupOverrides[subtype] = {}
+    self._subtypeGroupOverrides[subtype][unit] = override_group
+    if self._UIProfileOverrides[subtype] == nil then
+        self._UIProfileOverrides[subtype] = {}
+    end
+    self._UIProfileOverrides[subtype][unit] = profile_override
+end
+
+--overrides a weight for a unit for a subtype when a skill is possessed.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, skill: string, override_weight: number, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_skill_weight_override(self, subtype, unit, skill, override_weight, profile_override)
+    if self._subtypeHasOverrides[subtype] == nil then
+        self._subtypeHasOverrides[subtype] = {}
+    end
+    self._subtypeHasOverrides[subtype][unit] = true
+    if self._subtypeSkills[unit] == nil then
+        self._subtypeSkills[unit] = {}
+    end
+    self._subtypeSkills[unit][skill] = override_weight
+    if self._UIProfileOverrides[subtype] == nil then
+        self._UIProfileOverrides[subtype] = {}
+    end
+    if (self._subtypeGroupOverrides[subtype] == nil) or (self._subtypeGroupOverrides[subtype][unit] == nil) then
+        self._UIProfileOverrides[subtype][unit] = profile_override
+    end
+end
+
+--overrides a weight for a unit for a subtype when a trait is possessed.
+--v function(self: RECRUITER_MANAGER, subtype: string, unit: string, trait: string, override_weight: number, profile_override: RM_UIPROFILE)
+function recruiter_manager.add_subtype_trait_weight_override(self, subtype, unit, trait, override_weight, profile_override)
+    if self._subtypeHasOverrides[subtype] == nil then
+        self._subtypeHasOverrides[subtype] = {}
+    end
+    self._subtypeHasOverrides[subtype][unit] = true
+    if self._subtypeTraits[unit] == nil then
+        self._subtypeTraits[unit] = {}
+    end
+    self._subtypeTraits[unit][trait] = override_weight
+    if (self._subtypeGroupOverrides[subtype] == nil) and (self._subtypeGroupOverrides[subtype][unit] == nil) then
+        self._UIProfileOverrides[subtype][unit] = profile_override
+    end
+end
+
+--gets the units placed into a group via override
+--v function(self: RECRUITER_MANAGER, groupID: string, subtype: string) --> vector<string>
+function recruiter_manager.get_override_joiners_for_group(self, groupID, subtype)
+    local units = {} --:vector<string>
+    local unitpairs = self._subtypeGroupOverrides[subtype]
+    if not not unitpairs then
+        for unit, group in pairs(unitpairs) do
+            if group == groupID then
+                table.insert(units, unit)
+            end
+        end
+    end
+    return units
+end
+
+
 
 --unit weights--
 ----------------
 
 
 --get the weight of a specific unit
---v function(self: RECRUITER_MANAGER, unitID: string) --> number
-function recruiter_manager.get_weight_for_unit(self, unitID)
+--v function(self: RECRUITER_MANAGER, unitID: string, cqi: CA_CQI?) --> number
+function recruiter_manager.get_weight_for_unit(self, unitID, cqi)
+    if cqi then
+        local char = cm:get_character_by_cqi(cqi)
+        local is_human = char:faction():is_human()
+        local char_sub = char:character_subtype_key()
+        if self._subtypeSkills[unitID] then
+            for skill, weight in pairs(self._subtypeSkills[unitID]) do
+                if char:has_skill(skill) then
+                    if is_human then
+                        self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unitID, self._UIProfileOverrides[char_sub][unitID])
+                    end
+                    return weight
+                end
+            end
+        end
+        if self._subtypeTraits[unitID] then
+            for trait, weight in pairs(self._subtypeTraits[unitID]) do
+                if char:has_trait(trait) then
+                    if is_human then
+                        self:get_character_by_cqi(cqi):set_ui_profile_override_for_unit(unitID, self._UIProfileOverrides[char_sub][unitID])
+                    end
+                    return weight
+                end
+            end
+            if is_human then
+                if (self._subtypeGroupOverrides[char_sub] == nil) and (self._subtypeGroupOverrides[char_sub][unitID] == nil) then
+                    self:get_character_by_cqi(cqi):remove_ui_profile_override_for_unit(unitID)
+                end
+            end
+        end
+    end
     if self._unitWeights[unitID] == nil then
         self._unitWeights[unitID] = 1
     end
@@ -1230,7 +1450,6 @@ end
 
 --unit checks framework--
 -------------------------
-
 
 
 --get the list of checks for a specific unit
@@ -1351,20 +1570,32 @@ end
 --add a checking function to a group for their quantity cap.
 --v function(self: RECRUITER_MANAGER, groupID: string)
 function recruiter_manager.add_group_check(self, groupID)
-    
     for i = 1, #self:get_units_in_group(groupID) do
     --define our check function
+        local unitID = self:get_units_in_group(groupID)[i]
         local check = function(rm --:RECRUITER_MANAGER
         )
+            local cqi = rm._currentCharacter
+            local char = cm:get_character_by_cqi(cqi)
+            local subtype = char:character_subtype_key()
+            if self:unit_has_group_override(cqi,unitID, groupID) then
+                groupID = rm._subtypeGroupOverrides[subtype][unitID]
+            end
             --declare total
             local total = 0 --:number
             --for each unit in the group, count that unit and add to total
             local units_in_group = rm:get_units_in_group(groupID)
             for j = 1, #units_in_group do
-                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
+                if not self:unit_has_group_override(cqi, units_in_group[j], groupID) then
+                    total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
+                end
+            end
+            local joiners = rm:get_override_joiners_for_group(groupID, subtype)
+            for j = 1, #joiners do
+                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
             end
             --determine whether the total is above or equal to the group quantity limit
-            local result = total + (rm:get_weight_for_unit(rm:get_units_in_group(groupID)[i]) -1) >= rm:get_quantity_limit_for_group(groupID)
+            local result = total + (rm:get_weight_for_unit(unitID, cqi) -1) >= rm:get_quantity_limit_for_group(groupID)
             rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
             --return the result
             return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
@@ -1430,15 +1661,23 @@ function recruiter_manager.add_unit_to_already_initialized_group(self, unitID, g
     --create a new check
     local check = function(rm --:RECRUITER_MANAGER
     )
+        local cqi = rm._currentCharacter
+        local char = cm:get_character_by_cqi(cqi)
+        local subtype = char:character_subtype_key()
+        if self:unit_has_group_override(cqi,unitID, groupID) then
+            groupID = rm._subtypeGroupOverrides[subtype][unitID]
+        end
         --declare total
         local total = 0 --:number
         --for each unit in the group, count that unit and add to total
         local units_in_group = rm:get_units_in_group(groupID)
         for j = 1, #units_in_group do
-            total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j]))
+            if not self:unit_has_group_override(cqi, units_in_group[j], groupID) then
+                total = total + (rm:current_character():get_unit_count(units_in_group[j]))*(rm:get_weight_for_unit(units_in_group[j], cqi))
+            end
         end
         --determine whether the total is above or equal to the group quantity limit
-        local result = total + (rm:get_weight_for_unit(unitID) -1) >= rm:get_quantity_limit_for_group(groupID)
+        local result = total + (rm:get_weight_for_unit(unitID, cqi) -1) >= rm:get_quantity_limit_for_group(groupID)
         rm:log("Checking quantity restriction for ["..groupID.."] resulted in ["..tostring(result).."]")
         --return the result
         return result, "This character already has the maximum number of "..rm:get_ui_name_for_group(groupID)..". ("..rm:get_quantity_limit_for_group(groupID)..")"
@@ -1572,9 +1811,6 @@ function recruiter_manager.add_unit_set_to_pools(self, unitIDset, subculture, qu
         end
     end
 end
-
-
-
 
 
 
