@@ -54,6 +54,38 @@ Command:
 Description:
 	Sets the UI name of the group. This can make things look nicer if your group name is something like emp_steam_tanks. 
 
+-------------------------------------------------------
+OVERRIDE API: To add overrides based on specific lords.
+Command:
+	rm:add_subtype_group_override("agent_subtype_key", "unit_key", "new_group_key", {
+		_text = "Override Tooltip Text",
+		_image = "ui/custom/example_image.png"
+	})
+Description:
+	Sets a unit to be treated as a member of a certain group only for lords of a certain subtype.
+	Will use the provided tooltip image and text instead of the default.
+
+Command:
+	rm:add_subtype_skill_weight_override("agent_subtype_key", "unit_key", "skill_key", ##new_weight##, {
+		_text = "Override Tooltip Text",
+		_image = "ui/custom/example_image.png"
+	})
+Description: 
+	Sets a unit to be treated with a different weight based on a skill for a certain subtype.
+	Will use the provided tooltip if and only if the skill applies. 
+	Cannot be used multiple times on the same unit for the same subtype. Limitation includes trait version.
+
+Command:
+	rm:add_subtype_trait_weight_override("agent_subtype_key", "unit_key", "trait_key", ##new_weight##, {
+		_text = "Override Tooltip Text",
+		_image = "ui/custom/example_image.png"
+	})
+Description: 
+	Sets a unit to be treated with a different weight based on a trait for a certain subtype.
+	Will use the provided tooltip if and only if the trait applies. 
+	Cannot be used multiple times on the same unit for the same subtype. Limitation includes trait version.
+
+
 --OTHER API: Other useful functions
 -----------------------------------
 
@@ -67,9 +99,3 @@ Command:
 	rm:log("message")
 Description:
 	Writes a message to the RM log. Useful if you want your functions to show on that log.
-
-Command:
-	rm:full_reset()
-Description:
-	Wipes out all caps, whitelists, weights, groups, groupcaps, queues, armies, and any other stored data held by the model or its subobjects.
-	Only to be used if you want to wipe the slate clean to load your own fully custom lists as a submod. 

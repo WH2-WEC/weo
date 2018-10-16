@@ -68,11 +68,11 @@ local function limit_character(character, groupID, difference)
                 local new_unit = subculture_default_units[character:faction():subculture()][cm:random_number(#subculture_default_units[character:faction():subculture()])]
                 cm:grant_unit_to_character(cm:char_lookup_str(character:cqi()), new_unit)
                 rm:log("removed unit ["..unit.."] and granted ["..new_unit.."] as a replacement unit!")
-                if rm:get_weight_for_unit(unit) >= diff then
+                if rm:get_weight_for_unit(unit, character:cqi()) >= diff then
                     rm:log("removed unit was sufficient!")
                     return
                 end
-                diff = diff - rm:get_weight_for_unit(unit);
+                diff = diff - rm:get_weight_for_unit(unit, character:cqi());
                 rm:log("removed unit was insufficient, repeating!")
             end
         end
@@ -94,7 +94,7 @@ local function rm_ai_character(character)
             local unit = unit_list:item_at(j):unit_key()
             local groups_list = rm:get_groups_for_unit(unit)
             for k = 1, #groups_list do
-                increment_group_total(group_totals, groups_list[k], rm:get_weight_for_unit(unit))
+                increment_group_total(group_totals, groups_list[k], rm:get_weight_for_unit(unit, character:cqi()))
             end
         end
         for groupID, quantity in pairs(group_totals) do
@@ -119,7 +119,21 @@ local function rm_ai_evaluation(faction)
         local character = character_list:item_at(i)
         rm_ai_character(character)
     end
+    if not rm._unitPoolQuantities[faction:name()] == nil then
+        for unit, quantity in pairs(rm._unitPoolQuantities[faction:name()]) do
+            if quantity <= 0 then
+                rm:log("AI Faction ["..faction:name().."] is out of unit "..unit.." ")
+                cm:add_event_restricted_unit_record_for_faction(unit, faction:name())
+            else
+                cm:remove_event_restricted_unit_record_for_faction(unit, faction:name())
+            end
+        end
+    end
 end
+
+
+
+
 
 
 
@@ -131,6 +145,21 @@ core:add_listener(
     end,
     function(context)
         rm_ai_evaluation(context:faction())
+    end,
+    true
+)
+
+core:add_listener(
+    "RecruitmentControlsAIUnitTrained",
+    "UnitTrained",
+    function(context)
+        return (not context:unit():faction():is_human())
+    end,
+    function(context)
+        local unit = context:unit() --:CA_UNIT
+        if rm:unit_has_pool(unit:unit_key()) then
+            rm:change_unit_pool(unit:unit_key(), unit:faction():name(), -1)
+        end
     end,
     true
 )

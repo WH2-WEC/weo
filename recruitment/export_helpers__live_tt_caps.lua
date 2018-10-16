@@ -3,6 +3,7 @@ events = get_events(); cm = get_cm(); rm = _G.rm;
 
 
 
+
 local units = {
 --empire
 {"wh_dlc04_emp_cav_knights_blazing_sun_0", "emp_special", 2},
@@ -389,7 +390,6 @@ local units = {
 } --:vector<{string, string, number?}>
 
 local groups = {} --:map<string, boolean>
-local pools = {} --:map<string, vector<string>>
 
 local prefix_to_subculture = {
     bst = "wh_dlc03_sc_bst_beastmen",
@@ -418,12 +418,6 @@ for i = 1, #units do
     end
     groups[units[i][2]] = true;
     rm:add_unit_to_group(units[i][1], units[i][2])
-    
-    if pools[units[i][2]] == nil then
-        pools[units[i][2]] = {}
-    end 
-    table.insert(pools[units[i][2]], units[i][1])
-
 
     if string.find(units[i][2], "_core") then
         local prefix = string.gsub(units[i][2], "_core", "")
@@ -457,6 +451,23 @@ end
 
 
 events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+
+    rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
+        _image = "ui/custom/recruitment_controls/common_units.png",
+        _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
+    })
+    rm:add_subtype_group_override("wh_dlc08_nor_throgg", "wh_main_nor_mon_chaos_trolls", "nor_core", {
+        _image = "ui/custom/recruitment_controls/common_units.png",
+        _text = "[[col:yellow]]Special Rule: [[/col]] Throgg can bring Trolls as Core choices in his armies. \n Armies may have an unlimited number of Core Units."
+    })
+    rm:add_subtype_group_override("wh_dlc08_nor_throgg", "wh_dlc08_nor_mon_norscan_ice_trolls_0", "nor_core", {
+        _image = "ui/custom/recruitment_controls/common_units.png",
+        _text = "[[col:yellow]]Special Rule: [[/col]] Throgg can bring Trolls as Core choices in his armies. \n Armies may have an unlimited number of Core Units."
+    })
+    rm:add_subtype_skill_weight_override("dwf_thorgrim_grudgebearer", "wh_main_dwf_inf_miners_0", "wh_main_skill_innate_dwf_thorgrim_grudgebearer", 3, {
+        _image = "ui/custom/recruitment_controls/special_units_3.png",
+        _text = "[[col:yellow]]Special Rule: [[/col]] Thorgrim can recruit miners at an increased cost because he's a hoebag. \n Armies may have an unlimited number of Core Units."
+    })
     for name, _ in pairs(groups) do
         if string.find(name, "core") then
             rm:set_ui_name_for_group(name, "Core Units")
@@ -469,22 +480,6 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = functi
         if string.find(name, "rare") then
             rm:set_ui_name_for_group(name, "Rare Units")
             rm:add_character_quantity_limit_for_group(name, 5)
-        end
-    end
-    for category, unitset in pairs(pools) do
-        if string.find(category, "tmb") or string.find(category, "vmp") then
-            --do nothing
-        else
-            if string.find(category, "_core") then
-                local prefix = string.gsub(category, "_core", "")
-                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 2, 12, 3)
-            elseif string.find(category, "_special") then
-                local prefix = string.gsub(category, "_special", "")
-                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 1, 12, 1)
-            elseif string.find(category, "_rare") then
-                local prefix = string.gsub(category, "_rare", "")
-                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 1, 12)
-            end
         end
     end
 end;

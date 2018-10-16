@@ -6,6 +6,7 @@
 --# assume global class CA_UIC
 --# assume global class CA_Component
 --# assume global class CA_UIContext
+--# assume global class CA_CampaignUI
 --# assume global class CA_CHAR_CONTEXT
 --# assume global class CA_SETTLEMENT_CONTEXT
 --# assume global class CA_CQI
@@ -258,7 +259,8 @@
 
 --# assume CM.char_is_mobile_general_with_army: method(character: CA_CHAR) --> boolean
 
-
+--# assume CM.remove_event_restricted_unit_record_for_faction: method(unit_record: string, faction: string)
+--# assume CM.add_event_restricted_unit_record_for_faction: method(unit_record: string, faction: string)
 
 
 
@@ -280,6 +282,7 @@
 --# assume CA_CHAR.display_position_x: method() --> number
 --# assume CA_CHAR.display_position_y: method() --> number
 --# assume CA_CHAR.character_subtype_key: method() --> string
+--# assume CA_CHAR.has_skill: method(skill:string) --> boolean
 --# assume CA_CHAR.region: method() --> CA_REGION
 --# assume CA_CHAR.faction: method() --> CA_FACTION
 --# assume CA_CHAR.military_force: method() --> CA_MILITARY_FORCE
@@ -369,6 +372,7 @@
 
 --BUILDING
 --# assume CA_BUILDING.name: method() --> string
+--# assume CA_BUILDING.is_null_interface: method() --> boolean
 --# assume CA_BUILDING.chain: method() --> string
 --# assume CA_BUILDING.superchain: method() --> string
 --# assume CA_BUILDING.faction: method() --> CA_FACTION
@@ -397,6 +401,7 @@
 --# assume CA_MODEL.character_for_command_queue_index: method(cqi: CA_CQI) --> CA_CHAR
 --# assume CA_MODEL.random_percent: method(chance: number) --> boolean
 --# assume CA_MODEL.facton_is_local: method(faction_key: string) --> boolean
+--# assume CA_MODEL.faction_for_command_queue_index: method(cqi: CA_CQI) --> CA_FACTION
 
 -- WORLD
 --# assume CA_WORLD.faction_list: method() --> CA_FACTION_LIST
@@ -464,6 +469,10 @@
 --# assume CORE.add_ui_created_callback: method(function())
 --# assume CORE.get_screen_resolution: method() --> (number, number)
 --# assume CORE.trigger_event: method(event_name: string)
+--# assume CORE.cache_and_set_tooltip_for_component_state: method(uic: CA_UIC, state: string, tooltip: string)
+--CA CAMPAIGN_UI
+--# assume CA_CampaignUI.TriggerCampaignScriptEvent: function(cqi: CA_CQI, event: string)
+
 
 
 
@@ -486,7 +495,6 @@
 --# assume global is_boolean: function(arg: boolean) --> boolean
 --# assume global get_timestamp: function() --> string
 --# assume global script_error: function(msg: string)
---# assume global to_number: function(n: any) --> number
 
 -- CAMPAIGN
 --# assume global get_cm: function() --> CM
@@ -556,6 +564,7 @@
 --# assume global cm: CM
 --# assume global core: CORE
 --# assume global effect: CA_EFFECT
+--# assume global CampaignUI: CA_CampaignUI
 --# assume global __write_output_to_logfile: boolean
 --# assume global mission_manager: MISSION_MANAGER
 --# assume global rite_unlock: RITE_UNLOCK

@@ -3,6 +3,24 @@ events = get_events(); cm = get_cm(); rm = _G.rm;
 
 rm:error_checker() --turn on error checking
 
+--[[testing code
+core:add_listener(
+    "printquantity",
+    "ShortcutTriggered",
+    function(context) return context.string == "camera_bookmark_view0"; end, --default F9
+    function(context)
+        rm:log("POOL AT: ".. rm._unitPoolQuantities["wh_dlc04_emp_inf_free_company_militia_0"]["wh_main_emp_empire"])
+    end,
+    true)
+
+  rm:add_unit_pool("wh_dlc04_emp_inf_free_company_militia_0", "wh_main_emp_empire", 2, 3)
+
+
+
+
+
+
+--]]
 --add unit added to queue listener
 core:add_listener(
     "RecruiterManagerOnRecruitOptionClicked",
@@ -13,6 +31,7 @@ core:add_listener(
         local unit_component_ID = tostring(UIComponent(context.component):Id())
         --is our clicked component a unit?
         if string.find(unit_component_ID, "_recruitable") and UIComponent(context.component):CurrentState() == "active" then
+            print_all_uicomponent_children(UIComponent(context.component))
             --its a unit! steal the users input so that they don't click more shit while we calculate.
             cm:steal_user_input(true);
             rm:log("Locking recruitment button for ["..unit_component_ID.."] temporarily");
@@ -151,6 +170,7 @@ function(context)
     rm:get_character_by_cqi(character:cqi()):set_queue_stale()
 end,
 true)
+
 --add unit trained listener
 core:add_listener(
 "RecruiterManagerPlayerFactionRecruitedUnit",
@@ -164,9 +184,20 @@ function(context)
     local char_cqi = unit:force_commander():command_queue_index();
     rm:log("Player faction recruited a unit!")
     rm:get_character_by_cqi(char_cqi):set_army_stale()
-    rm:get_character_by_cqi(char_cqi):set_queue_stale()
+    --we can't just delete the queue when pools are involved.
+    if rm:unit_has_pool(unit:unit_key()) then
+        --take away the cost
+        rm:change_unit_pool(unit:unit_key(), unit:faction():name(), -1)
+        --remove the unit from queue, this will refund the cost that is there so the user isn't double charged!
+        rm:get_character_by_cqi(char_cqi):remove_unit_from_queue(unit:unit_key())
+        --raw set the queue stale so that the remaining costs are re-evaluated next time he is looked at.
+        rm:get_character_by_cqi(char_cqi):raw_set_queue_stale()
+    else
+        rm:get_character_by_cqi(char_cqi):set_queue_stale()
+    end
 end,
 true)
+
 --add character selected listener
 core:add_listener(
     "RecruiterManagerOnCharacterSelected",
@@ -267,6 +298,10 @@ core:add_listener(
         rm:get_character_by_cqi(unit:force_commander():cqi()):remove_unit_from_army(unit:unit_key())
         --check the unit (+groups) again.
         rm:check_unit_on_character(unit:unit_key())
+        --if the unit has a pool, refund it
+        if rm:unit_has_pool(unit:unit_key()) then
+            rm:change_unit_pool(unit:unit_key(), unit:faction():name(), 1)
+        end
     end,
     true);
 --add merged listener
@@ -288,6 +323,46 @@ core:add_listener(
     end,
     true)
 
+-------------
+--transfers--
+-------------
+RM_TRANSFERS = {} --:map<string, CA_CQI>
+--v function() --> CA_CQI
+local function find_second_army()
+
+    --v function(ax: number, ay: number, bx: number, by: number) --> number
+    local function distance_2D(ax, ay, bx, by)
+        return (((bx - ax) ^ 2 + (by - ay) ^ 2) ^ 0.5);
+    end;
+
+    local first_char = cm:get_character_by_cqi(rm._currentCharacter)
+    local char_list = first_char:faction():character_list()
+    local closest_char --:CA_CHAR
+    local last_distance = 50 --:number
+    local ax = first_char:logical_position_x()
+    local ay = first_char:logical_position_y()
+    for i = 0, char_list:num_items() - 1 do
+        local char = char_list:item_at(i)
+        if cm:char_is_mobile_general_with_army(char) then
+            if char:cqi() == first_char:cqi() then
+
+            else
+                local dist = distance_2D(ax, ay, char:logical_position_x(), char:logical_position_y())
+                if dist < last_distance then
+                    last_distance = dist
+                    closest_char = char
+                end
+            end
+        end
+    end
+    if closest_char then
+        --the extra call is to force load the char into the model
+        return rm:get_character_by_cqi(closest_char:cqi()):cqi()
+    else
+        rm:log("failed to find the other char!")
+        return nil
+    end
+end
 
 --v function(panel: string, index: number) --> (string, boolean)
 local function GetUnitNameInExchange(panel, index)
@@ -344,15 +419,26 @@ local function are_armies_valid(first_army_count, second_army_count)
         if count > rm:get_quantity_limit_for_unit(unitID) then
             return false, "Too many individual restricted units in an army!"
         end
-        local groups = rm:get_groups_for_unit(unitID)
+        local groups = rm:get_groups_for_unit(unitID, RM_TRANSFERS.first)
         for i = 1, #groups do
             local grouped_units = rm:get_units_in_group(groups[i])
             local group_total = 0 --:number
+            rm:log("Doing group ["..groups[i].."] for ["..tostring(RM_TRANSFERS.first).."] looking for limit ["..rm:get_quantity_limit_for_group(groups[i]).."] ")
             for j = 1, #grouped_units do
-                if first_army_count[grouped_units[j]] == nil then
-                    first_army_count[grouped_units[j]] = 0
+                if not rm:unit_has_group_override(RM_TRANSFERS.first, grouped_units[j], groups[i]) then
+                    if first_army_count[grouped_units[j]] == nil then
+                        first_army_count[grouped_units[j]] = 0
+                    end
+                    group_total = group_total + (first_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.first))
+                    rm:log("processed unit ["..grouped_units[j].."], group total at ["..group_total.."] ")
                 end
-                group_total = group_total + (first_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j]))
+            end
+            local joined_units = rm:get_override_joiners_for_group(groups[i], cm:get_character_by_cqi(RM_TRANSFERS.first):character_subtype_key())
+            for j = 1, #joined_units do
+                if first_army_count[joined_units[j]] == nil then
+                    first_army_count[joined_units[j]] = 0
+                end
+                group_total = group_total + (first_army_count[joined_units[j]] * rm:get_weight_for_unit(joined_units[j], RM_TRANSFERS.first))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
@@ -364,15 +450,26 @@ local function are_armies_valid(first_army_count, second_army_count)
         if count > rm:get_quantity_limit_for_unit(unitID) then
             return false, "Too many individual restricted units in an army!"
         end
-        local groups = rm:get_groups_for_unit(unitID)
+        local groups = rm:get_groups_for_unit(unitID, RM_TRANSFERS.second)
         for i = 1, #groups do
             local grouped_units = rm:get_units_in_group(groups[i])
             local group_total = 0 --:number
+            rm:log("Doing group ["..groups[i].."] for ["..tostring(RM_TRANSFERS.second).."] looking for limit ["..rm:get_quantity_limit_for_group(groups[i]).."] ")
             for j = 1, #grouped_units do
-                if second_army_count[grouped_units[j]] == nil then
-                    second_army_count[grouped_units[j]] = 0
+                if not rm:unit_has_group_override(RM_TRANSFERS.second, grouped_units[j], groups[i]) then
+                    if second_army_count[grouped_units[j]] == nil then
+                        second_army_count[grouped_units[j]] = 0
+                    end
+                    group_total = group_total + (second_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.second))
+                    rm:log("processed unit ["..grouped_units[j].."], group total at ["..group_total.."] ")
                 end
-                group_total = group_total + (second_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j]))
+            end
+            local joined_units = rm:get_override_joiners_for_group(groups[i], cm:get_character_by_cqi(RM_TRANSFERS.second):character_subtype_key())
+            for j = 1, #joined_units do
+                if first_army_count[joined_units[j]] == nil then
+                    first_army_count[joined_units[j]] = 0
+                end
+                group_total = group_total + (second_army_count[joined_units[j]] * rm:get_weight_for_unit(joined_units[j], RM_TRANSFERS.second))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
@@ -437,7 +534,8 @@ core:add_listener(
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
             -- print_all_uicomponent_children(find_uicomponent(core:get_ui_root(), "unit_exchange"))
-
+            RM_TRANSFERS.first = rm._currentCharacter
+            RM_TRANSFERS.second = find_second_army()
             local first_army, second_army = count_armies()
             local valid_armies, reason = are_armies_valid(first_army, second_army)
             if valid_armies then
