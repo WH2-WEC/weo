@@ -6,9 +6,6 @@
 --# assume global class CA_CampaignUI
 --# assume global class CA_UIC
 --# assume global class CA_Component
---# assume global class CA_UIContext
---# assume global class CA_CHAR_CONTEXT
---# assume global class CA_SETTLEMENT_CONTEXT
 --# assume global class CA_CQI
 --# assume global class CA_CHAR
 --# assume global class CA_CHAR_LIST
@@ -17,6 +14,11 @@
 --# assume global class CA_REGION
 --# assume global class CA_REGION_LIST
 --# assume global class CA_REGION_MANAGER
+--# assume global class CA_SEA_REGION
+--# assume global class CA_SEA_REGION_LIST
+--# assume global class CA_SEA_MANAGER
+--# assume global class CA_REGDATA
+--# assume global class CA_REGDATA_LIST
 --# assume global class CA_SETTLEMENT
 --# assume global class CA_GARRISON_RESIDENCE
 --# assume global class CA_SLOT_LIST
@@ -39,13 +41,7 @@
 --# assume global class CORE
 --# assume global class _G
 
-
--- TYPES
---# type global CA_EventName = 
---# "CharacterCreated"      | "ComponentLClickUp"     | "ComponentMouseOn"    |
---# "PanelClosedCampaign"   | "PanelOpenedCampaign" |
---# "TimeTrigger"           | "UICreated"
-
+-- ENUMS
 --# type global BUTTON_STATE = 
 --# "active" | "hover" | "down" | 
 --# "selected" | "selected_hover" | "selected_down" |
@@ -58,12 +54,14 @@
 --# type global CA_MARKER_TYPE = 
 --# "pointer" | "move_to_vfx" | "look_at_vfx" | "tutorial_marker"
 
+--CA CAMPAIGN_UI
+--# assume CA_CampaignUI.TriggerCampaignScriptEvent: function(cqi: CA_CQI, event: string)
+--# assume CA_CampaignUI.ClearSelection: function()
+-- EFFECT
+--# assume CA_EFFECT.get_localised_string: function(key: string) --> string
+-- GAME INTERFACE
+--# assume CA_GAME.filesystem_lookup: method(filePath: string, matchRegex:string) --> string
 
--- CONTEXT
---# assume CA_UIContext.component: CA_Component
---# assume CA_UIContext.string: string
---# assume CA_SETTLEMENT_CONTEXT.garrison_residence: method() --> CA_GARRISON_RESIDENCE
---# assume CA_CHAR_CONTEXT.character: method() --> CA_CHAR
 
 -- UIC
 --# assume CA_UIC.Address: method() --> CA_Component
@@ -295,23 +293,44 @@
 --model overrides
 --# assume CM.override_building_chain_display: method(building_chain: string, settlement_skin: string)
 
+
 -- CAMPAIGN UI MANAGER
 --# assume CUIM.get_char_selected: method() --> string
 --# assume CUIM.settlement_selected: string
 --# assume CUIM.override: method(ui_override: string) --> CUIM_OVERRIDE
 --# assume CUIM.start_scripted_sequence: method()
 --# assume CUIM.stop_scripted_sequence: method()
-
 -- CAMPAIGN UI MANAGER OVERRIDES
 --# assume CUIM_OVERRIDE.set_allowed: method(allowed: bool)
 
---CA CAMPAIGN_UI
---# assume CA_CampaignUI.TriggerCampaignScriptEvent: function(cqi: CA_CQI, event: string)
---# assume CA_CampaignUI.ClearSelection: function()
 
+-- MODEL
+--# assume CA_MODEL.world: method() --> CA_WORLD
+--# assume CA_MODEL.difficulty_level: method() --> number
+--# assume CA_MODEL.turn_number: method() --> number
+--# assume CA_MODEL.pending_battle: method() --> CA_PENDING_BATTLE
+--# assume CA_MODEL.combined_difficulty_level: method() --> int
+--# assume CA_MODEL.campaign_name: method(campaign_name: string) --> boolean
+--# assume CA_MODEL.campaign_type: method() --> number
+--# assume CA_MODEL.is_multiplayer: method() --> boolean
+--# assume CA_MODEL.military_force_for_command_queue_index: method(cqi: CA_CQI) --> CA_MILITARY_FORCE
+--# assume CA_MODEL.character_for_command_queue_index: method(cqi: CA_CQI) --> CA_CHAR
+--# assume CA_MODEL.random_percent: method(chance: number) --> boolean
+--# assume CA_MODEL.faction_is_local: method(faction_key: string) --> boolean
+--# assume CA_MODEL.faction_for_command_queue_index: method(cqi: CA_CQI) --> CA_FACTION
 
--- GAME INTERFACE
---# assume CA_GAME.filesystem_lookup: method(filePath: string, matchRegex:string) --> string
+-- WORLD
+--# assume CA_WORLD.faction_list: method() --> CA_FACTION_LIST
+--# assume CA_WORLD.faction_by_key: method(faction_key: string) --> CA_FACTION
+--# assume CA_WORLD.whose_turn_is_it: method() --> CA_FACTION
+--# assume CA_WORLD.region_manager: method() --> CA_REGION_MANAGER
+--# assume CA_WORLD.sea_region_manager: method() --> CA_SEA_MANAGER
+--# assume CA_WORLD.faction_exists: method(faction_key: string) --> boolean
+--# assume CA_WORLD.ancillary_exists: method(ancillary_key: string) --> boolean
+--# assume CA_WORLD.climate_phase_index: method() --> number
+--# assume CA_WORLD.region_data: method() --> CA_REGDATA_LIST
+--# assume CA_WORLD.land_region_data: method() --> CA_REGDATA_LIST
+--# assume CA_WORLD.sea_region_data: method() --> CA_REGDATA_LIST
 
 
 -- CHARACTER
@@ -367,12 +386,14 @@
 --# assume CA_UNIT.has_military_force: method() --> boolean
 --# assume CA_UNIT.percentage_proportion_of_full_strength: method() --> number
 
-
 --UNIT_LIST
-
---#assume CA_UNIT_LIST.num_items: method() --> number
+--# assume CA_UNIT_LIST.num_items: method() --> number
 --# assume CA_UNIT_LIST.item_at: method(j: number) --> CA_UNIT
 --# assume CA_UNIT_LIST.has_unit: method(unit: string) --> boolean
+
+--REGION_MANAGER
+--# assume CA_REGION_MANAGER.region_list: method() --> CA_REGION_LIST
+--# assume CA_REGION_MANAGER.region_by_key: method(key: string) --> CA_REGION
 
 -- REGION
 --# assume CA_REGION.settlement: method() --> CA_SETTLEMENT
@@ -390,6 +411,10 @@
 --# assume CA_REGION.any_resource_available: method() --> boolean
 --# assume CA_REGION.adjacent_region_list: method() --> CA_REGION_LIST
 
+--REGION LIST
+--# assume CA_REGION_LIST.num_items: method() --> number
+--# assume CA_REGION_LIST.item_at: method(i: number) --> CA_REGION
+
 -- SETTLEMENT
 --# assume CA_SETTLEMENT.logical_position_x: method() --> number
 --# assume CA_SETTLEMENT.logical_position_y: method() --> number
@@ -403,18 +428,17 @@
 --# assume CA_SETTLEMENT.slot_list: method() --> CA_SLOT_LIST
 --# assume CA_SETTLEMENT.is_port: method() --> boolean
 --# assume CA_SETTLEMENT.region: method() --> CA_REGION
+
 --SLOT LIST
 --# assume CA_SLOT_LIST.num_items: method() --> number
 --# assume CA_SLOT_LIST.item_at: method(index: number) --> CA_SLOT
 --# assume CA_SLOT_LIST.slot_type_exists: method(slot_key: string) --> boolean
 --# assume CA_SLOT_LIST.building_type_exists: method(building_key: string) --> boolean
 
-
 --SLOT
 --# assume CA_SLOT.has_building: method() --> boolean
 --# assume CA_SLOT.building: method() --> CA_BUILDING
 --# assume CA_SLOT.resource_key: method() --> string
-
 
 --BUILDING
 --# assume CA_BUILDING.name: method() --> string
@@ -423,7 +447,7 @@
 --# assume CA_BUILDING.faction: method() --> CA_FACTION
 --# assume CA_BUILDING.region: method() --> CA_REGION
 
--- GARRISON RESIDENCE
+--GARRISON RESIDENCE
 --# assume CA_GARRISON_RESIDENCE.region: method() --> CA_REGION
 --# assume CA_GARRISON_RESIDENCE.faction: method() --> CA_FACTION
 --# assume CA_GARRISON_RESIDENCE.is_under_siege: method() --> boolean
@@ -433,31 +457,28 @@
 --# assume CA_GARRISON_RESIDENCE.unit_count: method() --> number
 --# assume CA_GARRISON_RESIDENCE.can_be_occupied_by_faction: method(faction_key: string) --> boolean
 
--- MODEL
---# assume CA_MODEL.world: method() --> CA_WORLD
---# assume CA_MODEL.difficulty_level: method() --> number
---# assume CA_MODEL.turn_number: method() --> number
---# assume CA_MODEL.pending_battle: method() --> CA_PENDING_BATTLE
---# assume CA_MODEL.combined_difficulty_level: method() --> int
---# assume CA_MODEL.campaign_name: method(campaign_name: string) --> boolean
---# assume CA_MODEL.campaign_type: method() --> number
---# assume CA_MODEL.is_multiplayer: method() --> boolean
---# assume CA_MODEL.military_force_for_command_queue_index: method(cqi: CA_CQI) --> CA_MILITARY_FORCE
---# assume CA_MODEL.character_for_command_queue_index: method(cqi: CA_CQI) --> CA_CHAR
---# assume CA_MODEL.random_percent: method(chance: number) --> boolean
---# assume CA_MODEL.faction_is_local: method(faction_key: string) --> boolean
---# assume CA_MODEL.faction_for_command_queue_index: method(cqi: CA_CQI) --> CA_FACTION
+--CA REGION DATA
+--# assume CA_REGDATA.is_null_interface: method() --> boolean
+--# assume CA_REGDATA.key: method() --> string
+--# assume CA_REGDATA.is_sea: method() --> boolean
 
--- WORLD
---# assume CA_WORLD.faction_list: method() --> CA_FACTION_LIST
---# assume CA_WORLD.faction_by_key: method(factionKey: string) --> CA_FACTION
---# assume CA_WORLD.whose_turn_is_it: method() --> CA_FACTION
---# assume CA_WORLD.region_manager: method() --> CA_REGION_MANAGER
+--CA REGION DATA LIST
+--# assume CA_REGDATA_LIST.item_at: method(i: int) --> CA_REGDATA
+--# assume CA_REGDATA_LIST.is_empty: method() --> boolean
+--# assume CA_REGDATA_LIST.num_items: method() --> int
 
---REGION_MANAGER
---# assume CA_REGION_MANAGER.region_list: method() --> CA_REGION_LIST
---# assume CA_REGION_MANAGER.region_by_key: method(key: string) --> CA_REGION
+--CA SEA MANAGER
+--# assume CA_SEA_MANAGER.sea_region_list: method() --> CA_SEA_REGION_LIST
+--# assume CA_SEA_MANAGER.faction_sea_region_list: method(faction_key: string) --> CA_SEA_REGION_LIST
+--# assume CA_SEA_MANAGER.sea_region_by_key: method(region_key: string) --> CA_SEA_REGION
 
+--CA SEA REGION
+--# assume CA_SEA_REGION.name: method() --> string
+--# assume CA_SEA_REGION.is_null_interface: method() --> boolean
+
+--CA SEA REGION LIST 
+--# assume CA_SEA_REGION_LIST.item_at: method(i: int) --> CA_SEA_REGION
+--# assume CA_SEA_REGION_LIST.num_items: method() --> number
 
 -- FACTION
 --# assume CA_FACTION.character_list: method() --> CA_CHAR_LIST
@@ -493,12 +514,7 @@
 --# assume CA_FACTION_LIST.num_items: method() --> number
 --# assume CA_FACTION_LIST.item_at: method(index: number) --> CA_FACTION
 
---REGION LIST
---# assume CA_REGION_LIST.num_items: method() --> number
---# assume CA_REGION_LIST.item_at: method(i: number) --> CA_REGION
 
--- EFFECT
---# assume CA_EFFECT.get_localised_string: function(key: string) --> string
 
 
 -- PENDING BATTLE
@@ -547,6 +563,7 @@
 --# assume CA_RITUAL_LIST.item_at: method(i: int) --> CA_RITUAL
 --# assume CA_RITUAL_LIST.is_empty: method() --> boolean
 --# assume CA_RITUAL_LIST.num_items: method() --> int
+
 
 
 -- GLOBAL FUNCTIONS
@@ -660,6 +677,13 @@
 --# assume INVASION.add_character_experience: method(quanity: number)
 --# assume INVASION.add_unit_experience: method(quantity: number)
 --# assume INVASION.start_invasion: method(callback: function?, declare_war: boolean?, invite_attacker_allies: boolean?, invite_defender_allies: boolean?)
+
+--FAKE CLASS:  CA_UIContext
+--used to remove a WHATEVER from a UI listener
+--# assume global class CA_UIContext
+--# assume CA_UIContext.component: CA_Component
+--# assume CA_UIContext.string: string
+
 
 -- GLOBAL VARIABLES
 --leave at the bottom of this file
