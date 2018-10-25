@@ -67,7 +67,7 @@
 --# assume UTIL.centreComponentOnScreen: function(component: WHATEVER)
 --# assume UTIL.centreComponentOnComponent: function(component: WHATEVER, other_component: WHATEVER)    
 --# assume UTIL.recurseThroughChildrenApplyingFunction: function(parent: WHATEVER, callback:function(child: WHATEVER))
-
+--# assume UTIL.createComponent: function(name: string, parent: WHATEVER,path: string, string...)
 
 
 --button

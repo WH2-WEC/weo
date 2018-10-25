@@ -165,13 +165,13 @@ function recruiter_manager.error_checker(self)
     --All credits to vanish
     --v function(func: function) --> any
         function safeCall(func)
-            --output("safeCall start");
+            --RCLOG("safeCall start");
             local status, result = pcall(func)
             if not status then
                 RCLOG(tostring(result), "ERROR CHECKER")
                 RCLOG(debug.traceback(), "ERROR CHECKER");
             end
-            --output("safeCall end");
+            --RCLOG("safeCall end");
             return result;
         end
         
@@ -185,16 +185,16 @@ function recruiter_manager.error_checker(self)
         --v [NO_CHECK] function(f: function(), argProcessor: function()) --> function()
         function wrapFunction(f, argProcessor)
             return function(...)
-                --output("start wrap ");
+                --RCLOG("start wrap ");
                 local someArguments = pack2(...);
                 if argProcessor then
                     safeCall(function() argProcessor(someArguments) end)
                 end
                 local result = pack2(safeCall(function() return f(unpack2( someArguments )) end));
                 --for k, v in pairs(result) do
-                --    output("Result: " .. tostring(k) .. " value: " .. tostring(v));
+                --    RCLOG("Result: " .. tostring(k) .. " value: " .. tostring(v));
                 --end
-                --output("end wrap ");
+                --RCLOG("end wrap ");
                 return unpack2(result);
                 end
         end
@@ -208,21 +208,21 @@ function recruiter_manager.error_checker(self)
         function tryRequire(fileName)
             local loaded_file = loadfile(fileName);
             if not loaded_file then
-                output("Failed to find mod file with name " .. fileName)
+                RCLOG("Failed to find mod file with name " .. fileName)
             else
-                output("Found mod file with name " .. fileName)
-                output("Load start")
+                RCLOG("Found mod file with name " .. fileName)
+                RCLOG("Load start")
                 local local_env = getfenv(1);
                 setfenv(loaded_file, local_env);
                 loaded_file();
-                output("Load end")
+                RCLOG("Load end")
             end
         end
         
         --v [NO_CHECK] function(f: function(), name: string)
         function logFunctionCall(f, name)
             return function(...)
-                output("function called: " .. name);
+                RCLOG("function called: " .. name);
                 return f(...);
             end
         end
@@ -232,7 +232,7 @@ function recruiter_manager.error_checker(self)
             local metatable = getmetatable(object);
             for name,f in pairs(getmetatable(object)) do
                 if is_function(f) then
-                    output("Found " .. name);
+                    RCLOG("Found " .. name);
                     if name == "Id" or name == "Parent" or name == "Find" or name == "Position" or name == "CurrentState"  or name == "Visible"  or name == "Priority" or "Bounds" then
                         --Skip
                     else
@@ -241,12 +241,12 @@ function recruiter_manager.error_checker(self)
                 end
                 if name == "__index" and not is_function(f) then
                     for indexname,indexf in pairs(f) do
-                        output("Found in index " .. indexname);
+                        RCLOG("Found in index " .. indexname);
                         if is_function(indexf) then
                             f[indexname] = logFunctionCall(indexf, indexname);
                         end
                     end
-                    output("Index end");
+                    RCLOG("Index end");
                 end
             end
         end
@@ -258,20 +258,20 @@ function recruiter_manager.error_checker(self)
         core.trigger_event = wrapFunction(
             core.trigger_event,
             function(ab)
-                --output("trigger_event")
+                --RCLOG("trigger_event")
                 --for i, v in pairs(ab) do
-                --    output("i: " .. tostring(i) .. " v: " .. tostring(v))
+                --    RCLOG("i: " .. tostring(i) .. " v: " .. tostring(v))
                 --end
-                --output("Trigger event: " .. ab[1])
+                --RCLOG("Trigger event: " .. ab[1])
             end
         );
         
         cm.check_callbacks = wrapFunction(
             cm.check_callbacks,
             function(ab)
-                --output("check_callbacks")
+                --RCLOG("check_callbacks")
                 --for i, v in pairs(ab) do
-                --    output("i: " .. tostring(i) .. " v: " .. tostring(v))
+                --    RCLOG("i: " .. tostring(i) .. " v: " .. tostring(v))
                 --end
             end
         )
@@ -281,14 +281,14 @@ function recruiter_manager.error_checker(self)
         function myAddListener(core, listenerName, eventName, conditionFunc, listenerFunc, persistent)
             local wrappedCondition = nil;
             if is_function(conditionFunc) then
-                --wrappedCondition =  wrapFunction(conditionFunc, function(arg) output("Callback condition called: " .. listenerName .. ", for event: " .. eventName); end);
+                --wrappedCondition =  wrapFunction(conditionFunc, function(arg) RCLOG("Callback condition called: " .. listenerName .. ", for event: " .. eventName); end);
                 wrappedCondition =  wrapFunction(conditionFunc);
             else
                 wrappedCondition = conditionFunc;
             end
             currentAddListener(
                 core, listenerName, eventName, wrappedCondition, wrapFunction(listenerFunc), persistent
-                --core, listenerName, eventName, wrappedCondition, wrapFunction(listenerFunc, function(arg) output("Callback called: " .. listenerName .. ", for event: " .. eventName); end), persistent
+                --core, listenerName, eventName, wrappedCondition, wrapFunction(listenerFunc, function(arg) RCLOG("Callback called: " .. listenerName .. ", for event: " .. eventName); end), persistent
             )
         end
         core.add_listener = myAddListener;

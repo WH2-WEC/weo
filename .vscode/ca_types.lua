@@ -699,3 +699,12 @@
 --# assume global invasion_manager: INVASION_MANAGER
 
 --string extensions
+
+--v [string_meta] function(s: string, str: string) --> boolean
+function string.starts_with(s, str)
+    return true
+end
+--v [string_meta] function(s: string, str: string) --> boolean
+function string.ends_with(s, str)
+    return true
+end
