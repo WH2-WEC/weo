@@ -218,6 +218,21 @@ function province_manager.save_region(self, region)
 end
 
 
+------------------------
+-------UI API-----------
+------------------------
+
+--v function(self: PM) --> string
+function province_manager.get_selected_settlement(self)
+    return self._currentSettlement
+end
+
+--v function(self: PM, settlement: string)
+function province_manager.set_selected_settlement(self, settlement)
+    self._currentSettlement = settlement
+end
+
+
 
 ---------------------
 -------API-----------

@@ -32,7 +32,7 @@ function region_detail.new(model, cm, region)
     self._UIUnitProduction = {} --:map<string, number> -- unit:quantity
     self._UIUnitFactors = {} --:map<string, map<string, number>> -- unit:<source:quantity>
     --religion
-    self._faiths = {} --:map<string, FAITH_TYPE>
+    self._faiths = {} --:map<WEC_FAITH_KEY, FAITH_TYPE>
     self._UIFaithSources = {} --:map<string, string> -- source:faith
     --tax level
     self._taxLevel = 3 --:number
@@ -102,6 +102,12 @@ function region_detail.update_buildings(self)
             self._buildings[slot:building():name()] = true
         end
     end
+end
+
+--gets the buildings
+--v function(self: REGION_DETAIL) --> map<string, boolean>
+function region_detail.buildings(self)
+    return self._buildings
 end
 
 -------------------
@@ -279,7 +285,7 @@ function region_detail.add_foreign_faith(self, faith_key, source)
     self._UIFaithSources[faith_key] = source
 end
 
---v function(self: REGION_DETAIL) --> map<string, FAITH_TYPE>
+--v function(self: REGION_DETAIL) --> map<WEC_FAITH_KEY, FAITH_TYPE>
 function region_detail.get_faiths(self)
     return self._faiths
 end
