@@ -13,6 +13,7 @@ require("recruitment/export_helpers__tt_groups")
 
 ---[[region details 1 prov 1 reg
 require("province_details/ProvinceDetailsManager")
+require("province_details/export_helpers__pm_events")
 --]]
 
 
