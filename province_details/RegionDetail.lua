@@ -137,8 +137,8 @@ end
 --v function(self: REGION_DETAIL, bundle_key: string)
 function region_detail.remove_effect_bundle(self, bundle_key)
     if self._regionEffects[bundle_key] == nil then
-        self._model:log("Called for the removal of ["..bundle_key.."] from region ["..self._key.."] but that bundle is not applied!")
         return -- we are removing a bundle which doesn't exist! return.
+        --not an error, will happen with tax
     end
     self._regionEffects[bundle_key] = false
     self._cm:remove_effect_bundle_from_region(bundle_key, self._key)
@@ -170,6 +170,18 @@ function region_detail.wealth_mod(self, quantity, UIFactor)
         new_wealth = self._wealthCap
     end
     self._wealth = new_wealth
+end
+
+--v function(self: REGION_DETAIL, quantity: number, apply_effect: boolean?)
+function region_detail.set_wealth(self, quantity, apply_effect)
+    new_wealth = quantity
+    if new_wealth > self._wealthCap then
+        new_wealth = self._wealthCap
+    end
+    self._wealth = new_wealth
+    if apply_effect then
+        self:apply_effect_bundle(self._model:get_wealth_bundle()..tostring(new_wealth))
+    end
 end
 
 --update the wealth cap
@@ -298,6 +310,13 @@ function region_detail.get_faith_source(self, faith)
     end
     return self._UIFaithSources[faith]
 end
+
+--v function(self: REGION_DETAIL)
+function region_detail.reset_faith_ui(self)
+    self._UIFaithSources = {}
+    self._faiths = {}
+end
+
 
 ----------------------
 ------TAXE RATE-------

@@ -30,13 +30,15 @@ function province_manager.init()
     --core
     self._regionDetails = {} --:map<string, REGION_DETAIL>
     --wealth system 
+    self._wealthEnabled = {} --:map<string, boolean> -- subculture:flag
     self._buildingToWealthEffect = {} --:map<string, number> -- building:quantity
     self._settlementToWealthCap = {} --:map<string, number> -- settlement_building:quantity
     --unit production
     self._buildingUnitProduction = {} --:map<string, map<string, number>> -- building:<unit:quantity>
     self._fullUnitLevel = {} --:map<string, number> -- subculture:full_unit_level
     --religion
-    self._buildingFaiths = {} --:map<string, {WEC_FAITH_KEY, number}> -- faith:<building:strength>
+    self._faithGroups = {} --:map<string, string> -- subculture:group
+    self._buildingFaiths = {} --:map<string, {WEC_FAITH_KEY, number}> -- building:<faith:strength>
     self._faithForeignFlags = {} --:map<WEC_FAITH_KEY, boolean> -- faith:can_be_foreign
     self._faithUnitProductionEffects = {} --:map<WEC_FAITH_KEY, map<string, number>> -- faith:<unit:quantity>
     self._faithWealthEffects = {} --:map<WEC_FAITH_KEY, {_own: number, _foreign: number}> -- faith:wealth_effect
@@ -148,6 +150,18 @@ function province_manager.get_building_wealth_effect(self, building)
     return self._buildingToWealthEffect[building]
 end
 
+--get the wealth bundle prefix (constant)
+--v function(self: PM) --> string
+function province_manager.get_wealth_bundle(self)
+    return "wec_wealth_bundle_"
+end
+
+--does this sc have wealth?
+--v function(self: PM, sc: string) --> boolean
+function province_manager.does_subculture_has_wealth(self, sc)
+    return not not self._wealthEnabled[sc]
+end
+
 --shortcut, is the building a settlement?
 --v function(self: PM, building: string) --> boolean
 function province_manager.building_is_settlement(self, building)
@@ -194,6 +208,21 @@ function province_manager.get_tax_bundle(self, subculture)
     return self._taxBundles[subculture]
 end
 
+--v function(self: PM, subculture: string) --> string
+function province_manager.get_faith_group(self, subculture)
+    return self._faithGroups[subculture]
+end
+
+--v function(self: PM, building: string) --> {WEC_FAITH_KEY, number}
+function province_manager.get_faith_from_building(self, building)
+    return self._buildingFaiths[building]
+end
+
+--v function(self: PM, building: string) --> boolean
+function province_manager.building_has_faith(self, building)
+    return not not self._buildingFaiths[building]
+end
+
 
 ---------------------
 -------REGIONS-------
@@ -217,7 +246,18 @@ function province_manager.save_region(self, region)
 
 end
 
-
+--v function(self: PM, region: string, faction: string)
+function province_manager.transfer_region_to_faction(self, region, faction)
+    local rd = self:get_region(region)
+    rd:clear_effects()
+    local old_wealth = rd:wealth()
+    local old_cap = rd:wealth_cap()
+    local new_rd = region_detail.new(self, cm, cm:get_region(region))
+    local new_cap = new_rd:wealth_cap()
+    local change = new_cap/old_cap
+    new_rd:set_tax_level(3)
+    new_rd:set_wealth(math.ceil(old_wealth*change), self:does_subculture_has_wealth(cm:get_faction(faction):subculture()))
+end
 ------------------------
 -------UI API-----------
 ------------------------
@@ -277,6 +317,12 @@ function province_manager.implement_faith(self, detail)
     self._faithUnitProductionEffects[key] = detail._ownUnitProd
     self._UIFaithEffects[key] = {_own = detail._ownUI, _foreign = detail._foreignUI}
 end
+
+--v function(self: PM, subculture: string, group: string)
+function province_manager.group_subculture_for_faiths(self, subculture, group)
+    self._faithGroups[subculture] = group
+end
+
 
 --tax
 --v function(self: PM, subculture: string, detail: TAX_DETAIL_ENUM)
