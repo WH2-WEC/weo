@@ -450,7 +450,7 @@ end
 
 
 
-events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function(context)
 
     rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
         _image = "ui/custom/recruitment_controls/common_units.png",

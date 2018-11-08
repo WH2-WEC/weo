@@ -133,6 +133,7 @@
 --# assume CM.get_camera_position: method() --> (number, number, number, number)
 --# assume CM.fade_scene: method(unknown: number, unknown2: number)
 --callbacks
+--# assume CM.first_tick_callbacks: vector<(function(context: WHATEVER?))>
 --# assume CM.add_game_created_callback: method(callback: function)
 --# assume CM.callback: method(
 --#     callback: function(),
