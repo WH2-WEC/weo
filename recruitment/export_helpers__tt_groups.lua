@@ -481,7 +481,7 @@ end
 
 
 
-events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function() 
     rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
         _image = "ui/custom/recruitment_controls/common_units.png",
         _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
@@ -489,7 +489,7 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = functi
     for name, _ in pairs(groups) do
         if string.find(name, "core") then
             rm:set_ui_name_for_group(name, "Core Units")
-            rm:add_character_quantity_limit_for_group(name, 999)
+            rm:add_character_quantity_limit_for_group(name, 21)
         end
         if string.find(name, "special") then
             rm:set_ui_name_for_group(name, "Special Units")
@@ -500,6 +500,9 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = functi
             rm:add_character_quantity_limit_for_group(name, 5)
         end
     end
+    cm:callback(function()
+    rm:dump_groups()
+    end, 5)
 end;
 
 

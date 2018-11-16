@@ -794,12 +794,13 @@ end
 --enforce the restriction for a specific unit onto the UI.
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.enforce_unit_restriction(self, unitID)
-    self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] ")
-    if self:manager():is_subtype_char_horde(cm:get_character_by_cqi(self:cqi()):character_subtype_key()) then
+    local is_cbh = self:manager():is_subtype_char_horde(cm:get_character_by_cqi(self:cqi()):character_subtype_key())
+    self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] who has a character bound horde flag ["..tostring(is_cbh).."] ")
+    if is_cbh then
         local paths = {
-            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box", "wh2_dlc11_cst_inf_zombie_gunnery_mob_0_recruitable"},
-            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list", "listview", "list_clip", "list_box", "wh2_dlc11_cst_inf_zombie_deckhands_mob_0_recruitable"},
-            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list", "listview", "list_clip", "list_box", "wh2_dlc11_cst_inf_zombie_gunnery_mob_0_recruitable"}
+            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box"},
+            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list", "listview", "list_clip", "list_box"},
+            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list", "listview", "list_clip", "list_box"}
         }--:vector<vector<string>>
         for i = 1, #paths do
             local localUnitList = find_uicomponent_from_table(core:get_ui_root(), paths[i]);
@@ -885,11 +886,11 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     end
                 else 
                     --if we couldn't find the card, warn the log. 
-                    self:log("Unit Card isn't a component!")
+                    self:log("Unit Card on panel ["..i.."] isn't a component!")
                 end
             else
                 --if we couldn't find the panel, warn the log.
-                self:log("WARNING: Could not find the component for the unit list!. Is the panel closed?")
+                self:log("Could not find the component for the unit list at ["..i.."] !. Is the panel closed?")
             end
         end
     else
@@ -988,11 +989,11 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                     end
                 else 
                     --if we couldn't find the card, warn the log. 
-                    self:log("Unit Card isn't a component!")
+                    self:log("Unit Card on panel ["..i.."] isn't a component!")
                 end
             else
                 --if we couldn't find the panel, warn the log.
-                self:log("WARNING: Could not find the component for the unit list!. Is the panel closed?")
+                self:log("Could not find the component for the unit list at ["..i.."] !. Is the panel closed?")
             end
         end
     end
@@ -1052,11 +1053,11 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
             end
         else 
             --if we couldn't find the card, warn the log. 
-            self:log("Unit Card isn't a component!")
+            self:log("Mercenary Unit Card isn't a component!")
         end
     else
         --if we couldn't find the panel, warn the log.
-        self:log("WARNING: No mercenary recruitment panel found!")
+        self:log("No mercenary recruitment panel found! Is the panel not open?")
     end
     cm:steal_user_input(false);
 end
@@ -1176,7 +1177,6 @@ function recruiter_manager.whitelist_unit_for_subculture(self, unitID, subcultur
         self:log("ERROR: whitelist_unit_for_subculture called but supplied subculture isn't a string!")
         return
     end
-    self:log("Whitelisted unit ["..unitID.."] for subculture ["..subculture.."] ")
     self._unitCultureAssignment[unitID] = subculture
 end
 
@@ -1381,7 +1381,6 @@ function recruiter_manager.set_weight_for_unit(self, unitID, weight)
         self:log("set_weight_for_unit but the supplied weight was not a number!")
         return
     end
-    self:log("Set unit weight for ["..unitID.."] to ["..weight.."] ")
     self._unitWeights[unitID] = weight
 end
 
@@ -1561,7 +1560,6 @@ function recruiter_manager.add_unit_to_group(self, unitID, groupID)
     --assign the group to the unit
     self:give_unit_group(unitID, groupID)
      --the reason for this double tracking is to have a fast way to know what groups a unit is relevant to when checking.
-    self:log("Added unit ["..unitID.."] to group ["..groupID.."]")
 end
 
 --add a quantity limit to the group. Must be called after all units are in the group already
@@ -1577,7 +1575,6 @@ function recruiter_manager.add_character_quantity_limit_for_group(self, groupID,
         self:log("add_character_quantity_limit_for_group called but the provided quantity is not a number!")
         return
     end
-    self:log("registering a limit for group ["..groupID.."] of ["..quantity.."]")
     --set the quantity limit
     self._groupUnitLimits[groupID] = quantity
     --add the necessary check
@@ -1760,10 +1757,9 @@ function recruiter_manager.register_subtype_as_char_bound_horde(self, subtype)
         self:log("API ERROR: register_subtype_as_char_bound_horde called with bad arg #1. Expected string recieved ["..type(subtype).."]")
         return
     end
+    self:log("Registered ["..subtype.."] as a Character bounde Horde")
     self._charHordeSubtypes[subtype] = true
 end
-
-
 
 
 
