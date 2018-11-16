@@ -386,7 +386,8 @@ local units = {
 {"wh2_dlc09_tmb_cav_skeleton_horsemen_0", "tmb_core"},
 {"wh2_dlc09_tmb_cav_skeleton_horsemen_archers_0", "tmb_core"},
 {"wh2_dlc09_tmb_inf_crypt_ghouls", "tmb_core"},
-{"wh2_pro06_tmb_mon_bone_giant_0", "tmb_rare", 2}
+{"wh2_pro06_tmb_mon_bone_giant_0", "tmb_rare", 2},
+
 } --:vector<{string, string, number?}>
 
 local groups = {} --:map<string, boolean>
@@ -455,18 +456,6 @@ cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function(context)
     rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
         _image = "ui/custom/recruitment_controls/common_units.png",
         _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
-    })
-    rm:add_subtype_group_override("wh_dlc08_nor_throgg", "wh_main_nor_mon_chaos_trolls", "nor_core", {
-        _image = "ui/custom/recruitment_controls/common_units.png",
-        _text = "[[col:yellow]]Special Rule: [[/col]] Throgg can bring Trolls as Core choices in his armies. \n Armies may have an unlimited number of Core Units."
-    })
-    rm:add_subtype_group_override("wh_dlc08_nor_throgg", "wh_dlc08_nor_mon_norscan_ice_trolls_0", "nor_core", {
-        _image = "ui/custom/recruitment_controls/common_units.png",
-        _text = "[[col:yellow]]Special Rule: [[/col]] Throgg can bring Trolls as Core choices in his armies. \n Armies may have an unlimited number of Core Units."
-    })
-    rm:add_subtype_skill_weight_override("dwf_thorgrim_grudgebearer", "wh_main_dwf_inf_miners_0", "wh_main_skill_innate_dwf_thorgrim_grudgebearer", 3, {
-        _image = "ui/custom/recruitment_controls/special_units_3.png",
-        _text = "[[col:yellow]]Special Rule: [[/col]] Thorgrim can recruit miners at an increased cost because he's a hoebag. \n Armies may have an unlimited number of Core Units."
     })
     for name, _ in pairs(groups) do
         if string.find(name, "core") then

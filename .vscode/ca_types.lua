@@ -234,6 +234,7 @@
 --# assume CM.remove_unit_from_character: method(lookup_string: string, unitID: string)
 --# assume CM.grant_unit_to_character: method(lookup: string , unit: string)
 --# assume CM.remove_all_units_from_general: method(character: CA_CHAR)
+--# assume CM.force_character_force_into_stance: method(lookup: string, stance: string)
 --diplomacy commands
 --# assume CM.force_diplomacy:  method(faction: string, other_faction: string, record: string, offer: boolean, accept: boolean, enable_payments: boolean)
 --# assume CM.make_diplomacy_available: method(faction: string, other_faction: string)
@@ -301,6 +302,7 @@
 --# assume CUIM.override: method(ui_override: string) --> CUIM_OVERRIDE
 --# assume CUIM.start_scripted_sequence: method()
 --# assume CUIM.stop_scripted_sequence: method()
+--# assume CUIM.is_panel_open: method(panel: string)
 -- CAMPAIGN UI MANAGER OVERRIDES
 --# assume CUIM_OVERRIDE.set_allowed: method(allowed: bool)
 
@@ -373,6 +375,7 @@
 --# assume CA_MILITARY_FORCE.character_list: method() --> CA_CHAR_LIST
 --# assume CA_MILITARY_FORCE.has_general: method() --> boolean
 --# assume CA_MILITARY_FORCE.is_armed_citizenry: method() --> boolean
+--# assume CA_MILITARY_FORCE.active_stance: method() --> string
 
 -- MILITARY FORCE LIST
 --# assume CA_MILITARY_FORCE_LIST.num_items: method() --> number

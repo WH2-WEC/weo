@@ -385,7 +385,37 @@ local units = {
 {"wh2_dlc09_tmb_cav_skeleton_horsemen_0", "tmb_core"},
 {"wh2_dlc09_tmb_cav_skeleton_horsemen_archers_0", "tmb_core"},
 {"wh2_dlc09_tmb_inf_crypt_ghouls", "tmb_core"},
-{"wh2_pro06_tmb_mon_bone_giant_0", "tmb_rare", 2}
+{"wh2_pro06_tmb_mon_bone_giant_0", "tmb_rare", 2},
+--the vampire coast pirates
+{"wh2_dlc11_cst_art_carronade", "cst_special", 1},
+{"wh2_dlc11_cst_art_mortar", "cst_special", 2},
+{"wh2_dlc11_cst_cav_deck_droppers_0", "cst_special", 1},
+{"wh2_dlc11_cst_cav_deck_droppers_1", "cst_special", 1},
+{"wh2_dlc11_cst_cav_deck_droppers_2", "cst_special", 1},
+{"wh2_dlc11_cst_inf_deck_gunners_0", "cst_special", 1},
+{"wh2_dlc11_cst_inf_depth_guard_0", "cst_special", 2},
+{"wh2_dlc11_cst_inf_depth_guard_1", "cst_special", 2},
+{"wh2_dlc11_cst_inf_sartosa_free_company_0", "cst_core"},
+{"wh2_dlc11_cst_inf_sartosa_militia_0", "cst_core"},
+{"wh2_dlc11_cst_inf_syreens", "cst_rare", 2},
+{"wh2_dlc11_cst_inf_zombie_deckhands_mob_0", "cst_core"},
+{"wh2_dlc11_cst_inf_zombie_deckhands_mob_1", "cst_core"},
+{"wh2_dlc11_cst_inf_zombie_gunnery_mob_0", "cst_core"},
+{"wh2_dlc11_cst_inf_zombie_gunnery_mob_1", "cst_core"},
+{"wh2_dlc11_cst_inf_zombie_gunnery_mob_2", "cst_core"},
+{"wh2_dlc11_cst_inf_zombie_gunnery_mob_3", "cst_core"},
+{"wh2_dlc11_cst_mon_animated_hulks_0", "cst_special", 1},
+{"wh2_dlc11_cst_mon_bloated_corpse_0", "cst_core"},
+{"wh2_dlc11_cst_mon_fell_bats", "cst_special", 1},
+{"wh2_dlc11_cst_mon_mournguls_0", "cst_rare", 2},
+{"wh2_dlc11_cst_mon_necrofex_colossus_0", "cst_rare", 3},
+{"wh2_dlc11_cst_mon_rotting_leviathan_0", "cst_rare", 2},
+{"wh2_dlc11_cst_mon_rotting_prometheans_0", "cst_special", 2},
+{"wh2_dlc11_cst_mon_rotting_prometheans_gunnery_mob_0", "cst_special", 2},
+{"wh2_dlc11_cst_mon_scurvy_dogs", "cst_core"},
+{"wh2_dlc11_cst_mon_terrorgheist", "cst_rare", 2},
+{"wh2_dlc11_vmp_inf_crossbowmen", "vmp_core"},
+{"wh2_dlc11_vmp_inf_handgunners", "vmp_rare", 1}
 } --:vector<{string, string, number?}>
 
 local groups = {} --:map<string, boolean>
@@ -407,7 +437,8 @@ local prefix_to_subculture = {
     def = "wh2_main_sc_def_dark_elves",
     hef = "wh2_main_sc_hef_high_elves",
     lzd = "wh2_main_sc_lzd_lizardmen",
-    skv = "wh2_main_sc_skv_skaven"
+    skv = "wh2_main_sc_skv_skaven",
+    cst = "wh2_dlc11_sc_cst_vampire_coast"
 }--:map<string, string>
 
 
@@ -419,12 +450,6 @@ for i = 1, #units do
     groups[units[i][2]] = true;
     rm:add_unit_to_group(units[i][1], units[i][2])
     
-    if pools[units[i][2]] == nil then
-        pools[units[i][2]] = {}
-    end 
-    table.insert(pools[units[i][2]], units[i][1])
-
-
     if string.find(units[i][2], "_core") then
         local prefix = string.gsub(units[i][2], "_core", "")
         rm:whitelist_unit_for_subculture(units[i][1], prefix_to_subculture[prefix])
@@ -457,6 +482,10 @@ end
 
 
 events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = function()
+    rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
+        _image = "ui/custom/recruitment_controls/common_units.png",
+        _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
+    })
     for name, _ in pairs(groups) do
         if string.find(name, "core") then
             rm:set_ui_name_for_group(name, "Core Units")
@@ -471,20 +500,20 @@ events.FirstTickAfterWorldCreated[#events.FirstTickAfterWorldCreated+1] = functi
             rm:add_character_quantity_limit_for_group(name, 5)
         end
     end
-    for category, unitset in pairs(pools) do
-        if string.find(category, "tmb") or string.find(category, "vmp") then
-            --do nothing
-        else
-            if string.find(category, "_core") then
-                local prefix = string.gsub(category, "_core", "")
-                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 2, 12, 3)
-            elseif string.find(category, "_special") then
-                local prefix = string.gsub(category, "_special", "")
-                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 1, 12, 1)
-            elseif string.find(category, "_rare") then
-                local prefix = string.gsub(category, "_rare", "")
-                rm:add_unit_set_to_pools(unitset, prefix_to_subculture[prefix], 1, 12)
-            end
-        end
-    end
 end;
+
+
+local ship_subtypes = {
+    "wh2_dlc11_cst_noctilus",
+    "wh2_dlc11_cst_aranessa",
+    "wh2_dlc11_cst_harkon",
+    "wh2_dlc11_cst_cylostra",
+    "wh2_dlc11_cst_admiral_tech_01",
+    "wh2_dlc11_cst_admiral_tech_02",
+    "wh2_dlc11_cst_admiral_tech_03",
+    "wh2_dlc11_cst_admiral_tech_04"
+}--:vector<string>
+
+for i = 1, #ship_subtypes do
+    rm:register_subtype_as_char_bound_horde(ship_subtypes[i])
+end

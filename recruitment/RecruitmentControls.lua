@@ -119,6 +119,8 @@ function recruiter_manager.init()
     self._subtypeTraits = {} --:map<string, map<string, number>> --units to the traits and number
     self._subtypeSkills = {} --:map<string, map<string, number>> --unit string to the skill and number to change
     self._UIProfileOverrides = {} --:map<string,map<string, RM_UIPROFILE>> --subtype to unit to override
+    --another flag, this one says whether or not the damn thing is a pirate ship.
+    self._charHordeSubtypes = {} --:map<string, boolean>
     --place instance in _G. 
     _G.rm = self
 end
@@ -408,6 +410,11 @@ function recruiter_manager.change_unit_pool(self, unitID, faction, change)
 end
 
 
+--pirate ships--
+--v function(self: RECRUITER_MANAGER, subtype: string) --> boolean
+function recruiter_manager.is_subtype_char_horde(self, subtype)
+    return not not self._charHordeSubtypes[subtype]
+end
 
 
 ----------------------------------------------------------
@@ -788,273 +795,208 @@ end
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.enforce_unit_restriction(self, unitID)
     self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] ")
-
-    --get the local recruitment panel
-    local localRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local1", "unit_list", "listview", "list_clip", "list_box"};
-    local localUnitList = find_uicomponent_from_table(core:get_ui_root(), localRecruitmentTable);
-    --if we got the panel, proceed
-    if is_uicomponent(localUnitList) then
-        --attach the UI suffix onto the unit name to get the name of the recruit button.
-        local unit_component_ID = unitID.."_recruitable"
-        --find the unit card using that name
-        local unitCard = find_uicomponent(localUnitList, unit_component_ID)
-        --if we got the unit card, proceed
-        if is_uicomponent(unitCard) then
-            --if the unit is restricted, set the card to be unclickable.
-            if self:is_unit_restricted(unitID) == true then
-                self:log("Locking Unit Card ["..unit_component_ID.."]")
-                unitCard:SetInteractive(false)
-                -- unitCard:SetVisible(false)
-                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
-                if not not lockedOverlay then
-                    lockedOverlay:SetVisible(true)
-                    lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
-                    lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
-                    lockedOverlay:SetCanResizeHeight(true)
-                    lockedOverlay:SetCanResizeWidth(true)
-                    lockedOverlay:Resize(72, 89)
-                    lockedOverlay:SetCanResizeHeight(false)
-                    lockedOverlay:SetCanResizeWidth(false)
-                end
-                if self:manager():unit_has_pool(unitID) then
-                    local xp = find_uicomponent(unitCard, "merch_type");
-                    xp:SetVisible(true)
-                    --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
-                    xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                    xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
-                    xp:SetCanResizeHeight(true)
-                    xp:SetCanResizeWidth(true)
-                    xp:Resize(30, 30)
-                    xp:SetCanResizeHeight(false)
-                    xp:SetCanResizeWidth(false)
-                else
-                    local xp = find_uicomponent(unitCard, "merch_type");
-                    xp:SetVisible(false)
-                end
-                --unitCard:SetVisible(false)
-            else
-            --otherwise, set the card clickable
-                self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
-                unitCard:SetInteractive(true)
-                -- unitCard:SetVisible(true)
-                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
-                if not not lockedOverlay then
-                    if self:manager():unit_has_ui_profile(unitID) then
-                        local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
-                        if self:has_ui_profile_override_for_unit(unitID) then
-                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
+    if self:manager():is_subtype_char_horde(cm:get_character_by_cqi(self:cqi()):character_subtype_key()) then
+        local paths = {
+            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box", "wh2_dlc11_cst_inf_zombie_gunnery_mob_0_recruitable"},
+            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list", "listview", "list_clip", "list_box", "wh2_dlc11_cst_inf_zombie_deckhands_mob_0_recruitable"},
+            {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list", "listview", "list_clip", "list_box", "wh2_dlc11_cst_inf_zombie_gunnery_mob_0_recruitable"}
+        }--:vector<vector<string>>
+        for i = 1, #paths do
+            local localUnitList = find_uicomponent_from_table(core:get_ui_root(), paths[i]);
+            --if we got the panel, proceed
+            if is_uicomponent(localUnitList) then
+                --attach the UI suffix onto the unit name to get the name of the recruit button.
+                local unit_component_ID = unitID.."_recruitable"
+                --find the unit card using that name
+                local unitCard = find_uicomponent(localUnitList, unit_component_ID)
+                --if we got the unit card, proceed
+                if is_uicomponent(unitCard) then
+                    --if the unit is restricted, set the card to be unclickable.
+                    if self:is_unit_restricted(unitID) == true then
+                        self:log("Locking Unit Card ["..unit_component_ID.."]")
+                        unitCard:SetInteractive(false)
+                        -- unitCard:SetVisible(false)
+                        local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                        if not not lockedOverlay then
+                            lockedOverlay:SetVisible(true)
+                            lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
+                            lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                            lockedOverlay:SetCanResizeHeight(true)
+                            lockedOverlay:SetCanResizeWidth(true)
+                            lockedOverlay:Resize(72, 89)
+                            lockedOverlay:SetCanResizeHeight(false)
+                            lockedOverlay:SetCanResizeWidth(false)
                         end
-                        lockedOverlay:SetVisible(true)
-                        lockedOverlay:SetTooltipText(unit_profile._text)
-                        lockedOverlay:SetImage(unit_profile._image)
-                        lockedOverlay:SetCanResizeHeight(true)
-                        lockedOverlay:SetCanResizeWidth(true)
-                        lockedOverlay:Resize(30, 30)
-                        lockedOverlay:SetCanResizeHeight(false)
-                        lockedOverlay:SetCanResizeWidth(false)
+                        if self:manager():unit_has_pool(unitID) then
+                            local xp = find_uicomponent(unitCard, "merch_type");
+                            xp:SetVisible(true)
+                            --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                            xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                            xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                            xp:SetCanResizeHeight(true)
+                            xp:SetCanResizeWidth(true)
+                            xp:Resize(30, 30)
+                            xp:SetCanResizeHeight(false)
+                            xp:SetCanResizeWidth(false)
+                        else
+                            local xp = find_uicomponent(unitCard, "merch_type");
+                            xp:SetVisible(false)
+                        end
+                        --unitCard:SetVisible(false)
                     else
-                        lockedOverlay:SetVisible(false)
+                    --otherwise, set the card clickable
+                        self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
+                        unitCard:SetInteractive(true)
+                        -- unitCard:SetVisible(true)
+                        local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                        if not not lockedOverlay then
+                            if self:manager():unit_has_ui_profile(unitID) then
+                                local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                                if self:has_ui_profile_override_for_unit(unitID) then
+                                    unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                                end
+                                lockedOverlay:SetVisible(true)
+                                lockedOverlay:SetTooltipText(unit_profile._text)
+                                lockedOverlay:SetImage(unit_profile._image)
+                                lockedOverlay:SetCanResizeHeight(true)
+                                lockedOverlay:SetCanResizeWidth(true)
+                                lockedOverlay:Resize(30, 30)
+                                lockedOverlay:SetCanResizeHeight(false)
+                                lockedOverlay:SetCanResizeWidth(false)
+                            else
+                                lockedOverlay:SetVisible(false)
+                            end
+                            if self:manager():unit_has_pool(unitID) then
+                                local xp = find_uicomponent(unitCard, "merch_type");
+                                xp:SetVisible(true)
+                                --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                                xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                                xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                                xp:SetCanResizeHeight(true)
+                                xp:SetCanResizeWidth(true)
+                                xp:Resize(40, 40)
+                                xp:SetCanResizeHeight(false)
+                                xp:SetCanResizeWidth(false)
+                            else
+                                local xp = find_uicomponent(unitCard, "merch_type");
+                                xp:SetVisible(false)
+                            end
+                        end
                     end
-                    if self:manager():unit_has_pool(unitID) then
-                        local xp = find_uicomponent(unitCard, "merch_type");
-                        xp:SetVisible(true)
-                        --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
-                        xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
-                        xp:SetCanResizeHeight(true)
-                        xp:SetCanResizeWidth(true)
-                        xp:Resize(40, 40)
-                        xp:SetCanResizeHeight(false)
-                        xp:SetCanResizeWidth(false)
-                    else
-                        local xp = find_uicomponent(unitCard, "merch_type");
-                        xp:SetVisible(false)
-                    end
+                else 
+                    --if we couldn't find the card, warn the log. 
+                    self:log("Unit Card isn't a component!")
                 end
+            else
+                --if we couldn't find the panel, warn the log.
+                self:log("WARNING: Could not find the component for the unit list!. Is the panel closed?")
             end
-        else 
-            --if we couldn't find the card, warn the log. 
-            self:log("Unit Card isn't a component!")
         end
     else
-        --if we couldn't find the panel, warn the log.
-        self:log("WARNING: Could not find the component for the unit list!. Is the panel closed?")
+        --local
+        local localRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local1", "unit_list", "listview", "list_clip", "list_box"};
+        --global 
+        local globalRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "global", "unit_list", "listview", "list_clip", "list_box"};
+        --black ark
+        local BlackArkRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local2", "unit_list", "listview", "list_clip", "list_box"};
+        --loop
+        local paths = {} --:vector<vector<string>>
+        table.insert(paths, localRecruitmentTable)
+        table.insert(paths, globalRecruitmentTable)
+        table.insert(paths, BlackArkRecruitmentTable)
+        for i = 1, #paths do
+            local localUnitList = find_uicomponent_from_table(core:get_ui_root(), paths[i]);
+            --if we got the panel, proceed
+            if is_uicomponent(localUnitList) then
+                --attach the UI suffix onto the unit name to get the name of the recruit button.
+                local unit_component_ID = unitID.."_recruitable"
+                --find the unit card using that name
+                local unitCard = find_uicomponent(localUnitList, unit_component_ID)
+                --if we got the unit card, proceed
+                if is_uicomponent(unitCard) then
+                    --if the unit is restricted, set the card to be unclickable.
+                    if self:is_unit_restricted(unitID) == true then
+                        self:log("Locking Unit Card ["..unit_component_ID.."]")
+                        unitCard:SetInteractive(false)
+                        -- unitCard:SetVisible(false)
+                        local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                        if not not lockedOverlay then
+                            lockedOverlay:SetVisible(true)
+                            lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
+                            lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
+                            lockedOverlay:SetCanResizeHeight(true)
+                            lockedOverlay:SetCanResizeWidth(true)
+                            lockedOverlay:Resize(72, 89)
+                            lockedOverlay:SetCanResizeHeight(false)
+                            lockedOverlay:SetCanResizeWidth(false)
+                        end
+                        if self:manager():unit_has_pool(unitID) then
+                            local xp = find_uicomponent(unitCard, "merch_type");
+                            xp:SetVisible(true)
+                            --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                            xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                            xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                            xp:SetCanResizeHeight(true)
+                            xp:SetCanResizeWidth(true)
+                            xp:Resize(30, 30)
+                            xp:SetCanResizeHeight(false)
+                            xp:SetCanResizeWidth(false)
+                        else
+                            local xp = find_uicomponent(unitCard, "merch_type");
+                            xp:SetVisible(false)
+                        end
+                        --unitCard:SetVisible(false)
+                    else
+                    --otherwise, set the card clickable
+                        self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
+                        unitCard:SetInteractive(true)
+                        -- unitCard:SetVisible(true)
+                        local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
+                        if not not lockedOverlay then
+                            if self:manager():unit_has_ui_profile(unitID) then
+                                local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
+                                if self:has_ui_profile_override_for_unit(unitID) then
+                                    unit_profile = self:get_ui_profile_override_for_unit(unitID)
+                                end
+                                lockedOverlay:SetVisible(true)
+                                lockedOverlay:SetTooltipText(unit_profile._text)
+                                lockedOverlay:SetImage(unit_profile._image)
+                                lockedOverlay:SetCanResizeHeight(true)
+                                lockedOverlay:SetCanResizeWidth(true)
+                                lockedOverlay:Resize(30, 30)
+                                lockedOverlay:SetCanResizeHeight(false)
+                                lockedOverlay:SetCanResizeWidth(false)
+                            else
+                                lockedOverlay:SetVisible(false)
+                            end
+                            if self:manager():unit_has_pool(unitID) then
+                                local xp = find_uicomponent(unitCard, "merch_type");
+                                xp:SetVisible(true)
+                                --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                                xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
+                                xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
+                                xp:SetCanResizeHeight(true)
+                                xp:SetCanResizeWidth(true)
+                                xp:Resize(40, 40)
+                                xp:SetCanResizeHeight(false)
+                                xp:SetCanResizeWidth(false)
+                            else
+                                local xp = find_uicomponent(unitCard, "merch_type");
+                                xp:SetVisible(false)
+                            end
+                        end
+                    end
+                else 
+                    --if we couldn't find the card, warn the log. 
+                    self:log("Unit Card isn't a component!")
+                end
+            else
+                --if we couldn't find the panel, warn the log.
+                self:log("WARNING: Could not find the component for the unit list!. Is the panel closed?")
+            end
+        end
     end
-
-    --repeat all operations, except for the global recruitment list. 
-    local globalRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "global", "unit_list", "listview", "list_clip", "list_box"};
-    local globalUnitList = find_uicomponent_from_table(core:get_ui_root(), globalRecruitmentTable);
-    if is_uicomponent(globalUnitList) then
-        local unit_component_ID = unitID.."_recruitable"
-        local unitCard = find_uicomponent(globalUnitList, unit_component_ID);	
-        if is_uicomponent(unitCard) then
-            if self:is_unit_restricted(unitID) then
-                self:log("Locking Unit Card ["..unit_component_ID.."]")
-                unitCard:SetInteractive(false)
-                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
-                if not not lockedOverlay then
-                    lockedOverlay:SetVisible(true)
-                    lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
-                    lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
-                    lockedOverlay:SetCanResizeHeight(true)
-                    lockedOverlay:SetCanResizeWidth(true)
-                    lockedOverlay:Resize(72, 89)
-                    lockedOverlay:SetCanResizeHeight(false)
-                    lockedOverlay:SetCanResizeWidth(false)
-                end
-                if self:manager():unit_has_pool(unitID) then
-                    local xp = find_uicomponent(unitCard, "merch_type");
-                    xp:SetVisible(true)
-                    --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
-                    xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                    xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
-                    xp:SetCanResizeHeight(true)
-                    xp:SetCanResizeWidth(true)
-                    xp:Resize(30, 30)
-                    xp:SetCanResizeHeight(false)
-                    xp:SetCanResizeWidth(false)
-                else
-                    local xp = find_uicomponent(unitCard, "merch_type");
-                    xp:SetVisible(false)
-                end
-                --  unitCard:SetVisible(false)
-            else
-                self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
-                unitCard:SetInteractive(true)
-                -- unitCard:SetVisible(true)
-                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
-                if not not lockedOverlay then
-                    if self:manager():unit_has_ui_profile(unitID) then
-                        local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
-                        if self:has_ui_profile_override_for_unit(unitID) then
-                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
-                        end
-                        lockedOverlay:SetVisible(true)
-                        lockedOverlay:SetTooltipText(unit_profile._text)
-                        lockedOverlay:SetImage(unit_profile._image)
-                        lockedOverlay:SetCanResizeHeight(true)
-                        lockedOverlay:SetCanResizeWidth(true)
-                        lockedOverlay:Resize(30, 30)
-                        lockedOverlay:SetCanResizeHeight(false)
-                        lockedOverlay:SetCanResizeWidth(false)
-                    else
-                        lockedOverlay:SetVisible(false)
-                    end
-                    if self:manager():unit_has_pool(unitID) then
-                        local xp = find_uicomponent(unitCard, "merch_type");
-                        xp:SetVisible(true)
-                        --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
-                        xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
-                        xp:SetCanResizeHeight(true)
-                        xp:SetCanResizeWidth(true)
-                        xp:Resize(30, 30)
-                        xp:SetCanResizeHeight(false)
-                        xp:SetCanResizeWidth(false)
-                    else
-                        local xp = find_uicomponent(unitCard, "merch_type");
-                        xp:SetVisible(false)
-                    end
-                end
-            end
-        else 
-            self:log("Unit Card isn't a component!")
-        end
-    else
-        self:log("WARNING: Could not find the component for the global recruitment list!. Is the panel closed? Does the Player not have global recruitment?")
-    end 
-    --repeat it all *again* for the black ark panel
-    local BlackArkRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "local2", "unit_list", "listview", "list_clip", "list_box"};
-    local blackArkUnitList = find_uicomponent_from_table(core:get_ui_root(), BlackArkRecruitmentTable);
-    --if we got the panel, proceed
-    if is_uicomponent(blackArkUnitList) then
-        --attach the UI suffix onto the unit name to get the name of the recruit button.
-        local unit_component_ID = unitID.."_recruitable"
-        --find the unit card using that name
-        local unitCard = find_uicomponent(blackArkUnitList, unit_component_ID)
-        --if we got the unit card, proceed
-        if is_uicomponent(unitCard) then
-            --if the unit is restricted, set the card to be unclickable.
-            if self:is_unit_restricted(unitID) == true then
-                self:log("Locking Unit Card ["..unit_component_ID.."]")
-                unitCard:SetInteractive(false)
-                -- unitCard:SetVisible(false)
-                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
-                if not not lockedOverlay then
-                    lockedOverlay:SetVisible(true)
-                    lockedOverlay:SetImage("ui/custom/recruitment_controls/locked_unit.png")
-                    lockedOverlay:SetTooltipText(self:get_ui_string_for_unit(unitID))
-                    lockedOverlay:SetCanResizeHeight(true)
-                    lockedOverlay:SetCanResizeWidth(true)
-                    lockedOverlay:Resize(72, 89)
-                    lockedOverlay:SetCanResizeHeight(false)
-                    lockedOverlay:SetCanResizeWidth(false)
-                end
-                if self:manager():unit_has_pool(unitID) then
-                    local xp = find_uicomponent(unitCard, "merch_type");
-                    xp:SetVisible(true)
-                    --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
-                    xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                    xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
-                    xp:SetCanResizeHeight(true)
-                    xp:SetCanResizeWidth(true)
-                    xp:Resize(30, 30)
-                    xp:SetCanResizeHeight(false)
-                    xp:SetCanResizeWidth(false)
-                else
-                    local xp = find_uicomponent(unitCard, "merch_type");
-                    xp:SetVisible(false)
-                end
-                --unitCard:SetVisible(false)
-            else
-            --otherwise, set the card clickable
-                self:log("Unlocking! Unit Card ["..unit_component_ID.."]")
-                unitCard:SetInteractive(true)
-                -- unitCard:SetVisible(true)
-                local lockedOverlay = find_uicomponent(unitCard, "disabled_script");
-                if not not lockedOverlay then
-                    if self:manager():unit_has_ui_profile(unitID) then
-                        local unit_profile = self:manager():get_ui_profile_for_unit(unitID)
-                        if self:has_ui_profile_override_for_unit(unitID) then
-                            unit_profile = self:get_ui_profile_override_for_unit(unitID)
-                        end
-                        lockedOverlay:SetVisible(true)
-                        lockedOverlay:SetTooltipText(unit_profile._text)
-                        lockedOverlay:SetImage(unit_profile._image)
-                        lockedOverlay:SetCanResizeHeight(true)
-                        lockedOverlay:SetCanResizeWidth(true)
-                        lockedOverlay:Resize(30, 30)
-                        lockedOverlay:SetCanResizeHeight(false)
-                        lockedOverlay:SetCanResizeWidth(false)
-                    else
-                        lockedOverlay:SetVisible(false)
-                    end
-                    if self:manager():unit_has_pool(unitID) then
-                        local xp = find_uicomponent(unitCard, "merch_type");
-                        xp:SetVisible(true)
-                        --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
-                        xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
-                        xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
-                        xp:SetCanResizeHeight(true)
-                        xp:SetCanResizeWidth(true)
-                        xp:Resize(30, 30)
-                        xp:SetCanResizeHeight(false)
-                        xp:SetCanResizeWidth(false)
-                    else
-                        local xp = find_uicomponent(unitCard, "merch_type");
-                        xp:SetVisible(false)
-                    end
-                end
-            end
-        else 
-            --if we couldn't find the card, warn the log. 
-            self:log("Unit Card isn't a component!")
-        end
-    else
-        --if we couldn't find the panel, warn the log.
-        self:log("WARNING: No black ark recruitment panel found!")
-    end
-    --and one last time for vampire raise dead
+    --check if merc is open
     local mercenaryRecruitmentTable = {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "listview", "list_clip", "list_box"};
     local mercenaryRecruitmentList = find_uicomponent_from_table(core:get_ui_root(), mercenaryRecruitmentTable);
     --if we got the panel, proceed
@@ -1116,9 +1058,6 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
         --if we couldn't find the panel, warn the log.
         self:log("WARNING: No mercenary recruitment panel found!")
     end
-
-
-
     cm:steal_user_input(false);
 end
 
@@ -1813,7 +1752,16 @@ function recruiter_manager.add_unit_set_to_pools(self, unitIDset, subculture, qu
 end
 
 
+--pirate ships
 
+--v function(self: RECRUITER_MANAGER, subtype: string)
+function recruiter_manager.register_subtype_as_char_bound_horde(self, subtype)
+    if not is_string(subtype) then
+        self:log("API ERROR: register_subtype_as_char_bound_horde called with bad arg #1. Expected string recieved ["..type(subtype).."]")
+        return
+    end
+    self._charHordeSubtypes[subtype] = true
+end
 
 
 
