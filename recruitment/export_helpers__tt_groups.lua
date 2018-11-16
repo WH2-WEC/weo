@@ -500,9 +500,6 @@ cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function()
             rm:add_character_quantity_limit_for_group(name, 5)
         end
     end
-    cm:callback(function()
-    rm:dump_groups()
-    end, 5)
 end;
 
 
