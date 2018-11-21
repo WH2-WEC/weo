@@ -382,6 +382,7 @@
 --# assume CA_MILITARY_FORCE_LIST.item_at: method(index: number) --> CA_MILITARY_FORCE
 
 --UNIT
+--# assume CA_UNIT.get_unit_custom_battle_cost: method() --> number
 --# assume CA_UNIT.faction: method() --> CA_FACTION
 --# assume CA_UNIT.unit_key: method() --> string
 --# assume CA_UNIT.has_force_commander: method() --> boolean

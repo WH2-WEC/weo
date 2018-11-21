@@ -121,6 +121,7 @@ function recruiter_manager.init()
     self._UIProfileOverrides = {} --:map<string,map<string, RM_UIPROFILE>> --subtype to unit to override
     --another flag, this one says whether or not the damn thing is a pirate ship.
     self._charHordeSubtypes = {} --:map<string, boolean>
+    self._AIDefaultUnits = {} --:map<string, vector<string>>
     --place instance in _G. 
     _G.rm = self
 end
@@ -414,6 +415,12 @@ end
 --v function(self: RECRUITER_MANAGER, subtype: string) --> boolean
 function recruiter_manager.is_subtype_char_horde(self, subtype)
     return not not self._charHordeSubtypes[subtype]
+end
+
+--ai function--
+--v function(self: RECRUITER_MANAGER) --> map<string, vector<string>>
+function recruiter_manager.ai_subculture_defaults(self)
+    return self._AIDefaultUnits
 end
 
 
@@ -1762,7 +1769,34 @@ function recruiter_manager.register_subtype_as_char_bound_horde(self, subtype)
 end
 
 
+--ai default units
+--v function(self: RECRUITER_MANAGER, subculture: string, ...:string)
+function recruiter_manager.add_ai_defaults_for_subculture(self, subculture, ...)
+    if self._AIDefaultUnits[subculture] == nil then
+        self._AIDefaultUnits[subculture] = {}
+    end
+    if #arg == 0 then
+        self._AIDefaultUnits[subculture] = {}
+        return
+    end
+    for i = 1, #arg do
+        table.insert(self._AIDefaultUnits[subculture], arg[i])
+    end 
+end
 
+--v function(self: RECRUITER_MANAGER, subculture: string, units: vector<string>, default: boolean?)
+function recruiter_manager.add_ai_units_for_subculture_with_table(self, subculture, units, default)
+    if self._AIDefaultUnits[subculture] == nil then
+        self._AIDefaultUnits[subculture] = {}
+    else
+        if default then
+            return 
+        end
+    end
+    for i = 1, #units do
+        table.insert(self._AIDefaultUnits[subculture], units[i])
+    end
+end
 
 --initialize the rm 
 recruiter_manager.init()
