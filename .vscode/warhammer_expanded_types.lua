@@ -21,29 +21,16 @@
 --# assume global class GEOPOLITIC_LOADER
 
 
+--# assume global class PM
+--# assume global class FPD
+--# assume global class RD
+--# assume global class FPD_SUBJECT
+
+
 --provinces
 --# assume global class PROVINCE_REGISTER
 
 --region detail
---# assume global class REGION_DETAIL
---# assume global class PM
---# type global FAITH_TYPE = "own" | "foreign"
---# type global TAX_DETAIL_ENUM = {
---# _bundle: string, _UIEffects: {vector<string>, vector<string>, vector<string>, vector<string>, vector<string>},
---# _wealthEffects: {number, number, number, number, number},
---# _unitProdModifier: {number, number, number, number, number}
---# }
---# type global WEC_FAITH_KEY = 
---# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmidia " | "hum_taal" | "hum_lady" | "hum_ursun" | "hum_morr" | "hum_shallya"
---# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_anath_reama" | "elf_hekarti"
---# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea" |
---# "lzd_sotek" 
---# type global FAITH_DETAIL_ENUM = {
---# _ownUI: vector<string>, _foreignUI: vector<string>,
---# _canBeForeign: boolean, _key: WEC_FAITH_KEY,
---# _wealthEffect: {_own: number, _foreign: number}, _ownUnitProd: map<string, number>
---# }
-
 
 
 --imperium

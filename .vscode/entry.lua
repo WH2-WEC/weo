@@ -11,19 +11,10 @@ require("recruitment/export_helpers__recruitment_controls_ai")
 require("recruitment/export_helpers__tt_groups")
 --]]
 
----[[region details 1 prov 1 reg
-require("province_details/ProvinceDetailsManager")
-require("province_details/export_helpers__pm_events")
---]]
 
 
---[[region details manager
-require("building_overhaul/ProvinceManagement")
-require("building_overhaul/export_helpers__province_management_events")
-require("building_overhaul/export_helpers__province_management_content")
-require("building_overhaul/export_helpers__province_management_ui")
-require("building_overhaul/export_helpers__tax_rate_content")
-require("building_overhaul/export_helpers__wealth_effects_content")
+---[[region details manager
+ require("province_management/ProvinceManagement")
 --]]
 
 
