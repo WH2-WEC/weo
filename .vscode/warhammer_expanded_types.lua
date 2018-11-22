@@ -23,9 +23,13 @@
 
 --# assume global class PM
 --# assume global class FPD
+--# type global FPD_SAVE = {_subjectWhitelist: map<string, boolean>, _UISubjectSources: map<string, string>, _taxRate: number}
 --# assume global class RD
+--# type global RD_SAVE = {_wealth: number, _maxWealth: number, _UIWealthChanges:map<string, number>, _UnitGen:map<string, number>, _UIUnitGen:map<string,number>}
 --# assume global class SUBJECT
+--# type global SUBJECT_SAVE = {_activeDemand:string, _nextDemandTurn: number}
 --# type global SUBJECT_STATE = "hidden" | "angry" | "normal" | "happy" 
+--# assume global class SUBJECT_DEMAND
 
 --provinces
 --# assume global class PROVINCE_REGISTER
