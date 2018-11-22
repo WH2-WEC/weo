@@ -12,11 +12,17 @@ function fpd.new(model, cm, faction, province)
     self._faction = faction
     self._province = province
     self._regions = {} --:map<string, RD>
-    self._subjects = {} --:map<string, FPD_SUBJECT>
-
-
+    --subjects
+    self._subjectWhitelist = {} --:map<string, boolean> --subject key to present
+    self._UISubjectSources = {} --:map<string, string>  -- subject key to UI Source
+    self._subjectAdjacency = {} --:map<string, boolean> --subjects being offered to adjacent provinces
+    --tax rate
     self._taxRate = 3
-
 
     return self
 end
+
+
+return {
+    new = fpd.new
+}

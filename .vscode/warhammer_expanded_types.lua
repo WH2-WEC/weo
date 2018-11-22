@@ -24,8 +24,8 @@
 --# assume global class PM
 --# assume global class FPD
 --# assume global class RD
---# assume global class FPD_SUBJECT
-
+--# assume global class SUBJECT
+--# type global SUBJECT_STATE = "hidden" | "angry" | "normal" | "happy" 
 
 --provinces
 --# assume global class PROVINCE_REGISTER
