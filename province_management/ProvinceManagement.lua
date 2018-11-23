@@ -61,7 +61,7 @@ function province_manager.init(cm, core)
     self._productionControlSubcultures = {} --:map<string, boolean>
     self._wealthCapBuildings = {} --:map<string, number>
     self._buildingWealthEffects = {} --:map<string, number>
-    self._buildingUnitProduction = {} --:map<string, number>
+    self._buildingUnitProduction = {} --:map<string, map<string, number>>
     self._buildingSubjectWhitelist = {} --:map<string, string>
     self._buildingSubjectAdjacency = {} --:map<string, string>
     self._subcultureSubjectKeys = {} --:map<string, map<string, boolean>>
@@ -156,11 +156,29 @@ function province_manager.error_checker(self)
     core.add_listener = myAddListener;
 
 end
+---------------------
+--content retrieval--
+---------------------
+----------
+--global--
+----------
+--v function(self: PM, subculture: string) --> boolean
+function province_manager.subculture_has_province_management(self, subculture)
+    return not not self._provinceManagementSubcultures[subculture]
+end
 
---content retrieval
 ----------
 --wealth--
 ----------
+
+--v function(self: PM, building: string) --> number
+function province_manager.get_building_wealth_effect(self, building)
+    if self._buildingWealthEffects[building] == nil then
+        return 0
+    end
+    return self._buildingWealthEffects[building]
+end
+
 --v function(self: PM, building: string) --> number
 function province_manager.get_wealth_cap_for_settlement(self, building)
     if self._wealthCapBuildings[building] == nil then
@@ -209,6 +227,23 @@ function province_manager.building_subject_adjacency(self, building)
     return self._buildingSubjectAdjacency[building]
 end
 
+-------------------
+--unit production--
+-------------------
+
+--v function(self: PM, building: string) --> boolean
+function province_manager.building_has_unit_production(self, building)
+    return not not self._buildingUnitProduction[building]
+end
+
+--v function(self: PM, building: string) --> map<string, number>
+function province_manager.building_unit_production(self, building)
+    if self._buildingUnitProduction[building] == nil then
+        return {}
+    end
+    return self._buildingUnitProduction[building]
+end
+
 -------------
 --modifiers--
 -------------
@@ -240,12 +275,52 @@ end
 
 
 
-
---Subobjects
-region_detail = require("province_management/RegionDetail")
-faction_province_detail = require("province_management/FactionProvinceDetail")
+--------------
+--Subobjects--
+--------------
 subject = require("province_management/Subject")
 
+--v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
+function province_manager.create_or_load_subject(self, faction_key, subject_key)
+    local savestring = cm:get_saved_value("wec_pm_subjects_save_"..subject_key.."_"..faction_key)
+    if savestring == nil then
+        if self._factionSubjects[faction_key] == nil then
+            self._factionSubjects[faction_key] = {}
+        end
+        self._factionSubjects[faction_key][subject_key] = subject.new(self, self._cm, subject_key, faction_key)
+        return self._factionSubjects[faction_key][subject_key]
+    else
+        local savedata = cm:load_values_from_string(savestring)
+        --# assume savedata: SUBJECT_SAVE
+        if self._factionSubjects[faction_key] == nil then
+            self._factionSubjects[faction_key] = {}
+        end
+        self._factionSubjects[faction_key][subject_key] = subject.load(self, self._cm, subject_key, faction_key, savedata)
+        return self._factionSubjects[faction_key][subject_key]
+    end
+end
+
+--v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
+function province_manager.get_faction_subject(self, faction_key, subject_key)
+    if self._factionSubjects[faction_key] == nil then
+        self._factionSubjects[faction_key] = {}
+    end
+    if not not self._factionSubjects[faction_key][subject_key] then
+        return self._factionSubjects[faction_key][subject_key] 
+    else
+        local new_subject = self:create_or_load_subject(faction_key, subject_key)
+        for subject, demandpair in pairs(self._subjectDemands) do
+            for key, demand in pairs(demandpair) do
+                new_subject:add_or_load_demand(demand)
+            end
+        end
+        return new_subject
+    end
+end
+
+
+region_detail = require("province_management/RegionDetail")
+faction_province_detail = require("province_management/FactionProvinceDetail")
 
 --core data behaviour
 --v function(self: PM, region_key: string, fpd: FPD) --> RD
@@ -282,45 +357,7 @@ function province_manager.create_or_load_province(self, faction_key, province_ke
     end
 end
 
---v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
-function province_manager.create_or_load_subject(self, faction_key, subject_key)
-    local savestring = cm:get_saved_value("wec_pm_subjects_save_"..subject_key.."_"..faction_key)
-    if savestring == nil then
-        if self._factionSubjects[faction_key] == nil then
-            self._factionSubjects[faction_key] = {}
-        end
-        self._factionSubjects[faction_key][subject_key] = subject.new(self, self._cm, subject_key, faction_key)
-        return self._factionSubjects[faction_key][subject_key]
-    else
-        local savedata = cm:load_values_from_string(savestring)
-        --# assume savedata: SUBJECT_SAVE
-        if self._factionSubjects[faction_key] == nil then
-            self._factionSubjects[faction_key] = {}
-        end
-        self._factionSubjects[faction_key][subject_key] = subject.load(self, self._cm, subject_key, faction_key, savedata)
-        return self._factionSubjects[faction_key][subject_key]
-    end
-end
 
---subobject queries
-
---v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
-function province_manager.get_faction_subject(self, faction_key, subject_key)
-    if self._factionSubjects[faction_key] == nil then
-        self._factionSubjects[faction_key] = {}
-    end
-    if not not self._factionSubjects[faction_key][subject_key] then
-        return self._factionSubjects[faction_key][subject_key] 
-    else
-        local new_subject = self:create_or_load_subject(faction_key, subject_key)
-        for subject, demandpair in pairs(self._subjectDemands) do
-            for key, demand in pairs(demandpair) do
-                new_subject:add_or_load_demand(demand)
-            end
-        end
-        return new_subject
-    end
-end
 
 --v function(self: PM,  faction_key: string, province_key: string) --> FPD
 function province_manager.get_faction_province_detail(self, faction_key, province_key)
@@ -354,6 +391,14 @@ function province_manager.get_region_detail(self, region_key)
     end
 end
 
+-----------------------
+--transition handlers--
+-----------------------
+
+
+
+
+
 
 ------------------
 --functional API--
@@ -372,6 +417,15 @@ end
 ---------------
 --content API--
 ---------------
+----------
+--global--
+----------
+
+--v function(self: PM, subculture: string)
+function province_manager.enable_province_management_for_subculture(self, subculture)
+    self._provinceManagementSubcultures[subculture] = true
+end
+
 ----------
 --wealth--
 ----------
@@ -412,6 +466,16 @@ function province_manager.add_subject_adjacency_for_building(self, building, sub
     self._buildingSubjectAdjacency[building] = subject
 end
 
+-------------------
+--unit production--
+-------------------
+--v function(self: PM, building: string, unit: string, quantity: number)
+function province_manager.add_building_unit_production(self, building, unit, quantity)
+    if self._buildingUnitProduction[building] == nil then
+        self._buildingUnitProduction[building] = {}
+    end
+    self._buildingUnitProduction[building][unit] = quantity
+end
 
 --init
 province_manager.init(cm, core):error_checker()
