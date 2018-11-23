@@ -196,6 +196,9 @@ end
 --modify the wealth
 --v function(self: RD, quantity: number, UIFactor: string)
 function rd.wealth_mod(self, quantity, UIFactor)
+    if quantity == 0 then
+        return
+    end
     self._UIWealthChanges[UIFactor] = quantity
     local new_wealth = self._wealth + quantity
     if new_wealth < 0 then
@@ -203,7 +206,13 @@ function rd.wealth_mod(self, quantity, UIFactor)
     elseif new_wealth > self._maxWealth then
         new_wealth = self._maxWealth
     end
+
     self._wealth = new_wealth
+end
+
+--v function(self: RD)
+function rd.apply_wealth(self)
+    self:apply_effect_bundle(self._model:get_wealth_bundle()..tostring(self._wealth))
 end
 
 --v function(self: RD, quantity: number, apply_effect: boolean?)
@@ -275,6 +284,9 @@ end
 --adds the specified value to the unit production
 --v function(self: RD, unitID: string, quantity: number)
 function rd.produce_unit(self, unitID, quantity)
+    if quantity == 0 then
+        return
+    end
     if self._partialUnits[unitID] == nil then
         self._partialUnits[unitID] = 0 
     end
@@ -293,8 +305,13 @@ end
 
 --gets the current production levels for each unit
 --v function(self: RD) --> map<string, number>
-function rd.current_unit_production(self)
+function rd.turn_unit_production(self)
     return self._UIUnitProduction
+end
+
+--v function(self: RD) --> map<string, number>
+function rd.unit_production(self)
+    return self._partialUnits
 end
 
 

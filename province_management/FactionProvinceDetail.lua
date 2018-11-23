@@ -14,6 +14,7 @@ function fpd.new(model, cm, faction, province)
     self._subculture = self._owningFaction:subculture()
     self._province = province
     self._regions = {} --:map<string, RD>
+    self._numRegions = 0 --:number
     self._lastProcess = -1 --:number
     --subjects
     self._subjectWhitelist = {} --:map<string, boolean> --subject key to present
@@ -23,6 +24,10 @@ function fpd.new(model, cm, faction, province)
     self._prodControl = 3 --:number
     return self
 end
+
+-----------------
+--save and load--
+-----------------
 
 --v function(model: PM, cm: CM, faction: string, province: string, svt: FPD_SAVE) --> FPD
 function fpd.load(model, cm, faction, province, svt) 
@@ -36,6 +41,8 @@ function fpd.load(model, cm, faction, province, svt)
     self._faction = faction
     self._province = province
     self._regions = {}
+    self._numRegions = 0
+    self._lastProcess = -1 
     --subjects
     self._subjectWhitelist = svt._subjectWhitelist or {}
     self._UISubjectSources = svt._UISubjectSources or {}
@@ -54,12 +61,9 @@ function fpd.save(self)
     return svt
 end
 
---v function(self: FPD, region_detail: RD)
-function fpd.add_region(self, region_detail)
-    local key = region_detail:name()
-    region_detail:set_fpd(self)
-    self._regions[key] = region_detail
-end
+-----------------------------------
+--region and ownership management--
+-----------------------------------
 
 --v function(self: FPD) --> string
 function fpd.subculture(self)
@@ -70,6 +74,30 @@ end
 function fpd.owning_faction(self)
     return self._owningFaction
 end
+    
+--v function(self: FPD, region_detail: RD)
+function fpd.add_region(self, region_detail)
+    self._numRegions = self._numRegions + 1
+    local key = region_detail:name()
+    region_detail:set_fpd(self)
+    self._regions[key] = region_detail
+end
+
+--v function(self: FPD, region_detail_key: string)
+function fpd.remove_region(self, region_detail_key)
+    local rd = self._regions[region_detail_key]
+    self._regions[region_detail_key] = nil
+    self._numRegions = self._numRegions - 1
+    if self._model:subculture_has_prod_control(self._subculture) then
+        rd:remove_effect_bundle("wec_prod_control_"..self._subculture.."_"..tostring(self._prodControl))
+    end
+end
+
+--v function(self: FPD) --> boolean
+function fpd.is_empty(self)
+    return self._numRegions == 0 
+end
+
 
 --v function(self: FPD) --> map<string, boolean>
 function fpd.subject_whitelist(self)
