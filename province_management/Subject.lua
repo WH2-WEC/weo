@@ -10,9 +10,25 @@ function subject.new(model, key)
     self._cm = self._model._cm
     self._key = key
     self._demands = {} --:map<string, SUBJECT_DEMAND>
+    self._activeDemand = "none" --:string
     self._nextDemandTurn = 5
 
     return self
+end
+
+--v function(self: SUBJECT)
+function subject.demand_not_met(self)
+
+end
+
+--v function(self: SUBJECT)
+function subject.demand_is_met(self)
+
+end
+
+--v function(self: SUBJECT) --> string
+function subject.key(self)
+    return self._key
 end
 
 local demand = require("province_management/Demands")

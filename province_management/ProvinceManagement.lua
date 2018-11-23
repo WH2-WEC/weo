@@ -45,6 +45,9 @@ function province_manager.init()
     self._regions = {} --:map<string, RD>
     self._factionSubjects = {} --:map<string, map<string, SUBJECT>>
     --data storage 
+    self._wealthSubcultures = {} --:map<string, boolean>
+    self._wealthCapBuildings = {} --:map<string, number>
+    self._buildingWealthEffects = {} --:map<string, number>
 
 
     --access to model
