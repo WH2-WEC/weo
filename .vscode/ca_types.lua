@@ -422,6 +422,7 @@
 --REGION LIST
 --# assume CA_REGION_LIST.num_items: method() --> number
 --# assume CA_REGION_LIST.item_at: method(i: number) --> CA_REGION
+--# assume CA_REGION_LIST.is_empty: method() --> boolean
 
 -- SETTLEMENT
 --# assume CA_SETTLEMENT.logical_position_x: method() --> number

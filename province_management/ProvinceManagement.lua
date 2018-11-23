@@ -43,12 +43,18 @@ function province_manager.init(cm, core)
     --ca pointers
     self._core = core
     self._cm = cm
+    self._humans = {} --:map<string, boolean>
+    for i = 1, #cm:get_human_factions() do
+        self._humans[cm:get_human_factions()[i]] = true
+    end
     --objects
     self._factionProvinceDetails = {} --:map<string, map<string, FPD>>
     self._regions = {} --:map<string, RD>
     self._factionSubjects = {} --:map<string, map<string, SUBJECT>>
     --data storage 
+    self._provinceManagementSubcultures = {} --:map<string, boolean>
     self._wealthSubcultures = {} --:map<string, boolean>
+    self._productionControlSubcultures = {} --:map<string, boolean>
     self._wealthCapBuildings = {} --:map<string, number>
     self._buildingWealthEffects = {} --:map<string, number>
     self._buildingUnitProduction = {} --:map<string, number>
@@ -76,6 +82,11 @@ end
 --v function(self: PM) --> CM
 function province_manager.cm(self)
     return self._cm
+end
+
+--v function(self: PM, faction: string) --> boolean
+function province_manager.is_faction_human(self, faction)
+    return not not self._humans[faction]
 end
 
 --v [NO_CHECK] function(self: PM)
@@ -298,4 +309,4 @@ function province_manager.enable_wealth_for_subculture(self, subculture)
     self._wealthSubcultures[subculture] = true
 end
 
-province_manager.init(cm, core)
+province_manager.init(cm, core):error_checker()
