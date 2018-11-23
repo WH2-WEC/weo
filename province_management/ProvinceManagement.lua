@@ -51,7 +51,11 @@ function province_manager.init(cm, core)
     self._wealthSubcultures = {} --:map<string, boolean>
     self._wealthCapBuildings = {} --:map<string, number>
     self._buildingWealthEffects = {} --:map<string, number>
-
+    self._buildingUnitProduction = {} --:map<string, number>
+    self._buildingSubjectWhitelist = {} --:map<string, string>
+    self._buildingSubjectAdjacency = {} --:map<string, string>
+    self._subcultureSubjectKeys = {} --:map<string, map<string, boolean>>
+    self._subjectDemands = {} --:map<string, map<string, DEMAND_TEMPLATE>>
 
     --access to model
     _G.pm = self
@@ -178,26 +182,28 @@ function province_manager.create_or_load_region(self, region_key, fpd)
     end
 end
 
---v function(self: PM, province_key: string, faction_key: string)
-function province_manager.create_or_load_province(self, province_key, faction_key)
+--v function(self: PM, faction_key: string, province_key: string) --> FPD
+function province_manager.create_or_load_province(self, faction_key, province_key)
     local savestring = cm:get_saved_value("wec_pm_faction_province_detail_save_"..province_key.."_"..faction_key)
     if savestring == nil then
         if self._factionProvinceDetails[faction_key] == nil then
             self._factionProvinceDetails[faction_key] = {}
         end
-        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.new(self, self._cm, province_key, faction_key)
+        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.new(self, self._cm, faction_key, province_key)
+        return self._factionProvinceDetails[province_key][faction_key]
     else
         if self._factionProvinceDetails[faction_key] == nil then
             self._factionProvinceDetails[faction_key] = {}
         end
         local savedata = cm:load_values_from_string(savestring)
         --# assume savedata: FPD_SAVE
-        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.load(self, self._cm, province_key, faction_key, savedata)
+        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.load(self, self._cm, faction_key, province_key, savedata)
+        return self._factionProvinceDetails[province_key][faction_key]
     end
 end
 
---v function(self: PM, subject_key: string, faction_key: string) --> SUBJECT
-function province_manager.create_or_load_subject(self, subject_key, faction_key)
+--v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
+function province_manager.create_or_load_subject(self, faction_key, subject_key)
     local savestring = cm:get_saved_value("wec_pm_subjects_save_"..subject_key.."_"..faction_key)
     if savestring == nil then
         if self._factionSubjects[faction_key] == nil then
@@ -217,6 +223,62 @@ function province_manager.create_or_load_subject(self, subject_key, faction_key)
 end
 
 --subobject queries
+
+--v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
+function province_manager.get_faction_subject(self, faction_key, subject_key)
+    if self._factionSubjects[faction_key] == nil then
+        self._factionSubjects[faction_key] = {}
+    end
+    if not not self._factionSubjects[faction_key][subject_key] then
+        return self._factionSubjects[faction_key][subject_key] 
+    else
+        local new_subject = self:create_or_load_subject(faction_key, subject_key)
+        for subject, demandpair in pairs(self._subjectDemands) do
+            for key, demand in pairs(demandpair) do
+                new_subject:add_or_load_demand(demand)
+            end
+        end
+        return new_subject
+    end
+end
+
+--v function(self: PM,  faction_key: string, province_key: string) --> FPD
+function province_manager.get_faction_province_detail(self, faction_key, province_key)
+    if self._factionProvinceDetails[faction_key] == nil then 
+        self._factionProvinceDetails[faction_key] = {}
+    end
+    if not not self._factionProvinceDetails[faction_key][province_key] then
+        return self._factionProvinceDetails[faction_key][province_key]
+    else
+        local new_province = self:create_or_load_province(faction_key, province_key)
+        for key, _ in pairs(new_province:subject_whitelist()) do
+            self:get_faction_subject(faction_key, key)
+        end
+        return new_province
+    end
+end
+
+--v function(self: PM, region_key: string) --> RD
+function province_manager.get_region_detail(self, region_key)
+    if not not self._regions[region_key] then
+        return self._regions[region_key]
+    else
+        --create a new region and any associated objects.
+        local obj = cm:get_region(region_key)
+        local faction = obj:owning_faction():name()
+        local province = obj:province_name()
+        local fpd = self:get_faction_province_detail(faction, province)
+        local new_region = self:create_or_load_region(region_key, fpd)
+        fpd:add_region(new_region)
+        return new_region
+    end
+end
+
+
+
+
+
+
 
 --content API
 

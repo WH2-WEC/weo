@@ -22,6 +22,11 @@ function demand.new(subject, key, faction, validity, event, cnd, alt_event, alt_
     return self
 end
 
+--v function(self: SUBJECT_DEMAND) --> string
+function demand.key(self)
+    return self._key
+end
+
 --v function(self: SUBJECT_DEMAND) --> SUBJECT
 function demand.subject(self)
     return self._subject

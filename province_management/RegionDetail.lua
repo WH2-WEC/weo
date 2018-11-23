@@ -83,6 +83,18 @@ function rd.model(self)
     return self._model
 end
 
+--return the current FPD
+--v function(self: RD) --> FPD
+function rd.fpd(self)
+    return self._fpd
+end
+
+--not for external use. Only changes the pointer
+--v function(self: RD, fpd: FPD)
+function rd.set_fpd(self, fpd)
+    self._fpd = fpd
+end
+
 --return access to the stored CM pointer
 --v function(self: RD) --> CM
 function rd.cm(self)

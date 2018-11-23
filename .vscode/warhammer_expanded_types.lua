@@ -30,6 +30,8 @@
 --# type global SUBJECT_SAVE = {_activeDemand:string, _nextDemandTurn: number}
 --# type global SUBJECT_STATE = "hidden" | "angry" | "normal" | "happy" 
 --# assume global class SUBJECT_DEMAND
+--# type global DEMAND_TEMPLATE = {key: string, validity: (function(cm: CM)--> boolean), event: string, cnd: function(context: WHATEVER) --> boolean,
+--# alt_event: string, alt_cnd: function(context: WHATEVER) --> boolean, can_pay_off: boolean}
 
 --provinces
 --# assume global class PROVINCE_REGISTER

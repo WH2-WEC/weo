@@ -12,7 +12,7 @@ function subject.new(model, cm, key, faction)
     self._faction = faction
     self._demands = {} --:map<string, SUBJECT_DEMAND>
     self._activeDemand = "none" --:string
-    self._nextDemandTurn = 5 --:number
+    self._nextDemandTurn = cm:model():turn_number() + 5 --:number
 
     return self
 end
@@ -65,7 +65,7 @@ end
 
 --v function(self: SUBJECT) --> string
 function subject.faction(self)
-    return self._key
+    return self._faction
 end
 
 --v function(self: SUBJECT)
@@ -78,9 +78,17 @@ function subject.demand_is_met(self)
 
 end
 
-local demand = require("province_management/Demands")
 
+local subject_demand = require("province_management/Demands")
 
+--v function(self: SUBJECT, demand_template: DEMAND_TEMPLATE)
+function subject.add_or_load_demand(self, demand_template)
+    local new_demand = subject_demand.new(self, demand_template.key, self._faction, demand_template.validity, demand_template.event, demand_template.cnd, demand_template.alt_event, demand_template.alt_cnd, demand_template.can_pay_off)
+    if new_demand:is_active() then
+        self._activeDemand = new_demand:key()
+        new_demand:activate()
+    end
+end
 
 
 return {

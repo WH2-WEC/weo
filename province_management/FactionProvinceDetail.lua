@@ -52,11 +52,19 @@ function fpd.save(self)
     return svt
 end
 
+--v function(self: FPD, region_detail: RD)
+function fpd.add_region(self, region_detail)
+    local key = region_detail:name()
+    region_detail:set_fpd(self)
+    self._regions[key] = region_detail
+end
 
 
 
-
-
+--v function(self: FPD) --> map<string, boolean>
+function fpd.subject_whitelist(self)
+    return self._subjectWhitelist
+end
 
 return {
     new = fpd.new,

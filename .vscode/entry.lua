@@ -15,6 +15,7 @@ require("recruitment/export_helpers__tt_groups")
 
 ---[[region details manager
  require("province_management/ProvinceManagement")
+ require("province_management/export_helpers__pm_core")
 --]]
 
 
