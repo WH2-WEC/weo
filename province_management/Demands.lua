@@ -1,8 +1,7 @@
 local demand = {} --# assume demand: SUBJECT_DEMAND
 
---v function(subject: SUBJECT, key: string, faction: string, validity: (function(cm: CM)--> boolean), event: string, cnd: function(context: WHATEVER) --> boolean,
---v alt_event: string, alt_cnd: function(context: WHATEVER) --> boolean, can_pay_off: boolean) --> SUBJECT_DEMAND
-function demand.new(subject, key, faction, validity, event, cnd, alt_event, alt_cnd, can_pay_off)
+--v function(subject: SUBJECT, key: string, faction: string, validity: (function(cm: CM)--> boolean), event: string, cnd: function(context: WHATEVER) --> boolean, can_pay_off: boolean) --> SUBJECT_DEMAND
+function demand.new(subject, key, faction, validity, event, cnd, can_pay_off)
     local self = {}
     setmetatable(self, {
         __index = demand
@@ -16,8 +15,6 @@ function demand.new(subject, key, faction, validity, event, cnd, alt_event, alt_
     self._canPay = can_pay_off
     self._event = event
     self._condition = cnd
-    self._eventAlt = alt_event
-    self._conditionAlt = alt_cnd
 
     return self
 end
@@ -25,6 +22,11 @@ end
 --v function(self: SUBJECT_DEMAND) --> string
 function demand.key(self)
     return self._key
+end
+
+--v function(self: SUBJECT_DEMAND) --> string
+function demand.activity_key(self)
+    return self._activityKey
 end
 
 --v function(self: SUBJECT_DEMAND) --> SUBJECT
@@ -42,8 +44,8 @@ function demand.is_active(self)
     return not not self._cm:get_saved_value(self._activityKey)
 end
 
---v function(self: SUBJECT_DEMAND)
-function demand.activate(self)
+--v function(self: SUBJECT_DEMAND, partner_key: string)
+function demand.activate(self,partner_key)
     local co = self._subject._model:core_object()
     self._cm:set_saved_value(self._activityKey, true)
     co:add_listener(
@@ -60,7 +62,9 @@ function demand.activate(self)
         end,
         function(context)
             co:remove_listener(self._activityKey)
+            co:remove_listener(partner_key)
             self._cm:set_saved_value(self._activityKey, false)
+            self._cm:set_saved_value(partner_key, false)
             self._subject:demand_is_met()
         end,
         false
