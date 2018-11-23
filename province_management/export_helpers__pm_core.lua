@@ -1,13 +1,30 @@
 local pm = _G.pm
 
+--v function(fpd: FPD)
+function process_province_turn(fpd)
+    if fpd:last_process() == cm:model():turn_number() then
+        return
+    end
+    fpd:pre_process()
+    local subculture = fpd:subculture()
+    local faction = fpd:owning_faction()
+    fpd:apply_prod_control()
+    fpd:apply_subjects()
+end
+
 --v function(region: CA_REGION)
 local function pre_process_region_turn(region)
-
-
+    local rd = pm:get_region_detail(region:name())
+    rd:reset_unit_production_ui()
+    rd:reset_wealth_ui()
+    rd:clear_effects()
+    rd:update_buildings()
 end
 
 --v function(region: CA_REGION)
 local function process_region_turn(region)
+    local rd = pm:get_region_detail(region:name())
+    process_province_turn(rd:fpd())
 
 
 end

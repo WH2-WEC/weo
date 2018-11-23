@@ -298,7 +298,6 @@ function rd.current_unit_production(self)
 end
 
 
-
 return {
     new = rd.new,
     load = rd.load

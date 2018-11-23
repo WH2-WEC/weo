@@ -154,6 +154,9 @@ function province_manager.error_checker(self)
 end
 
 --content retrieval
+----------
+--wealth--
+----------
 --v function(self: PM, building: string) --> number
 function province_manager.get_wealth_cap_for_settlement(self, building)
     if self._wealthCapBuildings[building] == nil then
@@ -170,6 +173,36 @@ end
 --v function(self: PM, subculture: string) --> boolean
 function province_manager.subculture_has_wealth(self, subculture)
     return not not self._wealthSubcultures[subculture]
+end
+
+----------------
+--prod control--
+----------------
+--v function(self: PM, subculture: string) --> boolean
+function province_manager.subculture_has_prod_control(self, subculture)
+    return not not self._productionControlSubcultures[subculture]
+end
+------------
+--subjects--
+------------
+--v function(self: PM, building: string) --> boolean
+function province_manager.building_has_subject(self, building)
+    return not not self._buildingSubjectWhitelist[building]
+end
+
+--v function(self: PM, building: string) --> string
+function province_manager.building_subject(self, building)
+    return self._buildingSubjectWhitelist[building]
+end
+
+--v function(self: PM, building: string) --> boolean
+function province_manager.building_has_subject_adjacency(self, building)
+    return not not self._buildingSubjectAdjacency[building]
+end
+
+--v function(self: PM, building: string) --> string
+function province_manager.building_subject_adjacency(self, building)
+    return self._buildingSubjectAdjacency[building]
 end
 
 --Subobjects
@@ -293,6 +326,10 @@ end
 
 --content API
 
+----------
+--wealth--
+----------
+
 --v function(self: PM, building: string, wealth_cap: number)
 function province_manager.add_wealth_cap_for_building(self, building, wealth_cap)
     self._wealthCapBuildings[building] = wealth_cap
@@ -308,5 +345,27 @@ end
 function province_manager.enable_wealth_for_subculture(self, subculture)
     self._wealthSubcultures[subculture] = true
 end
+----------------
+--prod control--
+----------------
+--v function(self: PM, subculture: string)
+function province_manager.enable_prod_control_for_subculture(self, subculture)
+    self._productionControlSubcultures[subculture] = true
+end
 
+------------
+--subjects--
+------------
+--v function(self: PM, building: string, subject: string)
+function province_manager.add_subject_to_building(self, building, subject)
+    self._buildingSubjectWhitelist[building] = subject
+end
+
+--v function(self: PM, building: string, subject: string)
+function province_manager.add_subject_adjacency_for_building(self, building, subject)
+    self._buildingSubjectAdjacency[building] = subject
+end
+
+
+--init
 province_manager.init(cm, core):error_checker()
