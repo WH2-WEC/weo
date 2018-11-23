@@ -34,12 +34,15 @@ RCSESSIONLOG()
 
 local province_manager = {} --# assume province_manager: PM
 
---v function() --> PM
-function province_manager.init()
+--v function(cm: CM, core: CORE) --> PM
+function province_manager.init(cm, core)
     local self = {} 
     setmetatable(self, {
         __index = province_manager
     }) --# assume self: PM
+    --ca pointers
+    self._core = core
+    self._cm = cm
     --objects
     self._factionProvinceDetails = {} --:map<string, map<string, FPD>>
     self._regions = {} --:map<string, RD>
@@ -59,6 +62,16 @@ end
 --v method(text: any)
 function province_manager:log(text)
     PMLOG(tostring(text))
+end
+
+--v function(self: PM) --> CORE
+function province_manager.core_object(self)
+    return self._core
+end
+
+--v function(self: PM) --> CM
+function province_manager.cm(self)
+    return self._cm
 end
 
 --v [NO_CHECK] function(self: PM)
@@ -145,23 +158,62 @@ function province_manager.subculture_has_wealth(self, subculture)
 end
 
 --Subobjects
-faction_province_detail = require("province_management/FactionProvinceDetail")
 region_detail = require("province_management/RegionDetail")
+faction_province_detail = require("province_management/FactionProvinceDetail")
+subject = require("province_management/Subject")
+
 
 --core data behaviour
 --v function(self: PM, region_key: string, fpd: FPD) --> RD
 function province_manager.create_or_load_region(self, region_key, fpd)
-    return region_detail.new(self, cm, fpd, region_key)
+    local savestring = cm:get_saved_value("wec_pm_regions_save_"..region_key)
+    if savestring == nil then
+        self._regions[region_key] = region_detail.new(self, self._cm, fpd, region_key)
+        return self._regions[region_key]
+    else
+        local savedata = cm:load_values_from_string(savestring)
+        --# assume savedata: RD_SAVE
+        self._regions[region_key] = region_detail.load(self, self._cm, fpd, region_key, savedata)
+        return self._regions[region_key]
+    end
 end
 
 --v function(self: PM, province_key: string, faction_key: string)
 function province_manager.create_or_load_province(self, province_key, faction_key)
-
+    local savestring = cm:get_saved_value("wec_pm_faction_province_detail_save_"..province_key.."_"..faction_key)
+    if savestring == nil then
+        if self._factionProvinceDetails[faction_key] == nil then
+            self._factionProvinceDetails[faction_key] = {}
+        end
+        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.new(self, self._cm, province_key, faction_key)
+    else
+        if self._factionProvinceDetails[faction_key] == nil then
+            self._factionProvinceDetails[faction_key] = {}
+        end
+        local savedata = cm:load_values_from_string(savestring)
+        --# assume savedata: FPD_SAVE
+        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.load(self, self._cm, province_key, faction_key, savedata)
+    end
 end
 
---v function(self: PM, subject_key: string, faction_key: string)
+--v function(self: PM, subject_key: string, faction_key: string) --> SUBJECT
 function province_manager.create_or_load_subject(self, subject_key, faction_key)
-
+    local savestring = cm:get_saved_value("wec_pm_subjects_save_"..subject_key.."_"..faction_key)
+    if savestring == nil then
+        if self._factionSubjects[faction_key] == nil then
+            self._factionSubjects[faction_key] = {}
+        end
+        self._factionSubjects[faction_key][subject_key] = subject.new(self, self._cm, subject_key, faction_key)
+        return self._factionSubjects[faction_key][subject_key]
+    else
+        local savedata = cm:load_values_from_string(savestring)
+        --# assume savedata: SUBJECT_SAVE
+        if self._factionSubjects[faction_key] == nil then
+            self._factionSubjects[faction_key] = {}
+        end
+        self._factionSubjects[faction_key][subject_key] = subject.load(self, self._cm, subject_key, faction_key, savedata)
+        return self._factionSubjects[faction_key][subject_key]
+    end
 end
 
 --subobject queries
@@ -184,3 +236,4 @@ function province_manager.enable_wealth_for_subculture(self, subculture)
     self._wealthSubcultures[subculture] = true
 end
 
+province_manager.init(cm, core)

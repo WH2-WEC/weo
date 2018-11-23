@@ -32,6 +32,50 @@ function rd.new(model, cm, fpd, region)
     return self
 end
 
+--v function(self: RD) --> RD_SAVE
+function rd.save(self)
+    local svt = {}
+    svt._wealth = self._wealth
+    svt._maxWealth = self._maxWealth
+    svt._UIWealthChanges = self._UIWealthChanges
+    svt._partialUnits = self._partialUnits
+    svt._UIUnitProduction = self._UIUnitProduction
+    svt._regionEffects = self._regionEffects
+
+    return svt
+end
+
+--v function(model: PM, cm: CM, fpd: FPD, region: string, svt: RD_SAVE) --> RD
+function rd.load(model, cm, fpd, region, svt)
+    local self = {}
+    setmetatable(self, {
+        __index = rd
+    }) --# assume self: RD
+    --model links
+    self._model = model
+    self._fpd = fpd
+    self._cm = cm
+    --key
+    self._name = region
+    --core
+    self._pointer = self._cm:get_region(region)
+    self._owner = self._pointer:owning_faction()
+    self._subculture = self._owner:subculture()
+    --buildings
+    self._buildings = {} 
+    --wealth
+    self._wealth = svt._wealth
+    self._maxWealth = svt._maxWealth
+    self._UIWealthChanges = svt._UIWealthChanges
+    --UI Unit
+    self._partialUnits = svt._partialUnits
+    self._UIUnitProduction = svt._UIUnitProduction
+    -- effects
+    self._regionEffects = svt._regionEffects
+
+
+    return self
+end
 
 --return access to the model
 --v function(self: RD) --> PM
@@ -244,5 +288,6 @@ end
 
 
 return {
-    new = rd.new
+    new = rd.new,
+    load = rd.load
 }

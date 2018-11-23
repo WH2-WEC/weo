@@ -32,18 +32,31 @@ function demand.is_demand_valid(self)
     return self._validityCondition(self._cm)
 end
 
+--v function(self: SUBJECT_DEMAND) --> boolean
+function demand.is_active(self)
+    return not not self._cm:get_saved_value(self._activityKey)
+end
+
 --v function(self: SUBJECT_DEMAND)
 function demand.activate(self)
-    cm:set_saved_value(self._activityKey, true)
-    core:add_listener(
+    local co = self._subject._model:core_object()
+    self._cm:set_saved_value(self._activityKey, true)
+    co:add_listener(
         self._activityKey,
         self._event,
         function(context)
-            return self._condition(context)
+            local retval = self._condition(context)
+            if not retval then
+                self._subject:demand_not_met()
+                return false
+            else
+                return true
+            end
         end,
         function(context)
-            core:remove_listener(self._activityKey)
-            cm:set_saved_value(self._activityKey, false)
+            co:remove_listener(self._activityKey)
+            self._cm:set_saved_value(self._activityKey, false)
+            self._subject:demand_is_met()
         end,
         false
     )
@@ -51,5 +64,5 @@ end
 
 
 return {
-    new = demands.new
+    new = demand.new
 }
