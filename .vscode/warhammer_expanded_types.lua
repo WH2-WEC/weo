@@ -27,7 +27,8 @@
 --# assume global class RD
 --# type global RD_SAVE = {_wealth: number, _maxWealth: number, _UIWealthChanges:map<string, number>, _partialUnits:map<string, number>, _UIUnitProduction:map<string,number>, _regionEffects: map<string, boolean>}
 --# assume global class SUBJECT
---# type global SUBJECT_SAVE = {_activeDemand:string, _nextDemandTurn: number, _alternateDemand: string}
+--# type global SUBJECT_STATE = 0 | 1 | 2 | 3 | 4
+--# type global SUBJECT_SAVE = {_nextDemandTurn:number, _currentState: SUBJECT_STATE}
 --# assume global class SUBJECT_DEMAND
 --# type global DEMAND_TEMPLATE = {key: string, validity: (function(cm: CM)--> boolean), event: string, cnd: function(context: WHATEVER) --> boolean, can_pay_off: boolean}
 

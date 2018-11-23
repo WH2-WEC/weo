@@ -14,6 +14,7 @@ function subject.new(model, cm, key, faction)
     self._alternateDemand = "none" --:string
     self._activeDemand = "none" --:string
     self._nextDemandTurn = cm:model():turn_number() + 5 --:number
+    self._currentState = 1 --:SUBJECT_STATE
 
     return self
 end
@@ -29,9 +30,10 @@ function subject.load(model, cm, key, faction, svt)
     self._key = key
     self._faction = faction
     self._demands = {} 
-    self._activeDemand = svt._activeDemand
-    self._alternateDemand = svt._alternateDemand
-    self._nextDemandTurn = svt._nextDemandTurn
+    self._activeDemand = "none"
+    self._alternateDemand = "none"
+    self._nextDemandTurn =  svt._nextDemandTurn
+    self._currentState = svt._currentState
 
     return self
 end
@@ -39,9 +41,8 @@ end
 --v function(self: SUBJECT) --> SUBJECT_SAVE
 function subject.save(self)
     local svt = {}
-    svt._activeDemand = self._activeDemand
+    svt._currentState = self._currentState
     svt._nextDemandTurn = self._nextDemandTurn
-    svt._alternateDemand = self._alternateDemand
     return svt
 end
 
@@ -66,6 +67,11 @@ function subject.get_demand(self, key)
     return self._demands[key]
 end
 
+--v function(self: SUBJECT) --> SUBJECT_STATE
+function subject.state(self)
+    return self._currentState
+end
+
 --v function(self: SUBJECT) --> SUBJECT_DEMAND
 function subject.get_primary_active_demand(self)
     return self._demands[self._activeDemand]
@@ -76,7 +82,13 @@ function subject.get_alternate_active_demand(self)
     return self._demands[self._alternateDemand]
 end
     
+--v function(self: SUBJECT) --> boolean
+function subject.has_active_demand(self)
+    return not((self._activeDemand == "none") or (self._alternateDemand == "none"))
+end
 
+
+    
 --v function(self: SUBJECT) --> string
 function subject.key(self)
     return self._key
@@ -97,10 +109,6 @@ function subject.demand_is_met(self)
 
 end
 
---v function(self: SUBJECT) --> boolean
-function subject.has_active_demand(self)
-    return not((self._activeDemand == "none") or (self._alternateDemand == "none"))
-end
 
 
 local subject_demand = require("province_management/Demands")
