@@ -23,8 +23,8 @@ function rd.new(model, cm, fpd, region)
     self._maxWealth = 100 --:number
     self._UIWealthChanges = {} --:map<string, number>
     --UI Unit
-    self._UnitGen = {} --:map<string, number>
-    self._UIUnitGen = {} --:map<string, number>
+    self._partialUnits = {} --:map<string, number>
+    self._UIUnitProduction = {} --:map<string, number>
     -- effects
     self._regionEffects = {} --:map<string, boolean>
 
@@ -182,6 +182,66 @@ end
 function rd.wealth_factors(self)
     return self._UIWealthFactors
 end
+
+------------------
+------UNITS-------
+------------------
+
+--gets the unit parts for the unit
+--v function(self: RD, unitID: string) --> number
+function rd.unit_production_for_unit(self, unitID)
+    if self._partialUnits[unitID] == nil then
+        self._partialUnits[unitID] = 0 
+    end
+    return self._partialUnits[unitID]
+end
+
+--returns the number of units produced and reduces the units stored by the necessary quantity.
+--v function(self: RD, unitID: string) --> number
+function rd.calc_unit_production(self, unitID)
+    if self._partialUnits[unitID] == nil then
+        self._partialUnits[unitID] = 0 
+        return 0
+    end
+    local full_unit_level = self._model:get_full_unit_level_for_sc(self._subculture)
+    local produced_units = 0 --:number
+    if self._partialUnits[unitID] < full_unit_level then
+        return produced_units
+    else
+        while self._partialUnits[unitID] >= full_unit_level do
+            produced_units = produced_units + 1
+            self._partialUnits[unitID] = self._partialUnits[unitID] - full_unit_level
+        end
+        return produced_units
+    end
+end
+
+--adds the specified value to the unit production
+--v function(self: RD, unitID: string, quantity: number)
+function rd.produce_unit(self, unitID, quantity)
+    if self._partialUnits[unitID] == nil then
+        self._partialUnits[unitID] = 0 
+    end
+    if self._UIUnitProduction[unitID] == nil then
+        self._UIUnitProduction[unitID] = 0
+    end
+    self._partialUnits[unitID] = self._partialUnits[unitID] + quantity
+    self._UIUnitProduction[unitID] = self._UIUnitProduction[unitID] + quantity
+end
+
+--resets the production UI for new factors at turn start
+--v function(self: RD)
+function rd.reset_unit_production_ui(self)
+    self._UIUnitProduction = {}
+end
+
+--gets the current production levels for each unit
+--v function(self: RD) --> map<string, number>
+function rd.current_unit_production(self)
+    return self._UIUnitProduction
+end
+
+
 
 return {
     new = rd.new
