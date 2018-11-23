@@ -157,7 +157,7 @@ function rd.set_wealth(self, quantity, apply_effect)
         new_wealth = self._maxWealth
     end
     self._wealth = new_wealth
-    if apply_effect then
+    if apply_effect and self._model:subculture_has_wealth(self._subculture) then
         self:apply_effect_bundle(self._model:get_wealth_bundle()..tostring(new_wealth))
     end
 end
@@ -203,7 +203,7 @@ function rd.calc_unit_production(self, unitID)
         self._partialUnits[unitID] = 0 
         return 0
     end
-    local full_unit_level = self._model:get_full_unit_level_for_sc(self._subculture)
+    local full_unit_level = 100
     local produced_units = 0 --:number
     if self._partialUnits[unitID] < full_unit_level then
         return produced_units

@@ -124,7 +124,25 @@ function province_manager.error_checker(self)
     core.add_listener = myAddListener;
 
 end
+
 --content retrieval
+--v function(self: PM, building: string) --> number
+function province_manager.get_wealth_cap_for_settlement(self, building)
+    if self._wealthCapBuildings[building] == nil then
+        return 250
+    end
+    return self._wealthCapBuildings[building]
+end
+    
+--v function(self: PM) --> string
+function province_manager.get_wealth_bundle(self)
+    return "wec_wealth_"
+end
+
+--v function(self: PM, subculture: string) --> boolean
+function province_manager.subculture_has_wealth(self, subculture)
+    return not not self._wealthSubcultures[subculture]
+end
 
 --Subobjects
 faction_province_detail = require("province_management/FactionProvinceDetail")
@@ -149,3 +167,20 @@ end
 --subobject queries
 
 --content API
+
+--v function(self: PM, building: string, wealth_cap: number)
+function province_manager.add_wealth_cap_for_building(self, building, wealth_cap)
+    self._wealthCapBuildings[building] = wealth_cap
+end
+
+
+--v function(self: PM, building: string, wealth: number)
+function province_manager.add_wealth_effect_for_building(self, building, wealth)
+    self._wealthCapBuildings[building] = wealth
+end
+
+--v function(self: PM, subculture: string)
+function province_manager.enable_wealth_for_subculture(self, subculture)
+    self._wealthSubcultures[subculture] = true
+end
+
