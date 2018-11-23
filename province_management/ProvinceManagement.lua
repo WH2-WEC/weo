@@ -51,6 +51,10 @@ function province_manager.init(cm, core)
     self._factionProvinceDetails = {} --:map<string, map<string, FPD>>
     self._regions = {} --:map<string, RD>
     self._factionSubjects = {} --:map<string, map<string, SUBJECT>>
+    --modifiers
+    --globally modify all changes in wealth and unit production with a function by subculture
+    self._wealthModifiers = {} --:map<string, (function(wealth: number, rd: RD) --> number)>
+    self._unitProdModifiers = {} --:map<string, (function(prod: number, rd: RD) --> number)>
     --data storage 
     self._provinceManagementSubcultures = {} --:map<string, boolean>
     self._wealthSubcultures = {} --:map<string, boolean>
@@ -205,6 +209,38 @@ function province_manager.building_subject_adjacency(self, building)
     return self._buildingSubjectAdjacency[building]
 end
 
+-------------
+--modifiers--
+-------------
+
+--v function(self: PM, subculture: string) --> (function(wealth: number, rd: RD) --> number)
+function province_manager.get_wealth_modifier_for_subculture(self, subculture)
+    if self._wealthModifiers[subculture] then
+        return self._wealthModifiers[subculture]
+    else
+        return function(wealth, rd)
+                return wealth
+            end
+    end
+end
+
+--v function(self: PM, subculture: string) --> (function(prod: number, rd: RD) --> number)
+function province_manager.get_unit_prod_modifier_for_subculture(self, subculture)
+    if self._wealthModifiers[subculture] then
+        return self._wealthModifiers[subculture]
+    else
+        return function(prod, rd)
+                return prod
+            end
+    end
+end
+    
+
+
+
+
+
+
 --Subobjects
 region_detail = require("province_management/RegionDetail")
 faction_province_detail = require("province_management/FactionProvinceDetail")
@@ -319,13 +355,23 @@ function province_manager.get_region_detail(self, region_key)
 end
 
 
+------------------
+--functional API--
+------------------
 
+--v function(self: PM, modifier: (function(wealth: number, rd: RD) --> number), subculture: string)
+function province_manager.add_wealth_modifier_for_subculture(self, modifier, subculture)
+    self._wealthModifiers[subculture] = modifier
+end
 
+--v function(self: PM, modifier: (function(prod: number, rd: RD) --> number), subculture: string)
+function province_manager.add_unit_prod_modifier_for_subculture(self, modifier, subculture)
+    self._wealthModifiers[subculture] = modifier
+end
 
-
-
---content API
-
+---------------
+--content API--
+---------------
 ----------
 --wealth--
 ----------
