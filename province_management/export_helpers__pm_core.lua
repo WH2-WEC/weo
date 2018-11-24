@@ -117,34 +117,18 @@ local function process_region_abandonment(region)
 
 end
 
-core:add_listener(
-    "PMFactionTurnStart",
-    "FactionTurnStart",
-    function(context)
-        local faction = context:faction() --:CA_FACTION
-        local is_rebel = (faction:name() == "rebels")
-        local has_regions = (not faction:region_list():is_empty())
-        local has_pm = pm:subculture_has_province_management(faction:subculture())
-        return has_regions and (not is_rebel) and has_pm
-    end,
-    function(context)
-        local region_list = context:faction():region_list() --:CA_REGION_LIST
-        for i = 0, region_list:num_items() - 1 do
-            pre_process_region_turn(region_list:item_at(i))
-        end
-        for i = 0, region_list:num_items() - 1 do
-            process_region_turn(region_list:item_at(i))
-        end
-        process_faction_subjects(context:faction())
-    end,
-    true
-)
 
-cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function(context)
+cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function() 
+    local ok, err = pcall( function()
+    for i = 1, #cm:get_human_factions() do
+        pm._humans[cm:get_human_factions()[i]] = true
+    end
     local region_list = cm:model():world():region_manager():region_list()
     for i = 0, region_list:num_items() - 1 do
         local region = region_list:item_at(i)
-        pm:get_region_detail(region:name())
+        if not (region:settlement():is_null_interface() or region:owning_faction() == "rebels") then
+            pm:get_region_detail(region:name())
+        end
     end
     if cm:is_new_game() then
         local region_list = cm:model():world():whose_turn_is_it():region_list()
@@ -155,6 +139,33 @@ cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function(context)
             process_region_turn(region_list:item_at(i))
         end
         process_faction_subjects(cm:model():world():whose_turn_is_it())
+    end
+
+    core:add_listener(
+        "PMFactionTurnStart",
+        "FactionTurnStart",
+        function(context)
+            local faction = context:faction() --:CA_FACTION
+            local is_rebel = (faction:name() == "rebels")
+            local has_regions = (not faction:region_list():is_empty())
+            local has_pm = pm:subculture_has_province_management(faction:subculture())
+            return has_regions and (not is_rebel) and has_pm
+        end,
+        function(context)
+            local region_list = context:faction():region_list() --:CA_REGION_LIST
+            for i = 0, region_list:num_items() - 1 do
+                pre_process_region_turn(region_list:item_at(i))
+            end
+            for i = 0, region_list:num_items() - 1 do
+                process_region_turn(region_list:item_at(i))
+            end
+            process_faction_subjects(context:faction())
+        end,
+        true
+        )
+    end)
+    if not ok then
+        pm:log(tostring(err))
     end
 end
 
@@ -167,8 +178,8 @@ core:add_listener(
     end,
     function(context)
         local province = context:garrison_residence():region():province_name()
-        local faction_name = context:garrison_residence():region():owning_faction():name()
-        local fpd = pm._factionProvinceDetails[faction_name][province]
+        local faction_name = context:garrison_residence():faction():name()
+        local fpd = pm:get_faction_province_detail(faction_name, province)
         if not not fpd then
             local sub = fpd:subculture()
             if not pm:subculture_has_province_management(sub) then

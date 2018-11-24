@@ -44,9 +44,6 @@ function province_manager.init(cm, core)
     self._core = core
     self._cm = cm
     self._humans = {} --:map<string, boolean>
-    for i = 1, #cm:get_human_factions() do
-        self._humans[cm:get_human_factions()[i]] = true
-    end
     --objects
     self._factionProvinceDetails = {} --:map<string, map<string, FPD>>
     self._regions = {} --:map<string, RD>
@@ -286,7 +283,7 @@ end
 --------------
 --Subobjects--
 --------------
-subject = require("province_management/Subject")
+local subject = require("province_management/Subject")
 
 --v function(self: PM, faction_key: string, subject_key: string) --> SUBJECT
 function province_manager.create_or_load_subject(self, faction_key, subject_key)
@@ -327,8 +324,8 @@ function province_manager.get_faction_subject(self, faction_key, subject_key)
 end
 
 
-region_detail = require("province_management/RegionDetail")
-faction_province_detail = require("province_management/FactionProvinceDetail")
+local region_detail = require("province_management/RegionDetail")
+local faction_province_detail = require("province_management/FactionProvinceDetail")
 
 --core data behaviour
 --v function(self: PM, region_key: string, fpd: FPD) --> RD
@@ -352,16 +349,16 @@ function province_manager.create_or_load_province(self, faction_key, province_ke
         if self._factionProvinceDetails[faction_key] == nil then
             self._factionProvinceDetails[faction_key] = {}
         end
-        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.new(self, self._cm, faction_key, province_key)
-        return self._factionProvinceDetails[province_key][faction_key]
+        self._factionProvinceDetails[faction_key][province_key] = faction_province_detail.new(self, self._cm, faction_key, province_key)
+        return self._factionProvinceDetails[faction_key][province_key]
     else
         if self._factionProvinceDetails[faction_key] == nil then
             self._factionProvinceDetails[faction_key] = {}
         end
         local savedata = cm:load_values_from_string(savestring)
         --# assume savedata: FPD_SAVE
-        self._factionProvinceDetails[province_key][faction_key] = faction_province_detail.load(self, self._cm, faction_key, province_key, savedata)
-        return self._factionProvinceDetails[province_key][faction_key]
+        self._factionProvinceDetails[faction_key][province_key] = faction_province_detail.load(self, self._cm, faction_key, province_key, savedata)
+        return self._factionProvinceDetails[faction_key][province_key]
     end
 end
 

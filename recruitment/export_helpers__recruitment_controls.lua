@@ -219,6 +219,9 @@ core:add_listener(
     "PanelOpenedCampaign",
     function(context) 
         local panel = (context.string == "units_recruitment")
+        if rm:current_character() == nil then
+            return false
+        end
         local char = cm:get_character_by_cqi(rm:current_character():cqi())
         local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
         local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
@@ -270,6 +273,9 @@ core:add_listener(
     "PanelOpenedCampaign",
     function(context) 
         local panel = (context.string == "units_recruitment")
+        if rm:current_character() == nil then
+            return false
+        end
         local char = cm:get_character_by_cqi(rm:current_character():cqi())
         local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
         local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())

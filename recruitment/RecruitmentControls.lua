@@ -1124,6 +1124,10 @@ end
 --get a character by cqi from the rm
 --v function(self: RECRUITER_MANAGER, cqi: CA_CQI) --> RECRUITER_CHARACTER
 function recruiter_manager.get_character_by_cqi(self, cqi)
+    if cqi == nil then
+        self:log("Warning, asked for a char with cqi [nil]")
+        return nil
+    end
     if self:has_character(cqi) then
         --if we already have that character, return it.
         return self._recruiterCharacters[cqi]
