@@ -10,13 +10,13 @@ require("recruitment/export_helpers__recruitment_controls")
 require("recruitment/export_helpers__recruitment_controls_ai")
 require("recruitment/export_helpers__tt_groups")
 --]]
+
+
+
 ---[[region details manager
-require("building_overhaul/ProvinceManagement")
-require("building_overhaul/export_helpers__province_management_events")
-require("building_overhaul/export_helpers__province_management_content")
-require("building_overhaul/export_helpers__province_management_ui")
-require("building_overhaul/export_helpers__tax_rate_content")
-require("building_overhaul/export_helpers__wealth_effects_content")
+ require("province_management/ProvinceManagement")
+ require("province_management/export_helpers__pm_core")
+ require("province_management/export_helpers__pm_ui")
 --]]
 
 
@@ -45,8 +45,4 @@ require("show_me_the_caps/export_helpers__cap_tracking")
 ---[[tech unlocks
   require("tech_unlocks/TechUnlocks")
 --]]
-
-
-
-
 

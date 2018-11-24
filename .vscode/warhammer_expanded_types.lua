@@ -21,47 +21,23 @@
 --# assume global class GEOPOLITIC_LOADER
 
 
+--# assume global class PM
+--# assume global class PM_VIEW
+--# assume global class FPD
+--# type global FPD_SAVE = {_subjectWhitelist: map<string, boolean>, _UISubjectSources: map<string, string>, _prodControl: number}
+--# assume global class RD
+--# type global RD_SAVE = {_wealth: number, _maxWealth: number, _UIWealthChanges:map<string, number>, _partialUnits:map<string, number>, _UIUnitProduction:map<string,number>, _regionEffects: map<string, boolean>}
+--# assume global class SUBJECT
+--# type global SUBJECT_STATE = 0 | 1 | 2 | 3 | 4
+--# type global SUBJECT_SAVE = {_nextDemandTurn:number, _currentState: SUBJECT_STATE}
+--# assume global class SUBJECT_DEMAND
+--# type global DEMAND_TEMPLATE = {key: string, validity: (function(cm: CM)--> boolean), event: string, cnd: function(context: WHATEVER) --> boolean, can_pay_off: boolean}
+
 --provinces
 --# assume global class PROVINCE_REGISTER
 
 --region detail
---# assume global class REGION_DETAIL
---# assume global class PM
---# assume global class FPD
 
-
---# type global RELIGION_NAME = 
---# "hum_sigmar" | "hum_ulric" | "hum_manann" | "hum_myrmidia " | "hum_taal" | "hum_lady" | "hum_ursun" | "hum_morr" | "hum_shallya"
---# | "elf_asuryan" | "elf_hoeth" | "elf_cults" | "elf_khaine" | "elf_kurnous" | "elf_isha" | "elf_loec" | "elf_anath_reama" | "elf_hekarti"
---# | "dwf_miners" | "dwf_bakers" | "dwf_slayers" | "dwf_engineers" | "dwf_smiths" | "dwf_sea" |
---# "lzd_sotek" 
-
---# type global RELIGION_DETAIL = {
---# _name: RELIGION_NAME, _UIName: string, _UIImage: string, _UIDescription: string, _thresholds: vector<number>, _bundles: map<number, string>,
---# _wealthEffects: map<number, number>, _unitProdEffects: map<number, map<string, number>>, _UIEffects: map<number, vector<string>>,
---# _UILevels: map<number, number>, _flatUnitProdEffect: number
---# }
-
---# type global TAX_DETAIL = {
---# _level: number, _UIName: string, _UIEffects:vector<string>, _bundle: string, 
---# _wealthEffects: number, _unitProdEffects: number}
-
---# type global PM_SAVE = {
---# _name: string,
---# _wealth: number,
---# _taxRate: number,
---# _religions: map<string, number>,
---# _partialUnits: map<string, number>,
---# _activeCapital: string,
---# _activeEffects: vector<string>,
---# _desiredEffects: vector<string>,
---# _activeEffectsClear: bool,
---# _producableUnits: map<string, {_bool: boolean, _reason: string}>,
---# _religionLevels: map<string, number>,
---# _wealthLevel: number,
---# _UIWealthFactors: map<string, number>,
---# _UIReligionFactors: map<string, map<string, number>>
---#}
 
 --imperium
 --# assume global class IMPERIUM_EFFECTS_MANAGER

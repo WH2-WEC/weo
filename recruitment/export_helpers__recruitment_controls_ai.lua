@@ -1,4 +1,5 @@
-local subculture_default_units = {
+local rm = _G.rm
+local subculture_defaults = {
     ["wh_dlc03_sc_bst_beastmen"] = {"wh_dlc03_bst_inf_gor_herd_0", "wh_dlc03_bst_inf_ungor_raiders_0",  "wh_dlc03_bst_inf_ungor_spearmen_1", "wh_dlc03_bst_inf_gor_herd_0", "wh_dlc03_bst_inf_gor_herd_0"},
     ["wh_dlc05_sc_wef_wood_elves"] = {"wh_dlc05_wef_inf_eternal_guard_1", "wh_dlc05_wef_inf_glade_guard_0", "wh_dlc05_wef_inf_dryads_0"},
     ["wh_main_sc_brt_bretonnia"] = {"wh_main_brt_cav_knights_of_the_realm", "wh_dlc07_brt_inf_men_at_arms_2", "wh_main_brt_inf_peasant_bowmen", "wh_main_brt_cav_knights_of_the_realm"},
@@ -15,11 +16,13 @@ local subculture_default_units = {
     ["wh2_main_sc_def_dark_elves"] = {"wh2_main_def_inf_black_ark_corsairs_0","wh2_main_def_inf_darkshards_0", "wh2_main_def_inf_dreadspears_0"},
     ["wh2_main_sc_hef_high_elves"] = {"wh2_main_hef_inf_spearmen_0", "wh2_main_hef_inf_spearmen_0", "wh2_main_hef_inf_archers_1", "wh2_main_hef_cav_silver_helms_0", "wh2_main_hef_inf_lothern_sea_guard_1"},
     ["wh2_main_sc_lzd_lizardmen"] = {"wh2_main_lzd_inf_saurus_warriors_1", "wh2_main_lzd_inf_saurus_spearmen_0", "wh2_main_lzd_inf_saurus_warriors_1", "wh2_main_lzd_inf_skink_cohort_1"},
-    ["wh2_main_sc_skv_skaven"]  = {"wh2_main_skv_inf_stormvermin_0", "wh2_main_skv_inf_stormvermin_1", "wh2_main_skv_inf_gutter_runners_1"}
-}--:map<string, vector<string>>
+    ["wh2_main_sc_skv_skaven"]  = {"wh2_main_skv_inf_stormvermin_0", "wh2_main_skv_inf_stormvermin_1", "wh2_main_skv_inf_gutter_runners_1"},
+    ["wh2_dlc11_sc_cst_vampire_coast"] = {"wh2_dlc11_cst_inf_zombie_gunnery_mob_0", "wh2_dlc11_cst_inf_zombie_gunnery_mob_0", "wh2_dlc11_cst_inf_zombie_gunnery_mob_1", "wh2_dlc11_cst_mon_bloated_corpse_0", "wh2_dlc11_cst_inf_zombie_deckhands_mob_1"}
+} --:map<string, vector<string>>
 
-
-
+for subculture, unit_vector in pairs(subculture_defaults) do
+    rm:add_ai_units_for_subculture_with_table(subculture, unit_vector, true)
+end
 
 
 
@@ -42,7 +45,7 @@ end
 
 --v function(group_totals: map<string, number>, groupID: string, weight: number)
 local function increment_group_total(group_totals, groupID, weight)
-    rm:log("Incrementing a group total for ["..groupID.."] with weight ["..weight.."] ")
+    --rm:log("Incrementing a group total for ["..groupID.."] with weight ["..weight.."] ")
     if group_totals[groupID] == nil then
         group_totals[groupID] = 0
     end
@@ -51,7 +54,7 @@ end
 
 --v function(character: CA_CHAR, groupID: string, difference: number)
 local function limit_character(character, groupID, difference)
-    if subculture_default_units[character:faction():subculture()] == nil then
+    if rm:ai_subculture_defaults()[character:faction():subculture()] == nil then
         return
     end
     local diff = difference
@@ -64,7 +67,14 @@ local function limit_character(character, groupID, difference)
         local groups_list = rm:get_groups_for_unit(unit)
         for k = 1, #groups_list do
             if groups_list[k] == groupID then
+                for l = 0, character:military_force():unit_list():num_items() - 1 do
+                    local unit_obj = character:military_force():unit_list():item_at(l)
+                    if unit_obj:unit_key() == unit then
+                        cm:treasury_mod(unit_obj:faction():name(), unit_obj:get_unit_custom_battle_cost())
+                    end
+                end
                 cm:remove_unit_from_character(cm:char_lookup_str(character:cqi()), unit)
+                local subculture_default_units = rm:ai_subculture_defaults()
                 local new_unit = subculture_default_units[character:faction():subculture()][cm:random_number(#subculture_default_units[character:faction():subculture()])]
                 cm:grant_unit_to_character(cm:char_lookup_str(character:cqi()), new_unit)
                 rm:log("removed unit ["..unit.."] and granted ["..new_unit.."] as a replacement unit!")

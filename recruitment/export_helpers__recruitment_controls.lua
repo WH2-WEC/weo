@@ -31,7 +31,7 @@ core:add_listener(
         local unit_component_ID = tostring(UIComponent(context.component):Id())
         --is our clicked component a unit?
         if string.find(unit_component_ID, "_recruitable") and UIComponent(context.component):CurrentState() == "active" then
-            print_all_uicomponent_children(UIComponent(context.component))
+            --print_all_uicomponent_children(UIComponent(context.component))
             --its a unit! steal the users input so that they don't click more shit while we calculate.
             cm:steal_user_input(true);
             rm:log("Locking recruitment button for ["..unit_component_ID.."] temporarily");
@@ -218,7 +218,14 @@ core:add_listener(
     "RecruiterManagerOnRecruitPanelOpened",
     "PanelOpenedCampaign",
     function(context) 
-        return context.string == "units_recruitment"; 
+        local panel = (context.string == "units_recruitment")
+        if rm:current_character() == nil then
+            return false
+        end
+        local char = cm:get_character_by_cqi(rm:current_character():cqi())
+        local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
+        local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
+        return panel and ((not cbh) or in_foreign_land)
     end,
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
@@ -256,6 +263,116 @@ core:add_listener(
                 end
             end
         end, 0.1)
+    end,
+    true
+)
+--pirate ship version of same listener
+rm.first_tick_log = false --:boolean
+core:add_listener(
+    "RecruiterManagerOnRecruitPanelOpened",
+    "PanelOpenedCampaign",
+    function(context) 
+        local panel = (context.string == "units_recruitment")
+        if rm:current_character() == nil then
+            return false
+        end
+        local char = cm:get_character_by_cqi(rm:current_character():cqi())
+        local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
+        local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
+        return panel and cbh and not in_foreign_land
+    end,
+    function(context)
+        if cm:get_character_by_cqi(rm:current_character():cqi()):has_military_force() then
+            CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "recruiter_manager|force_stance|"..tostring(rm:current_character():cqi()))
+        end
+        cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
+            --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
+            --v function(text:string)
+            local function log(text)
+                if rm.first_tick_log then
+                    return
+                end
+                rm.first_tick_log = true
+                --rm:log(text)
+            end
+            do
+                local checked_units = {} --:map<string, boolean>
+                local recruitmentList = find_uicomponent(core:get_ui_root(), "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list", "listview", "list_clip", "list_box")
+                if not not recruitmentList then
+                    log("found the list for the global pool")
+                    for i = 0, recruitmentList:ChildCount() - 1 do	
+                        local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                        local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                        rm:check_unit_on_individual_character_for_loop(unitID)
+                        rm:current_character():enforce_unit_restriction(unitID)
+                        checked_units[unitID] = true
+                    end
+                else
+                    log("couldn't find the list for the global pool")
+                end
+                local recruitmentList = find_uicomponent(core:get_ui_root(), "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box")
+                if not not recruitmentList then
+                    for i = 0, recruitmentList:ChildCount() - 1 do	
+                        local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                        local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                        if not checked_units[unitID] then
+                            rm:check_unit_on_individual_character_for_loop(unitID)
+                            rm:current_character():enforce_unit_restriction(unitID)
+                            checked_units[unitID] = true
+                        end
+                    end
+                else
+                    log("couldn't find the list for the local pool")
+                end
+                local recruitmentList = find_uicomponent(core:get_ui_root(), "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list", "listview", "list_clip", "list_box")
+                if not not recruitmentList then
+                    for i = 0, recruitmentList:ChildCount() - 1 do	
+                        local recruitmentOption = UIComponent(recruitmentList:Find(i)):Id();
+                        local unitID = string.gsub(recruitmentOption, "_recruitable", "")
+                        if not checked_units[unitID] then
+                            rm:check_unit_on_individual_character_for_loop(unitID)
+                            rm:current_character():enforce_unit_restriction(unitID)
+                        end
+                    end
+                else
+                    log("couldn't find the list for the local pool")
+                end
+            end
+        end, 0.1)
+    end,
+    true
+)
+--multiplayer safe listener
+core:add_listener(
+    "UITriggerScriptEventRecruiterManager",
+    "UITriggerScriptEvent",
+    function(context)
+        return context:trigger():starts_with("recruiter_manager|force_stance|")
+    end,
+    function(context)
+        local trigger = context:trigger() --:string
+        local cqi = trigger:gsub("recruiter_manager|force_stance|", "")
+        --# assume cqi: CA_CQI
+        if not (cm:get_character_by_cqi(cqi):military_force():active_stance() == "MILITARY_FORCE_ACTIVE_STANCE_TYPE_SETTLE") then
+            cm:force_character_force_into_stance(cm:char_lookup_str(cqi), "MILITARY_FORCE_ACTIVE_STANCE_TYPE_SETTLE")
+        end
+    end,
+    true
+)
+--stance return listener
+core:add_listener(
+    "RecruiterManagerPirateShipStance",
+    "ForceAdoptsStance",
+    function(context)
+        return context:military_force():active_stance() ~= "MILITARY_FORCE_ACTIVE_STANCE_TYPE_SETTLE" and context:military_force():has_general() and rm:is_subtype_char_horde(context:military_force():general_character():character_subtype_key())
+    end,
+    function(context)
+        local button = find_uicomponent(core:get_ui_root(), "layout", "hud_center_docker", "hud_center", "small_bar", "button_group_army", "button_recruitment")
+        if not not button then
+            if cm:get_campaign_ui_manager():is_panel_open("units_recruitment") then
+                button:SimulateLClick()
+            end
+        end
     end,
     true
 )
