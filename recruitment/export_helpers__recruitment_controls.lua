@@ -31,7 +31,7 @@ core:add_listener(
         local unit_component_ID = tostring(UIComponent(context.component):Id())
         --is our clicked component a unit?
         if string.find(unit_component_ID, "_recruitable") and UIComponent(context.component):CurrentState() == "active" then
-            print_all_uicomponent_children(UIComponent(context.component))
+            --print_all_uicomponent_children(UIComponent(context.component))
             --its a unit! steal the users input so that they don't click more shit while we calculate.
             cm:steal_user_input(true);
             rm:log("Locking recruitment button for ["..unit_component_ID.."] temporarily");
@@ -218,7 +218,11 @@ core:add_listener(
     "RecruiterManagerOnRecruitPanelOpened",
     "PanelOpenedCampaign",
     function(context) 
-        return (context.string == "units_recruitment") and (not rm:is_subtype_char_horde(cm:get_character_by_cqi(rm:current_character():cqi()):character_subtype_key()))
+        local panel = (context.string == "units_recruitment")
+        local char = cm:get_character_by_cqi(rm:current_character():cqi())
+        local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
+        local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
+        return panel and ((not cbh) or in_foreign_land)
     end,
     function(context)
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
@@ -265,7 +269,11 @@ core:add_listener(
     "RecruiterManagerOnRecruitPanelOpened",
     "PanelOpenedCampaign",
     function(context) 
-        return (context.string == "units_recruitment") and rm:is_subtype_char_horde(cm:get_character_by_cqi(rm:current_character():cqi()):character_subtype_key())
+        local panel = (context.string == "units_recruitment")
+        local char = cm:get_character_by_cqi(rm:current_character():cqi())
+        local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
+        local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
+        return panel and cbh and not in_foreign_land
     end,
     function(context)
         if cm:get_character_by_cqi(rm:current_character():cqi()):has_military_force() then

@@ -455,7 +455,7 @@ function recruiter_character.new(manager, cqi)
     self._manager = manager  -- stores the associated rm
     self._armyCounts = {} --:map<string, number> --stores the current number of each unit in the army
     self._queueCounts = {} --:map<string, number> --stores the current number of each unit in the queue
-    if not not cm:get_saved_value("RMSavedQueues:"..tostring(cqi)) then
+    if not not cm:get_saved_value("RMSavedQueues|"..tostring(cqi)) then
         self._queueCounts = DeserializeSaveString(cm:get_saved_value("RMSavedQueues:"..tostring(cqi)))
     end
     self._restrictedUnits = {} --:map<string, boolean> -- stores the units currently restricted for the character
@@ -703,7 +703,7 @@ function recruiter_character.refresh_queue(self)
         end
     end
     --save the queue
-    cm:set_saved_value("RMSavedQueues:"..tostring(self:cqi()), SerializeQueueTable(self._queueCounts))
+    cm:set_saved_value("RMSavedQueues|"..tostring(self:cqi()), SerializeQueueTable(self._queueCounts))
     --set the queue fresh
     self:set_queue_fresh()
 end
@@ -801,9 +801,11 @@ end
 --enforce the restriction for a specific unit onto the UI.
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.enforce_unit_restriction(self, unitID)
-    local is_cbh = self:manager():is_subtype_char_horde(cm:get_character_by_cqi(self:cqi()):character_subtype_key())
+    char = cm:get_character_by_cqi(self:cqi())
+    local is_cbh = self:manager():is_subtype_char_horde(char:character_subtype_key())
+    local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
     self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] who has a character bound horde flag ["..tostring(is_cbh).."] ")
-    if is_cbh then
+    if is_cbh and not in_foreign_land then
         local paths = {
             {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box"},
             {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list", "listview", "list_clip", "list_box"},
