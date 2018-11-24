@@ -24,6 +24,7 @@ end
 
 --v function(region: CA_REGION)
 local function process_region_turn(region)
+    pm:log("Processing region turn for ["..region:name().."]")
     local rd = pm:get_region_detail(region:name())
     --fpd
     process_province_turn(rd:fpd())
@@ -45,10 +46,12 @@ local function process_region_turn(region)
             rm:change_unit_pool(unit, rd:owning_faction():name(), quantity)
         end
     end
+    pm:save_rd(rd)
 end
 
 --v function(faction: CA_FACTION)
 local function process_faction_subjects(faction)
+    pm:log("Processing faction subjects for ["..faction:name().."]")
     --for each fpd owned by this faction
     for province_key, fpd in pairs(pm:get_provinces_for_faction(faction:name())) do
         if fpd:is_capital_owned() then
@@ -59,7 +62,9 @@ local function process_faction_subjects(faction)
                 for j = 0, adj_list:num_items() - 1 do
                     local region = adj_list:item_at(j)
                     if region:province_name() ~= fpd:province() then
-                        adj_provinces[region:name()] = region
+                        if not (region:is_abandoned() or region:settlement():is_null_interface() or region:owning_faction():is_null_interface() or region:owning_faction():name() == "rebels") then
+                            adj_provinces[region:name()] = region
+                        end
                     end
                 end
             end
@@ -74,6 +79,11 @@ local function process_faction_subjects(faction)
             for subject_key, _ in pairs(fpd:subject_whitelist()) do
                 fpd:capital_region():apply_effect_bundle("wec_subject_bundle_"..subject_key.."_"..pm:get_faction_subject(faction:name(), subject_key):state())
             end
+            
+            for name, region_detail in pairs(fpd:regions()) do
+                pm:save_rd(region_detail)
+            end
+            pm:save_fpd(fpd)
         end
     end
 
@@ -120,49 +130,53 @@ end
 
 cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function() 
     local ok, err = pcall( function()
-    for i = 1, #cm:get_human_factions() do
-        pm._humans[cm:get_human_factions()[i]] = true
-    end
-    local region_list = cm:model():world():region_manager():region_list()
-    for i = 0, region_list:num_items() - 1 do
-        local region = region_list:item_at(i)
-        if not (region:settlement():is_null_interface() or region:owning_faction() == "rebels") then
-            pm:get_region_detail(region:name())
+        for i = 1, #cm:get_human_factions() do
+            pm._humans[cm:get_human_factions()[i]] = true
         end
-    end
-    if cm:is_new_game() then
-        local region_list = cm:model():world():whose_turn_is_it():region_list()
+        pm:log("Initializing regions!")
+        local region_list = cm:model():world():region_manager():region_list()
         for i = 0, region_list:num_items() - 1 do
-            pre_process_region_turn(region_list:item_at(i))
+            local region = region_list:item_at(i)
+            if not (region:settlement():is_null_interface() or region:is_abandoned() or region:owning_faction():is_null_interface() or region:owning_faction():name() == "rebels") then
+                pm:get_region_detail(region:name())
+            end
         end
-        for i = 0, region_list:num_items() - 1 do
-            process_region_turn(region_list:item_at(i))
-        end
-        process_faction_subjects(cm:model():world():whose_turn_is_it())
-    end
-
-    core:add_listener(
-        "PMFactionTurnStart",
-        "FactionTurnStart",
-        function(context)
-            local faction = context:faction() --:CA_FACTION
-            local is_rebel = (faction:name() == "rebels")
-            local has_regions = (not faction:region_list():is_empty())
-            local has_pm = pm:subculture_has_province_management(faction:subculture())
-            return has_regions and (not is_rebel) and has_pm
-        end,
-        function(context)
-            local region_list = context:faction():region_list() --:CA_REGION_LIST
+        if not cm:get_saved_value("pm_first_turn") then
+            pm:log("Its a new game, processing the current turn")
+            local region_list = cm:model():world():whose_turn_is_it():region_list()
             for i = 0, region_list:num_items() - 1 do
                 pre_process_region_turn(region_list:item_at(i))
             end
             for i = 0, region_list:num_items() - 1 do
                 process_region_turn(region_list:item_at(i))
             end
-            process_faction_subjects(context:faction())
-        end,
-        true
-        )
+            process_faction_subjects(cm:model():world():whose_turn_is_it())
+            cm:set_saved_value("pm_first_turn", true)
+        end
+
+        core:add_listener(
+            "PMFactionTurnStart",
+            "FactionTurnStart",
+            function(context)
+                local faction = context:faction() --:CA_FACTION
+                local is_rebel = (faction:name() == "rebels")
+                local has_regions = (not faction:region_list():is_empty())
+                local has_pm = pm:subculture_has_province_management(faction:subculture())
+                return has_regions and (not is_rebel) and has_pm
+            end,
+            function(context)
+                pm:log("Beginning Turn Start Process for faction ["..context:faction():name().."] ")
+                local region_list = context:faction():region_list() --:CA_REGION_LIST
+                for i = 0, region_list:num_items() - 1 do
+                    pre_process_region_turn(region_list:item_at(i))
+                end
+                for i = 0, region_list:num_items() - 1 do
+                    process_region_turn(region_list:item_at(i))
+                end
+                process_faction_subjects(context:faction())
+            end,
+            true
+            )
     end)
     if not ok then
         pm:log(tostring(err))
@@ -177,36 +191,45 @@ core:add_listener(
         return context:garrison_residence():faction():name() == cm:get_local_faction(true)
     end,
     function(context)
-        local province = context:garrison_residence():region():province_name()
-        local faction_name = context:garrison_residence():faction():name()
+        local province = context:garrison_residence():region():province_name() --:string
+        local faction_name = context:garrison_residence():region():owning_faction():name() --:string
         local fpd = pm:get_faction_province_detail(faction_name, province)
-        if not not fpd then
-            local sub = fpd:subculture()
-            if not pm:subculture_has_province_management(sub) then
-                return
-            end
-            pm._currentFPD = fpd
-            pm:log("Set the current fpd to ["..fpd._province.."]")
-            if pm:subculture_has_prod_control(sub) then
-                pm:log("\t prod control level is ["..fpd._prodControl.."]")
-            end
-            pm:log("\t The Current subjects are:")
-            for subject, _ in pairs(fpd:subject_whitelist()) do
-                pm:log("\t\tSubject: ["..subject.."], state: ["..pm:get_faction_subject(cm:get_local_faction(true), subject):state().."]")
-            end
-            for key, rd in pairs(fpd._regions) do
-                pm:log("\tRegion: ".. key)
-                for building, _ in pairs(rd._buildings) do
-                    pm:log("\t\tHas building: ".. building)
+        pm:log("Settlement Selected: ["..context:garrison_residence():region():name().."] in province ["..province.."]")
+        local ok, err = pcall(
+            function()
+            if not not fpd then
+                local sub = fpd:subculture()
+                if not pm:subculture_has_province_management(sub) then
+                    return
                 end
-                if pm:subculture_has_wealth(sub) then
-                    pm:log("\t wealth is ["..rd._wealth.."] and the wealth cap is ["..rd._maxWealth.."] ")
+                --pm._currentFPD = fpd
+                pm:log("Set the current fpd to ["..fpd._province.."]")
+                if pm:subculture_has_prod_control(sub) then
+                    pm:log("\t prod control level is ["..fpd._prodControl.."]")
                 end
-                pm:log("\t the unit production is:")
-                for unit, number in pairs(rd._partialUnits) do
-                    pm:log("\t\t unit: ["..unit.."] production is at ["..number.."] ")
+                pm:log("\t The Current subjects are:")
+                for subject, _ in pairs(fpd:subject_whitelist()) do
+                    pm:log("\t\tSubject: ["..subject.."], state: ["..pm:get_faction_subject(cm:get_local_faction(true), subject):state().."]")
                 end
+                for key, rd in pairs(fpd._regions) do
+                    pm:log("\tRegion: ".. key)
+                    for building, _ in pairs(rd._buildings) do
+                        pm:log("\t\tHas building: ".. building)
+                    end
+                    if pm:subculture_has_wealth(sub) then
+                        pm:log("\t wealth is ["..rd._wealth.."] and the wealth cap is ["..rd._maxWealth.."] ")
+                    end
+                    pm:log("\t the unit production is:")
+                    for unit, number in pairs(rd._partialUnits) do
+                        pm:log("\t\t unit: ["..unit.."] production is at ["..number.."] ")
+                    end
+                end
+            else
+                pm:log("Region has no FPD")
             end
+        end)
+        if not ok then 
+            pm:log(err)
         end
     end,
     true

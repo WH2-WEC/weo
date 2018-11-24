@@ -11,7 +11,15 @@ function fpd.new(model, cm, faction, province)
     self._cm = cm
     self._faction = faction
     self._owningFaction = self._cm:get_faction(faction)
-    self._subculture = self._owningFaction:subculture()
+    if self._owningFaction == false then
+        model:log("Warning! Get Faction returned false for ["..faction.."] while creating a FPD. Attempting to use the real query.")
+        self._owningFaction = self._cm:model():world():faction_by_key(faction)
+    end
+    if self._owningFaction then
+        self._subculture = self._owningFaction:subculture()
+    else
+        self._subculture = "rebels"
+    end
     self._province = province
     self._regions = {} --:map<string, RD>
     self._capitalRegion = nil --: RD
@@ -41,6 +49,16 @@ function fpd.load(model, cm, faction, province, svt)
     self._model = model
     self._cm = cm
     self._faction = faction
+    self._owningFaction = self._cm:get_faction(faction)
+    if self._owningFaction == false then
+        model:log("Warning! Get Faction returned false for ["..faction.."] while creating a FPD. Attempting to use the real query.")
+        self._owningFaction = self._cm:model():world():faction_by_key(faction)
+    end
+    if self._owningFaction then
+        self._subculture = self._owningFaction:subculture()
+    else
+        self._subculture = "rebels"
+    end
     self._province = province
     self._regions = {}
     self._numRegions = 0
@@ -49,8 +67,7 @@ function fpd.load(model, cm, faction, province, svt)
     self._subjectWhitelist = svt._subjectWhitelist or {}
     self._UISubjectSources = svt._UISubjectSources or {}
     self._subjectAdjacency = {} 
-    --tax rate
-    self._taxRate = svt._taxRate or 3
+    self._prodControl = svt._prodControl or 3 
     return self
 end
 
@@ -59,7 +76,7 @@ function fpd.save(self)
     local svt = {} 
     svt._subjectWhitelist = self._subjectWhitelist
     svt._UISubjectSources = self._UISubjectSources
-    svt._taxRate = self._taxRate
+    svt._prodControl = self._prodControl
     return svt
 end
 

@@ -23,7 +23,7 @@
 
 --# assume global class PM
 --# assume global class FPD
---# type global FPD_SAVE = {_subjectWhitelist: map<string, boolean>, _UISubjectSources: map<string, string>, _taxRate: number}
+--# type global FPD_SAVE = {_subjectWhitelist: map<string, boolean>, _UISubjectSources: map<string, string>, _prodControl: number}
 --# assume global class RD
 --# type global RD_SAVE = {_wealth: number, _maxWealth: number, _UIWealthChanges:map<string, number>, _partialUnits:map<string, number>, _UIUnitProduction:map<string,number>, _regionEffects: map<string, boolean>}
 --# assume global class SUBJECT
