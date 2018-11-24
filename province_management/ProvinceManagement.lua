@@ -344,11 +344,13 @@ end
 
 --v function(self: PM, faction_key: string, province_key: string) --> FPD
 function province_manager.create_or_load_province(self, faction_key, province_key)
+    
     local savestring = cm:get_saved_value("wec_pm_faction_province_detail_save_"..province_key.."_"..faction_key)
     if savestring == nil then
         if self._factionProvinceDetails[faction_key] == nil then
             self._factionProvinceDetails[faction_key] = {}
         end
+        self:log("Creating a new province detail for faction ["..faction_key.."] and province ["..province_key.."] ")
         self._factionProvinceDetails[faction_key][province_key] = faction_province_detail.new(self, self._cm, faction_key, province_key)
         return self._factionProvinceDetails[faction_key][province_key]
     else
@@ -357,6 +359,7 @@ function province_manager.create_or_load_province(self, faction_key, province_ke
         end
         local savedata = cm:load_values_from_string(savestring)
         --# assume savedata: FPD_SAVE
+        self:log("Loaded a province detail for faction ["..faction_key.."] and province ["..province_key.."] ")
         self._factionProvinceDetails[faction_key][province_key] = faction_province_detail.load(self, self._cm, faction_key, province_key, savedata)
         return self._factionProvinceDetails[faction_key][province_key]
     end
@@ -366,6 +369,10 @@ end
 
 --v function(self: PM,  faction_key: string, province_key: string) --> FPD
 function province_manager.get_faction_province_detail(self, faction_key, province_key)
+    if faction_key == "rebels" then
+        self:log("Warning: get faction province detail about to return nil")
+        return nil
+    end
     if self._factionProvinceDetails[faction_key] == nil then 
         self._factionProvinceDetails[faction_key] = {}
     end
@@ -397,6 +404,10 @@ function province_manager.get_region_detail(self, region_key)
         --create a new region and any associated objects.
         local obj = cm:get_region(region_key)
         local faction = obj:owning_faction():name()
+        if faction == "rebels" then
+            self:log("Warning: get region detail about to return nil")
+            return nil
+        end
         local province = obj:province_name()
         local fpd = self:get_faction_province_detail(faction, province)
         local new_region = self:create_or_load_region(region_key, fpd)
@@ -542,4 +553,5 @@ function province_manager.add_building_unit_production(self, building, unit, qua
 end
 
 --init
-province_manager.init(cm, core):error_checker()
+province_manager.init(cm, core)
+---:error_checker()

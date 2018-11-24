@@ -15,7 +15,12 @@ function rd.new(model, cm, fpd, region)
     --core
     self._pointer = self._cm:get_region(region)
     self._owner = self._pointer:owning_faction()
-    self._subculture = self._owner:subculture()
+    if self._owner and not self._owner:is_null_interface() then
+        self._subculture = self._owner:subculture()
+    else
+        model:log("Warning, creating a region detail for a region where the owner is a null interface!")
+        self._subculture = "rebels"
+    end
     --buildings
     self._buildings = {} --:map<string, boolean>
     --wealth
