@@ -45,7 +45,7 @@ end
 
 --v function(group_totals: map<string, number>, groupID: string, weight: number)
 local function increment_group_total(group_totals, groupID, weight)
-    rm:log("Incrementing a group total for ["..groupID.."] with weight ["..weight.."] ")
+    --rm:log("Incrementing a group total for ["..groupID.."] with weight ["..weight.."] ")
     if group_totals[groupID] == nil then
         group_totals[groupID] = 0
     end
