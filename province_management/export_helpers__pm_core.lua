@@ -202,7 +202,7 @@ core:add_listener(
                 if not pm:subculture_has_province_management(sub) then
                     return
                 end
-                --pm._currentFPD = fpd
+                pm:set_current_fpd(fpd)
                 pm:log("Set the current fpd to ["..fpd._province.."]")
                 if pm:subculture_has_prod_control(sub) then
                     pm:log("\t prod control level is ["..fpd._prodControl.."]")
@@ -234,3 +234,7 @@ core:add_listener(
     end,
     true
 )
+
+rm:add_unit_pool("wh_dlc04_emp_inf_free_company_militia_0", "wh_main_emp_empire", 1, 1, 0)
+
+pm:enable_province_management_for_subculture("wh_main_sc_emp_empire")

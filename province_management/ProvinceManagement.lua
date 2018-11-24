@@ -48,6 +48,8 @@ function province_manager.init(cm, core)
     self._factionProvinceDetails = {} --:map<string, map<string, FPD>>
     self._regions = {} --:map<string, RD>
     self._factionSubjects = {} --:map<string, map<string, SUBJECT>>
+    --ui
+    self._currentFPD = nil --: FPD
     --modifiers
     --globally modify all changes in wealth and unit production with a function by subculture
     self._wealthModifiers = {} --:map<string, (function(wealth: number, rd: RD) --> number)>
@@ -424,6 +426,24 @@ function province_manager.delete_fpd(self, faction_key, province_key)
     cm:set_saved_value("wec_pm_faction_province_detail_save_"..province_key.."_"..faction_key, false)
     self._factionProvinceDetails[faction_key][province_key] = nil
 end
+-----------------------
+--selection functions--
+-----------------------
+
+--v function(self: PM, fpd: FPD)
+function province_manager.set_current_fpd(self, fpd)
+    self._currentFPD = fpd
+end
+
+--v function(self: PM) --> FPD
+function province_manager.current_fpd(self)
+    if self._currentFPD == nil then
+        self:log("Warning, asked for current fpd when current fpd is nil!")
+    end
+    return self._currentFPD
+end
+
+
 
 --------------------------------
 --saving and loading functions--

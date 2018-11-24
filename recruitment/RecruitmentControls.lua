@@ -61,6 +61,9 @@ end
 --load again from a string
 --v function(savestring: string) --> map<string, number>
 local function DeserializeSaveString(savestring)
+    if not is_string(savestring) then
+        return {}
+    end
     local queue = {} --:map<string, number>
     local serial = string.gsub(savestring, "RMSavedQueue|", "")
     local start_var = 1
@@ -113,6 +116,7 @@ function recruiter_manager.init()
     self._unitPoolQuantities = {} --:map<string, map<string, number>>
     self._unitPools = {} --:map<string, boolean>
     self._unitPoolMaximums = {} --:map<string, number>
+    self._unitLinkedPools = {} --:map<string, string>
     --subtypes that have overrides are marked here.
     self._subtypeHasOverrides = {} --:map<string, map<string, boolean>> --marks which subtypes have overrides for which units
     self._subtypeGroupOverrides = {} --:map<string, map<string, string>> --marks which subtypes fully override the group
@@ -379,8 +383,22 @@ function recruiter_manager.unit_has_pool(self, unitID)
     return not not self._unitPools[unitID]
 end
     
+--v function(self: RECRUITER_MANAGER, unitID: string) --> boolean
+function recruiter_manager.unit_has_link(self, unitID)
+    return not not self._unitLinkedPools[unitID]
+end
+
+--v function(self: RECRUITER_MANAGER, unitID: string) --> string
+function recruiter_manager.get_linked_unit(self, unitID)
+    if self._unitLinkedPools[unitID] == nil then
+        return unitID
+    end
+    return self._unitLinkedPools[unitID] 
+end
+
 --v function(self: RECRUITER_MANAGER, unitID: string, faction: string) --> number
 function recruiter_manager.get_unit_pool_of_unit_for_faction(self, unitID, faction)
+    local unitID = self:get_linked_unit(unitID)
     if self._unitPoolQuantities[unitID] == nil then
         return 1000
     end
@@ -395,6 +413,7 @@ end
 
 --v function(self: RECRUITER_MANAGER, unitID: string, faction: string, change: number)
 function recruiter_manager.change_unit_pool(self, unitID, faction, change)
+    local unitID = self:get_linked_unit(unitID)
     self:log("Called for a change of unit pool for unit ["..unitID.."] on faction ["..faction.."] of ["..change.."]")
     if self._unitPoolMaximums[unitID] == nil or self._unitPoolQuantities[unitID] == nil or self._unitPoolQuantities[unitID][faction] == nil then
         self:log("Called for a unit pool change but the unit pool is not set up for this unit! aborting!")
@@ -845,7 +864,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                             xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                             xp:SetCanResizeHeight(true)
                             xp:SetCanResizeWidth(true)
-                            xp:Resize(30, 30)
+                            xp:Resize(42, 42)
                             xp:SetCanResizeHeight(false)
                             xp:SetCanResizeWidth(false)
                         else
@@ -884,7 +903,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                                 xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                                 xp:SetCanResizeHeight(true)
                                 xp:SetCanResizeWidth(true)
-                                xp:Resize(40, 40)
+                                xp:Resize(42, 42)
                                 xp:SetCanResizeHeight(false)
                                 xp:SetCanResizeWidth(false)
                             else
@@ -948,7 +967,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                             xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                             xp:SetCanResizeHeight(true)
                             xp:SetCanResizeWidth(true)
-                            xp:Resize(30, 30)
+                            xp:Resize(42, 42)
                             xp:SetCanResizeHeight(false)
                             xp:SetCanResizeWidth(false)
                         else
@@ -987,7 +1006,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                                 xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                                 xp:SetCanResizeHeight(true)
                                 xp:SetCanResizeWidth(true)
-                                xp:Resize(40, 40)
+                                xp:Resize(42, 42)
                                 xp:SetCanResizeHeight(false)
                                 xp:SetCanResizeWidth(false)
                             else
@@ -1761,6 +1780,11 @@ function recruiter_manager.add_unit_set_to_pools(self, unitIDset, subculture, qu
     end
 end
 
+--pool linkage
+--v function(self: RECRUITER_MANAGER, unit_to_link: string, linked: string)
+function recruiter_manager.link_unit_pool(self, unit_to_link, linked)
+    self._unitLinkedPools[unit_to_link] = linked
+end
 
 --pirate ships
 

@@ -22,6 +22,7 @@
 
 
 --# assume global class PM
+--# assume global class PM_VIEW
 --# assume global class FPD
 --# type global FPD_SAVE = {_subjectWhitelist: map<string, boolean>, _UISubjectSources: map<string, string>, _prodControl: number}
 --# assume global class RD
