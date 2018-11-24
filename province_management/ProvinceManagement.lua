@@ -391,9 +391,13 @@ function province_manager.get_region_detail(self, region_key)
     end
 end
 
------------------------
---transition handlers--
------------------------
+--v function(self: PM, faction_key: string, province_key: string)
+function province_manager.delete_fpd(self, faction_key, province_key)
+    if self._factionProvinceDetails[faction_key] == nil then
+        return
+    end
+    self._factionProvinceDetails[faction_key][province_key] = nil
+end
 
 
 

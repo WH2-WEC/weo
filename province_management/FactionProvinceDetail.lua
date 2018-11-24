@@ -74,6 +74,16 @@ end
 function fpd.owning_faction(self)
     return self._owningFaction
 end
+
+--v function(self: FPD) --> string
+function fpd.faction(self)
+    return self._faction
+end
+
+--v function(self: FPD) --> string
+function fpd.province(self)
+    return self._province
+end
     
 --v function(self: FPD, region_detail: RD)
 function fpd.add_region(self, region_detail)
@@ -159,10 +169,6 @@ end
 function fpd.pre_process(self)
     self._UISubjectSources = {}
     self._subjectAdjacency = {}
-end
-
---v function(self: FPD)
-function fpd.apply_subjects(self)
     for name, region_detail in pairs(self._regions) do
         for building_name, _ in pairs(region_detail:buildings()) do
             if self._model:building_has_subject(building_name) then
@@ -174,7 +180,6 @@ function fpd.apply_subjects(self)
         end
     end
 end
-
 
 
 

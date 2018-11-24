@@ -89,10 +89,13 @@ function rd.fpd(self)
     return self._fpd
 end
 
---not for external use. Only changes the pointer
+--Changes the fpd pointer stored and updates the CA pointers
 --v function(self: RD, fpd: FPD)
 function rd.set_fpd(self, fpd)
     self._fpd = fpd
+    self._pointer = self._cm:get_region(self._name)
+    self._owner = self._pointer:owning_faction()
+    self._subculture = self._owner:subculture()
 end
 
 --return access to the stored CM pointer
