@@ -523,6 +523,17 @@ function province_manager.enable_subject_for_subculture(self, subject, subcultur
 end
 
 -------------------
+--subject demands--
+-------------------
+--v function(self: PM, subject: string, demand_template: DEMAND_TEMPLATE)
+function province_manager.add_demand_template_for_subject(self, subject, demand_template)
+    if self._subjectDemands[subject] == nil then
+        self._subjectDemands[subject] = {}
+    end
+    self._subjectDemands[subject][demand_template.key] = demand_template
+end
+
+-------------------
 --unit production--
 -------------------
 --v function(self: PM, building: string, unit: string, quantity: number)
