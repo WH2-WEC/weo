@@ -14,8 +14,10 @@ function fpd.new(model, cm, faction, province)
     self._subculture = self._owningFaction:subculture()
     self._province = province
     self._regions = {} --:map<string, RD>
+    self._capitalRegion = nil --: RD
     self._numRegions = 0 --:number
     self._lastProcess = -1 --:number
+    self._capitalOwned = false
     --subjects
     self._subjectWhitelist = {} --:map<string, boolean> --subject key to present
     self._UISubjectSources = {} --:map<string, string>  -- subject key to UI Source
@@ -91,6 +93,10 @@ function fpd.add_region(self, region_detail)
     local key = region_detail:name()
     region_detail:set_fpd(self)
     self._regions[key] = region_detail
+    if region_detail:ca_object():is_province_capital() then
+        self._capitalOwned = true
+        self._capitalRegion = region_detail
+    end
 end
 
 --v function(self: FPD, region_detail_key: string)
@@ -98,8 +104,9 @@ function fpd.remove_region(self, region_detail_key)
     local rd = self._regions[region_detail_key]
     self._regions[region_detail_key] = nil
     self._numRegions = self._numRegions - 1
-    if self._model:subculture_has_prod_control(self._subculture) then
-        rd:remove_effect_bundle("wec_prod_control_"..self._subculture.."_"..tostring(self._prodControl))
+    if rd:ca_object():is_province_capital() then
+        self._capitalOwned = false
+        self._capitalRegion = nil
     end
 end
 
@@ -107,11 +114,37 @@ end
 function fpd.is_empty(self)
     return self._numRegions == 0 
 end
+-------------------
+--capital regions--
+-------------------
 
+--v function(self: FPD) --> boolean
+function fpd.is_capital_owned(self)
+    return self._capitalOwned
+end
+
+--v function(self: FPD) --> RD
+function fpd.capital_region(self)
+    return self._capitalRegion
+end
+
+-------------------
+--subjects system--
+-------------------
 
 --v function(self: FPD) --> map<string, boolean>
 function fpd.subject_whitelist(self)
     return self._subjectWhitelist
+end
+
+--v function(self: FPD) --> map<string, boolean>
+function fpd.subject_offers(self)
+    return self._subjectAdjacency
+end
+
+--v function(self: FPD) --> boolean
+function fpd.has_subject(self)
+    return not not self._subjectWhitelist
 end
 -----------------
 --process flags--
@@ -156,8 +189,13 @@ end
 
 --v function(self: FPD, subject: string, UISource: string)
 function fpd.add_subject(self, subject, UISource)
-    self._subjectWhitelist[subject] = true
-    self._UISubjectSources[subject] = UISource
+    if self._subjectWhitelist[subject] == true then
+        return
+    end
+    if self._model:is_subject_valid_for_subculture(subject, self._subculture) then
+        self._subjectWhitelist[subject] = true
+        self._UISubjectSources[subject] = UISource
+    end
 end
 
 --v function(self: FPD, subject: string)
@@ -181,6 +219,10 @@ function fpd.pre_process(self)
     end
 end
 
+--v function(self: FPD) --> map<string, RD>
+function fpd.regions(self)
+    return self._regions
+end
 
 
 return {

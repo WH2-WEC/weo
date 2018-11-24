@@ -227,6 +227,14 @@ function province_manager.building_subject_adjacency(self, building)
     return self._buildingSubjectAdjacency[building]
 end
 
+--v function(self: PM, subject: string, subculture: string) --> boolean
+function province_manager.is_subject_valid_for_subculture(self, subject, subculture)
+    if self._subcultureSubjectKeys[subculture] == nil then
+        return false
+    end
+    return not not self._subcultureSubjectKeys[subculture][subject]
+end
+
 -------------------
 --unit production--
 -------------------
@@ -375,6 +383,15 @@ function province_manager.get_faction_province_detail(self, faction_key, provinc
     end
 end
 
+--v function(self: PM, faction_key: string) --> map<string, FPD>
+function province_manager.get_provinces_for_faction(self, faction_key)
+    if self._factionProvinceDetails[faction_key] == nil then 
+        self._factionProvinceDetails[faction_key] = {}
+    end
+    return self._factionProvinceDetails[faction_key]
+
+end
+
 --v function(self: PM, region_key: string) --> RD
 function province_manager.get_region_detail(self, region_key)
     if not not self._regions[region_key] then
@@ -396,12 +413,39 @@ function province_manager.delete_fpd(self, faction_key, province_key)
     if self._factionProvinceDetails[faction_key] == nil then
         return
     end
+    cm:set_saved_value("wec_pm_faction_province_detail_save_"..province_key.."_"..faction_key, false)
     self._factionProvinceDetails[faction_key][province_key] = nil
 end
 
+--------------------------------
+--saving and loading functions--
+--------------------------------
 
+--v function(self:PM, fpd: FPD)
+function province_manager.save_fpd(self, fpd)
+    local savedata = fpd:save()
+    local savestring = cm:process_table_save(savedata)
+    local province_key = fpd:province()
+    local faction_key = fpd:faction()
+    cm:set_saved_value("wec_pm_faction_province_detail_save_"..province_key.."_"..faction_key, savestring)
+end
 
+--v function(self: PM, rd: RD)
+function province_manager.save_rd(self, rd)
+    local savedata = rd:save()
+    local savestring = cm:process_table_save(savedata)
+    local region_key = rd:name()
+    cm:set_saved_value("wec_pm_regions_save_"..region_key, savestring)
+end
 
+--v function(self: PM, subject: SUBJECT)
+function province_manager.save_subject(self, subject)
+    local savedata = subject:save()
+    local savestring = cm:process_table_save(savedata)
+    local subject_key = subject:key()
+    local faction_key = subject:faction()
+    cm:set_saved_value("wec_pm_subjects_save_"..subject_key.."_"..faction_key, savestring)
+end
 
 
 ------------------
@@ -468,6 +512,14 @@ end
 --v function(self: PM, building: string, subject: string)
 function province_manager.add_subject_adjacency_for_building(self, building, subject)
     self._buildingSubjectAdjacency[building] = subject
+end
+
+--v function(self: PM, subject: string, subculture: string)
+function province_manager.enable_subject_for_subculture(self, subject, subculture)
+    if self._subcultureSubjectKeys[subculture] == nil then
+        self._subcultureSubjectKeys[subculture] = {}
+    end
+    self._subcultureSubjectKeys[subculture][subject] = true 
 end
 
 -------------------

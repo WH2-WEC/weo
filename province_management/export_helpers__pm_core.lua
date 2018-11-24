@@ -25,7 +25,9 @@ end
 --v function(region: CA_REGION)
 local function process_region_turn(region)
     local rd = pm:get_region_detail(region:name())
+    --fpd
     process_province_turn(rd:fpd())
+    --wealth
     rd:update_wealth_cap()
     for building_key, _ in pairs(rd:buildings()) do
         rd:wealth_mod(pm:get_building_wealth_effect(building_key), "_"..building_key)
@@ -36,22 +38,55 @@ local function process_region_turn(region)
         end
     end
     rd:apply_wealth()
+    --unit prod
     for unit, _ in pairs(rd:unit_production()) do
         local quantity = rd:calc_unit_production(unit)
         if rm:unit_has_pool(unit) then
             rm:change_unit_pool(unit, rd:owning_faction():name(), quantity)
         end
     end
-
-    
 end
 
+--v function(faction: CA_FACTION)
+local function process_faction_subjects(faction)
+    --for each fpd owned by this faction
+    for province_key, fpd in pairs(pm:get_provinces_for_faction(faction:name())) do
+        if fpd:is_capital_owned() then
+            --find adjacent stuff
+            local adj_provinces = {} --:map<string, CA_REGION>
+            for region_key, region_detail in pairs(fpd:regions()) do
+                local adj_list = region_detail:ca_object():adjacent_region_list()
+                for j = 0, adj_list:num_items() - 1 do
+                    local region = adj_list:item_at(j)
+                    if region:province_name() ~= fpd:province() then
+                        adj_provinces[region:name()] = region
+                    end
+                end
+            end
+            --add adjacent stuff
+            for region_key, region in pairs(adj_provinces) do
+                local other_fpd = pm:get_faction_province_detail(region:owning_faction():name(), region:province_name())
+                for subject_key, _ in pairs(other_fpd:subject_offers()) do
+                    fpd:add_subject(subject_key, "_"..region_key)
+                end
+            end
+            --for each subject they have active, turn on the bundle
+            for subject_key, _ in pairs(fpd:subject_whitelist()) do
+                fpd:capital_region():apply_effect_bundle("wec_subject_bundle_"..subject_key.."_"..pm:get_faction_subject(faction:name(), subject_key):state())
+            end
+        end
+    end
+
+end
+
+
 --v function(region: CA_REGION, faction: CA_FACTION)
-function process_region_captured(region, faction)
+local function process_region_captured(region, faction)
     local prov_key = region:province_name()
     local rd = pm:get_region_detail(region:name())
     local subculture = faction:subculture()
     local fpd = rd:fpd()
+    local save_old = true
     --if we have a fpd, then proceed.
     --if the region was previous abandoned, there won't be an FPD!
     if not not fpd then
@@ -59,8 +94,8 @@ function process_region_captured(region, faction)
         fpd:remove_region(rd:name())
         if fpd:is_empty() then
             pm:delete_fpd(fpd:faction(), fpd:province())
+            save_old = false
         end
-        fpd = nil
     else
         pm:log("Processing region capture for region ["..region:name().."] in province ["..region:province_name().."] by faction ["..faction:name().."] from previous abandonment! ")
     end
@@ -69,10 +104,15 @@ function process_region_captured(region, faction)
     pre_process_region_turn(region)
     rd:set_wealth(rd:wealth() - 60, true)
     new_fpd:apply_prod_control()
+    if save_old then
+        pm:save_fpd(fpd)
+    end
+    pm:save_fpd(new_fpd)
+    pm:save_rd(rd)
 end
 
 --v function(region: CA_REGION)
-function process_region_abandonment(region)
+local function process_region_abandonment(region)
 
 
 end
@@ -95,6 +135,7 @@ core:add_listener(
         for i = 0, region_list:num_items() - 1 do
             process_region_turn(region_list:item_at(i))
         end
+        process_faction_subjects(context:faction())
     end,
     true
 )
@@ -105,8 +146,16 @@ cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function(context)
         local region = region_list:item_at(i)
         pm:get_region_detail(region:name())
     end
-    local region_list = cm:model():world():whose_turn_is_it():region_list()
-
+    if cm:is_new_game() then
+        local region_list = cm:model():world():whose_turn_is_it():region_list()
+        for i = 0, region_list:num_items() - 1 do
+            pre_process_region_turn(region_list:item_at(i))
+        end
+        for i = 0, region_list:num_items() - 1 do
+            process_region_turn(region_list:item_at(i))
+        end
+        process_faction_subjects(cm:model():world():whose_turn_is_it())
+    end
 end
 
 
@@ -147,7 +196,6 @@ core:add_listener(
                     pm:log("\t\t unit: ["..unit.."] production is at ["..number.."] ")
                 end
             end
-
         end
     end,
     true
