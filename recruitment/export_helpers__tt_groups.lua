@@ -2,7 +2,7 @@
 events = get_events(); cm = get_cm(); rm = _G.rm;
 
 
-
+mcm = _G.mcm
 local units = {
 --empire
 {"wh_dlc04_emp_cav_knights_blazing_sun_0", "emp_special", 2},
@@ -479,7 +479,7 @@ for i = 1, #units do
 
 end
 
-
+if not mcm or (not mcm:started_with_mod("tabletop_caps")) then
 
 cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function() 
     rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
@@ -502,6 +502,36 @@ cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function()
     end
 end;
 
+end
+
+if not not mcm then
+    local ttc = mcm:register_mod("tabletop_caps", "Tabletop Caps", "Tabletop inspired point limits on an army basis")
+    ttc:add_variable("special_limit", 1, 20, 10, 1, "Special Unit Limit", "How many points worth of special units are allowed?")
+    ttc:add_variable("rare_limit", 1, 20, 5, 1, "Rare Unit Limit", "How many points worth of rare units are allowed?")
+    rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
+        _image = "ui/custom/recruitment_controls/common_units.png",
+        _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
+    })
+    mcm:add_post_process_callback(function()
+        --mcm_variable_<mod_key>_<variable_key>_value
+        local rare_limit = cm:get_saved_value("mcm_variable_tabletop_caps_rare_limit_value")
+        local special_limit = cm:get_saved_value("mcm_variable_tabletop_caps_special_limit_value")
+        for name, _ in pairs(groups) do
+            if string.find(name, "core") then
+                rm:set_ui_name_for_group(name, "Core Units")
+                rm:add_character_quantity_limit_for_group(name, 21)
+            end
+            if string.find(name, "special") then
+                rm:set_ui_name_for_group(name, "Special Units")
+                rm:add_character_quantity_limit_for_group(name, tonumber(special_limit))
+            end
+            if string.find(name, "rare") then
+                rm:set_ui_name_for_group(name, "Rare Units")
+                rm:add_character_quantity_limit_for_group(name, tonumber(rare_limit))
+            end
+        end
+    end)
+end
 
 local ship_subtypes = {
     "wh2_dlc11_cst_noctilus",
@@ -517,3 +547,4 @@ local ship_subtypes = {
 for i = 1, #ship_subtypes do
     rm:register_subtype_as_char_bound_horde(ship_subtypes[i])
 end
+

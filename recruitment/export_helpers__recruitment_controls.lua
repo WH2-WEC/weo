@@ -512,7 +512,7 @@ local function LockExchangeButton(reason)
     local ok_button = find_uicomponent(core:get_ui_root(), "unit_exchange", "hud_center_docker", "ok_cancel_buttongroup", "button_ok")
     if not not ok_button then
         ok_button:SetInteractive(false)
-        ok_button:SetImage("ui/skins/default/icon_disband.png")
+        ok_button:SetImage("ui/custom/recruitment_controls/fuckoffbutton.png")
     else
         rm:log("ERROR: could not find the exchange ok button!")
     end
