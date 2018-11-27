@@ -151,7 +151,7 @@ core:add_listener(
     "RecruitmentControlsAI",
     "FactionTurnStart",
     function(context)
-        return not context:faction():is_human()
+        return (not context:faction():is_human()) and rm:should_enforce_ai_restrictions() and rm:should_enforce_restrictions()
     end,
     function(context)
         rm_ai_evaluation(context:faction())

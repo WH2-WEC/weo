@@ -506,12 +506,23 @@ end
 
 if not not mcm then
     local ttc = mcm:register_mod("tabletop_caps", "Tabletop Caps", "Tabletop inspired point limits on an army basis")
+    local enforce = ttc:add_tweaker("enforce", "Enable Mod", "Turn the mod on or off")
+    enforce:add_option("enable","On", "Enable the tabletop caps mod")
+    enforce:add_option("disable", "Off", "Disable the tabletop caps mod"):add_callback(function(context)
+        rm:enforce_restrictions(false)
+    end)
+    local ai_enforce = ttc:add_tweaker("AI", "Enforce for AI", "Enforce the same limits on the AI as the player")
+    ai_enforce:add_option("enable", "On", "The AI has its unit recruitment limited")
+    ai_enforce:add_option("disable", "Off", "The AI can freely recruit. Beware of Cheese!"):add_callback(function(context)
+        rm:enforce_ai_restrictions(false)
+    end)
     ttc:add_variable("special_limit", 1, 20, 10, 1, "Special Unit Limit", "How many points worth of special units are allowed?")
     ttc:add_variable("rare_limit", 1, 20, 5, 1, "Rare Unit Limit", "How many points worth of rare units are allowed?")
     rm:add_subtype_group_override("wh2_main_skv_lord_skrolk", "wh2_main_skv_inf_plague_monks", "skv_core", {
         _image = "ui/custom/recruitment_controls/common_units.png",
         _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
     })
+
     mcm:add_post_process_callback(function()
         --mcm_variable_<mod_key>_<variable_key>_value
         local rare_limit = cm:get_saved_value("mcm_variable_tabletop_caps_rare_limit_value")
