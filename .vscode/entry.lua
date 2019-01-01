@@ -46,3 +46,21 @@ require("show_me_the_caps/export_helpers__cap_tracking")
   require("tech_unlocks/TechUnlocks")
 --]]
 
+cm.first_tick_callbacks[#cm.first_tick_callbacks+1] = function(context)
+  local ok, err = pcall( function()
+    local faction = cm:get_faction("wh2_main_def_naggarond")
+    for i = 0, faction:character_list():num_items() - 1 do
+      cm:callback(function()
+        cm:kill_character( faction:character_list():item_at(i):cqi(), true, true)
+      end, i+1/10)
+    end
+    for i = 0, faction:region_list():num_items() - 1 do
+      cm:callback(function()
+        cm:set_region_abandoned( faction:region_list():item_at(i):name())
+      end, i+1/10)
+    end
+  end)
+  if not ok then
+    out(tostring(err))
+  end
+end;

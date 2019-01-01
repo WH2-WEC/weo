@@ -531,23 +531,22 @@ end
 
 --v function(first_army_count: map<string, number>, second_army_count:map<string, number>) --> (boolean, string)
 local function are_armies_valid(first_army_count, second_army_count)
-
+    local clock = os.clock()
     for unitID, count in pairs(first_army_count) do
         if count > rm:get_quantity_limit_for_unit(unitID) then
+            rm:log("Army validity processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
             return false, "Too many individual restricted units in an army!"
         end
         local groups = rm:get_groups_for_unit(unitID, RM_TRANSFERS.first)
         for i = 1, #groups do
             local grouped_units = rm:get_units_in_group(groups[i])
             local group_total = 0 --:number
-            rm:log("Doing group ["..groups[i].."] for ["..tostring(RM_TRANSFERS.first).."] looking for limit ["..rm:get_quantity_limit_for_group(groups[i]).."] ")
             for j = 1, #grouped_units do
                 if not rm:unit_has_group_override(RM_TRANSFERS.first, grouped_units[j], groups[i]) then
                     if first_army_count[grouped_units[j]] == nil then
                         first_army_count[grouped_units[j]] = 0
                     end
                     group_total = group_total + (first_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.first))
-                    rm:log("processed unit ["..grouped_units[j].."], group total at ["..group_total.."] ")
                 end
             end
             local joined_units = rm:get_override_joiners_for_group(groups[i], cm:get_character_by_cqi(RM_TRANSFERS.first):character_subtype_key())
@@ -558,27 +557,27 @@ local function are_armies_valid(first_army_count, second_army_count)
                 group_total = group_total + (first_army_count[joined_units[j]] * rm:get_weight_for_unit(joined_units[j], RM_TRANSFERS.first))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
+                rm:log("Army validity processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
             end
         end
     end
-
+    rm:log("First Army is valid: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
     for unitID, count in pairs(second_army_count) do
         if count > rm:get_quantity_limit_for_unit(unitID) then
+            rm:log("Army validity processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
             return false, "Too many individual restricted units in an army!"
         end
         local groups = rm:get_groups_for_unit(unitID, RM_TRANSFERS.second)
         for i = 1, #groups do
             local grouped_units = rm:get_units_in_group(groups[i])
             local group_total = 0 --:number
-            rm:log("Doing group ["..groups[i].."] for ["..tostring(RM_TRANSFERS.second).."] looking for limit ["..rm:get_quantity_limit_for_group(groups[i]).."] ")
             for j = 1, #grouped_units do
                 if not rm:unit_has_group_override(RM_TRANSFERS.second, grouped_units[j], groups[i]) then
                     if second_army_count[grouped_units[j]] == nil then
                         second_army_count[grouped_units[j]] = 0
                     end
                     group_total = group_total + (second_army_count[grouped_units[j]] * rm:get_weight_for_unit(grouped_units[j], RM_TRANSFERS.second))
-                    rm:log("processed unit ["..grouped_units[j].."], group total at ["..group_total.."] ")
                 end
             end
             local joined_units = rm:get_override_joiners_for_group(groups[i], cm:get_character_by_cqi(RM_TRANSFERS.second):character_subtype_key())
@@ -589,10 +588,12 @@ local function are_armies_valid(first_army_count, second_army_count)
                 group_total = group_total + (second_army_count[joined_units[j]] * rm:get_weight_for_unit(joined_units[j], RM_TRANSFERS.second))
             end
             if group_total > rm:get_quantity_limit_for_group(groups[i]) then
+                rm:log("Army validity processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
                 return false, "Too many units from group "..rm:get_ui_name_for_group(groups[i]).." in an army!"
             end
         end
     end
+    rm:log("Army validity processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
     return true, "valid"
 end
 
@@ -600,7 +601,7 @@ end
 local function count_armies()
     local first_army_count = {} --:map<string, number>
     local second_army_count = {} --:map<string, number>
-
+    local clock = os.clock()
     for i = 1, 20 do
         local unitID, is_transfer = GetUnitNameInExchange("main_units_panel_1", i)
         if not not unitID then
@@ -617,7 +618,8 @@ local function count_armies()
             end
         end
     end
-
+    rm:log("First army processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
+    local clock = os.clock()
     for i = 1, 20 do
         local unitID, is_transfer = GetUnitNameInExchange("main_units_panel_2", i)
         if not not unitID then
@@ -634,7 +636,7 @@ local function count_armies()
             end
         end
     end
-
+    rm:log("Secondary army processed: ".. string.format("elapsed time: %.2f\n", os.clock() - clock))
     return first_army_count, second_army_count
 end
 
@@ -666,7 +668,7 @@ core:add_listener(
     true
 )
 
-
+local is_evaluating = false
 core:add_listener(
     "RecruiterManagerOnExchangeOptionClicked",
     "ComponentLClickUp",
@@ -674,17 +676,21 @@ core:add_listener(
         return not not string.find(context.string, "UnitCard") 
     end,
     function(context)
-        rm:log("refreshing army validity")
-        cm:callback( function()
-            local first_army, second_army = count_armies()
-            local valid_armies, reason = are_armies_valid(first_army, second_army)
-            if valid_armies then
-                UnlockExchangeButton()
-            else
-                rm:log("locking exchange button for reason ["..reason.."] ")
-                LockExchangeButton(reason)
-            end
-        end, 0.1)
+        if not is_evaluating then
+            cm:callback(function()
+                    is_evaluating = true
+                    rm:log("refreshing army validity")
+                    local first_army, second_army = count_armies()
+                    local valid_armies, reason = are_armies_valid(first_army, second_army)
+                    if valid_armies then
+                        UnlockExchangeButton()
+                    else
+                        rm:log("locking exchange button for reason ["..reason.."] ")
+                        LockExchangeButton(reason)
+                    end
+                    is_evaluating = false
+            end, 0.1)
+        end
     end,
     true);
 

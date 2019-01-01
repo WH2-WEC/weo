@@ -128,6 +128,7 @@ function recruiter_manager.init()
     self._AIDefaultUnits = {} --:map<string, vector<string>>
     self._enforce = true --:boolean
     self._AIEnforce = true --:boolean
+    self._noWeights = false --:boolean
     --place instance in _G. 
     _G.rm = self
 end
@@ -315,6 +316,12 @@ end
 function recruiter_manager.enforce_restrictions(self, enforce)
     self._enforce = enforce
 end
+
+--v function(self: RECRUITER_MANAGER, disable: boolean)
+function recruiter_manager.disable_weights(self, disable)
+    self._noWeights = disable
+end
+
 
 --v function(self: RECRUITER_MANAGER) --> boolean
 function recruiter_manager.should_enforce_ai_restrictions(self)
@@ -1395,6 +1402,9 @@ end
 --get the weight of a specific unit
 --v function(self: RECRUITER_MANAGER, unitID: string, cqi: CA_CQI?) --> number
 function recruiter_manager.get_weight_for_unit(self, unitID, cqi)
+    if self._noWeights then
+        return 1
+    end
     if cqi then
         local char = cm:get_character_by_cqi(cqi)
         local is_human = char:faction():is_human()

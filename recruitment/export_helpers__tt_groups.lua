@@ -522,6 +522,11 @@ if not not mcm then
         _image = "ui/custom/recruitment_controls/common_units.png",
         _text = "[[col:yellow]]Special Rule: [[/col]] Lord Skrolk can bring Plague Monks as Core choices in his armies. \n Armies may have an unlimited number of Core Units." 
     })
+    local weights = ttc:add_tweaker("weight", "Unit Point Cost", "Optionally treat all units as being worth one point; rather than scaling them for cost!")
+    weights:add_option("default", "Use Unit Point Costs", "Use Tabletop Caps as normal")
+    weights:add_option("disabled", "All units cost 1", "Use tabletop caps with all units being worth the same number of points"):add_callback(function(context)
+        rm:disable_weights(true)
+    end)
 
     mcm:add_post_process_callback(function()
         --mcm_variable_<mod_key>_<variable_key>_value

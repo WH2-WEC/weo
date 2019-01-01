@@ -40,6 +40,12 @@ Description:
 	Do not do this for large numbers of units unless you want to increase the player's loading time. For small numbers it is fine, but > 30 will be a problem.
 	Why? Because I've got to completely deconstruct the check queue for that unit and any others in the group then reconstruct them each time this is called. 
 
+Command:
+	rm:register_subtype_as_char_bound_horde("character_subtype_key")
+Description:
+	Adds a subtype to the API as a character bound horde. 
+	These hordes use a different UI piece set than regular armies.
+
 --------------------------------------------------------
 UI API: to add some better user feedback to the settings.
 
