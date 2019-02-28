@@ -133,6 +133,8 @@
 --# assume IMAGE.GetContentComponent: method() --> CA_UIC
 --# assume IMAGE.SetVisible: method(boolean)
 --# assume IMAGE.Delete: method()
+--# assume IMAGE.MoveTo: method(x: number, y: number)
+--# assume IMAGE.uic: CA_UIC
 --text
 --# assume TEXT.PositionRelativeTo: method(component: WHATEVER, xDiff: number, yDiff: number)
 --# assume TEXT.SetText: method(str: string)
