@@ -71,6 +71,7 @@ local function limit_character(character, groupID, difference)
                     local unit_obj = character:military_force():unit_list():item_at(l)
                     if unit_obj:unit_key() == unit then
                         cm:treasury_mod(unit_obj:faction():name(), unit_obj:get_unit_custom_battle_cost())
+                        break
                     end
                 end
                 cm:remove_unit_from_character(cm:char_lookup_str(character:cqi()), unit)

@@ -123,8 +123,11 @@ function recruiter_manager.init()
     self._subtypeTraits = {} --:map<string, map<string, number>> --units to the traits and number
     self._subtypeSkills = {} --:map<string, map<string, number>> --unit string to the skill and number to change
     self._UIProfileOverrides = {} --:map<string,map<string, RM_UIPROFILE>> --subtype to unit to override
+    
     --another flag, this one says whether or not the damn thing is a pirate ship.
     self._charHordeSubtypes = {} --:map<string, boolean>
+    self._partialHordesCqi = {} --:map<CA_CQI, boolean> -- states whether a given cqi is assigned to be a horde but not yet having their horde available.
+
     self._AIDefaultUnits = {} --:map<string, vector<string>>
     self._enforce = true --:boolean
     self._AIEnforce = true --:boolean
@@ -476,7 +479,15 @@ function recruiter_manager.ai_subculture_defaults(self)
     return self._AIDefaultUnits
 end
 
-
+--in foreign land?
+--v function(self: RECRUITER_MANAGER, char: CA_CHAR) --> boolean
+function recruiter_manager.is_character_in_foreign_land(self, char)
+    if self._partialHordesCqi[char:cqi()] then
+        return true
+    else
+        return (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
+    end
+end
 ----------------------------------------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -850,6 +861,8 @@ function recruiter_character.get_ui_profile_override_for_unit(self, unitID)
 end
 
 
+
+
 --# assume RECRUITER_MANAGER.current_character: method() --> RECRUITER_CHARACTER
 --enforce the restriction for a specific unit onto the UI.
 --v function(self: RECRUITER_CHARACTER, unitID: string)
@@ -860,7 +873,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
     char = cm:get_character_by_cqi(self:cqi())
     local is_cbh = self:manager():is_subtype_char_horde(char:character_subtype_key())
     local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
-    self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] who has a character bound horde flag ["..tostring(is_cbh).."] ")
+    self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] who has a character bound horde flag ["..tostring(is_cbh).."] and a foreign land flag ["..tostring(in_foreign_land).."] ")
     if is_cbh and not in_foreign_land then
         local paths = {
             {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box"},
@@ -1854,6 +1867,11 @@ function recruiter_manager.add_ai_defaults_for_subculture(self, subculture, ...)
     end 
 end
 
+--v function(self: RECRUITER_MANAGER, cqi: CA_CQI, status: boolean)
+function recruiter_manager.set_partial_horde_status_for_cqi(self, cqi, status)
+    self._partialHordesCqi[cqi] = status
+end
+
 --v function(self: RECRUITER_MANAGER, subculture: string, units: vector<string>, default: boolean?)
 function recruiter_manager.add_ai_units_for_subculture_with_table(self, subculture, units, default)
     if self._AIDefaultUnits[subculture] == nil then
@@ -1870,5 +1888,4 @@ end
 
 --initialize the rm 
 recruiter_manager.init()
-
 
