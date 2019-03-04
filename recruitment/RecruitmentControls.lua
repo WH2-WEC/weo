@@ -482,7 +482,7 @@ end
 --in foreign land?
 --v function(self: RECRUITER_MANAGER, char: CA_CHAR) --> boolean
 function recruiter_manager.is_character_in_foreign_land(self, char)
-    if self._partialHordesCqi[char:cqi()] then
+    if self._partialHordesCqi[char:command_queue_index()] then
         return true
     else
         return (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
@@ -533,7 +533,7 @@ end
 
 --return the cqi
 --v function(self: RECRUITER_CHARACTER) --> CA_CQI
-function recruiter_character.cqi(self)
+function recruiter_character.command_queue_index(self)
     return self._cqi
 end
 
@@ -617,7 +617,7 @@ function recruiter_character.set_queue_stale(self)
 
     for unit, count in pairs(self._queueCounts) do
         if self:manager():unit_has_pool(unit) then
-            self:manager():change_unit_pool(unit, cm:get_character_by_cqi(self:cqi()):faction():name(),  count)
+            self:manager():change_unit_pool(unit, cm:get_character_by_cqi(self:command_queue_index()):faction():name(),  count)
         end
     end
     self._staleQueueFlag = true
@@ -646,7 +646,7 @@ end
 --remove all units from queue
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.wipe_queue(self)
-    self:log("wiped Queue for ["..tostring(self:cqi()).."] ")
+    self:log("wiped Queue for ["..tostring(self:command_queue_index()).."] ")
     --loop through the queue, setting each unit entry to 0
     for unit, _ in pairs(self:get_queue_counts()) do 
         self._queueCounts[unit] = 0
@@ -656,7 +656,7 @@ end
 --remove all units from the army
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.wipe_army(self)
-    self:log("wiped Army for ["..tostring(self:cqi()).."] ")
+    self:log("wiped Army for ["..tostring(self:command_queue_index()).."] ")
     --loop through the army, setting each unit entry to 0
     for unit, _ in pairs(self:get_army_counts()) do
         self._armyCounts[unit] = 0
@@ -672,46 +672,46 @@ function recruiter_character.add_unit_to_army(self, unitID)
         self._armyCounts[unitID] = 0 
     end
     self._armyCounts[unitID] = self:get_army_counts()[unitID] + 1;
-    self:log("Added unit ["..unitID.."] to the army of ["..tostring(self:cqi()).."]")
+    self:log("Added unit ["..unitID.."] to the army of ["..tostring(self:command_queue_index()).."]")
 end
 
 --remove a unit from the army (used by disband listener)
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.remove_unit_from_army(self, unitID)
     if self._armyCounts[unitID] == nil then
-        self:log("Called for the removal of unit ["..unitID.."] for the army of ["..tostring(self:cqi()).."] but this unit isn't in that army?!?!")
+        self:log("Called for the removal of unit ["..unitID.."] for the army of ["..tostring(self:command_queue_index()).."] but this unit isn't in that army?!?!")
         return
     end
     self._armyCounts[unitID] = self:get_army_counts()[unitID] - 1;
-    self:log("Removed unit ["..unitID.."] to the army of ["..tostring(self:cqi()).."]")
+    self:log("Removed unit ["..unitID.."] to the army of ["..tostring(self:command_queue_index()).."]")
 end
 
 --add a unit to the queue
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.add_unit_to_queue(self, unitID)
     if self:manager():unit_has_pool(unitID) then
-        self:manager():change_unit_pool(unitID, cm:get_character_by_cqi(self:cqi()):faction():name(),  -1)
+        self:manager():change_unit_pool(unitID, cm:get_character_by_cqi(self:command_queue_index()):faction():name(),  -1)
     end
     if self._queueCounts[unitID] == nil then
         self._queueCounts[unitID] = 0 
         --if that unit hasn't been used yet, give it a default value.
     end
     self._queueCounts[unitID] = self:get_queue_counts()[unitID] + 1;
-    self:log("Added unit ["..unitID.."] to the queue of ["..tostring(self:cqi()).."]")
+    self:log("Added unit ["..unitID.."] to the queue of ["..tostring(self:command_queue_index()).."]")
 end
 
 --remove a unit from the queue (used by the queue listener)
 --v function(self: RECRUITER_CHARACTER, unitID: string)
 function recruiter_character.remove_unit_from_queue(self, unitID)
     if self:manager():unit_has_pool(unitID) then
-        self:manager():change_unit_pool(unitID, cm:get_character_by_cqi(self:cqi()):faction():name(), 1)
+        self:manager():change_unit_pool(unitID, cm:get_character_by_cqi(self:command_queue_index()):faction():name(), 1)
     end
     if self._queueCounts[unitID] == nil then
-        self:log("Called for the removal of unit ["..unitID.."] for the queue of ["..tostring(self:cqi()).."] but this unit isn't in that queue?!?!")
+        self:log("Called for the removal of unit ["..unitID.."] for the queue of ["..tostring(self:command_queue_index()).."] but this unit isn't in that queue?!?!")
         return
     end
     self._queueCounts[unitID] = self:get_queue_counts()[unitID] - 1;
-    self:log("Removed unit ["..unitID.."] to the queue of ["..tostring(self:cqi()).."]")
+    self:log("Removed unit ["..unitID.."] to the queue of ["..tostring(self:command_queue_index()).."]")
 end
     
 
@@ -721,9 +721,9 @@ end
 function recruiter_character.refresh_army(self)
     --remove the old army before starting
     self:wipe_army()
-    self:log("Freshening up the army of ["..tostring(self:cqi()).."]")
+    self:log("Freshening up the army of ["..tostring(self:command_queue_index()).."]")
     --get unit list for that character's force.
-    local army = cm:get_character_by_cqi(self:cqi()):military_force():unit_list()
+    local army = cm:get_character_by_cqi(self:command_queue_index()):military_force():unit_list()
     for i = 0, army:num_items() - 1 do
         local unitID = army:item_at(i):unit_key()
         self:add_unit_to_army(unitID)
@@ -740,18 +740,18 @@ function recruiter_character.refresh_queue(self)
     if self._rawQueueFlag == true then
         for unit, count in pairs(self._queueCounts) do
             if self:manager():unit_has_pool(unit) then
-                self:manager():change_unit_pool(unit, cm:get_character_by_cqi(self:cqi()):faction():name(), count)
+                self:manager():change_unit_pool(unit, cm:get_character_by_cqi(self:command_queue_index()):faction():name(), count)
             end
         end
         self._rawQueueFlag = false;
     end
     self:wipe_queue() 
-    self:log("Freshening up the queue of ["..tostring(self:cqi()).."]")
+    self:log("Freshening up the queue of ["..tostring(self:command_queue_index()).."]")
     --check if the unit panel is open so that we can see the army. If it isn't, the function can abort with a failure message.
     --the queue will be evaluated again next time as we never set the queue fresh
     local unitPanel = find_uicomponent(core:get_ui_root(), "main_units_panel")
     if not unitPanel then
-        self:log("Failed to find the main_units_panel UI element while refreshing the queue of ["..tostring(self:cqi()).."] ")
+        self:log("Failed to find the main_units_panel UI element while refreshing the queue of ["..tostring(self:command_queue_index()).."] ")
         return
     end
     --UI is written in C++, so we loop from 0
@@ -767,7 +767,7 @@ function recruiter_character.refresh_queue(self)
         end
     end
     --save the queue
-    cm:set_saved_value("RMSavedQueues|"..tostring(self:cqi()), SerializeQueueTable(self._queueCounts))
+    cm:set_saved_value("RMSavedQueues|"..tostring(self:command_queue_index()), SerializeQueueTable(self._queueCounts))
     --set the queue fresh
     self:set_queue_fresh()
 end
@@ -791,7 +791,7 @@ function recruiter_character.get_unit_count_in_queue(self, unitID)
     end
     if self:is_queue_stale() then
         --if the queue is stale, we're going to return nothing because the queue we have isn't reliable!
-        self:log("get_unit_count_in_queue for called for ["..unitID.."] on character ["..tostring(self:cqi()).."], but the queue is stale!")
+        self:log("get_unit_count_in_queue for called for ["..unitID.."] on character ["..tostring(self:command_queue_index()).."], but the queue is stale!")
         return 0 
     end
     return self:get_queue_counts()[unitID]
@@ -819,7 +819,7 @@ end
 --set a unit to be restricted for a character
 --v function(self: RECRUITER_CHARACTER, unitID: string, restricted: boolean)
 function recruiter_character.set_unit_restriction(self, unitID, restricted)
-    self:log("Set the unit restriction on character with cqi ["..tostring(self:cqi()).."] to ["..tostring(restricted).."] for unit ["..unitID.."]")
+    self:log("Set the unit restriction on character with cqi ["..tostring(self:command_queue_index()).."] to ["..tostring(restricted).."] for unit ["..unitID.."]")
     self._restrictedUnits[unitID] = restricted
 end
 
@@ -870,10 +870,10 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
     if not self:manager():should_enforce_restrictions() then
         return
     end
-    char = cm:get_character_by_cqi(self:cqi())
+    char = cm:get_character_by_cqi(self:command_queue_index())
     local is_cbh = self:manager():is_subtype_char_horde(char:character_subtype_key())
     local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
-    self:log("Applying Restrictions for character ["..tostring(self:cqi()).."] and unit ["..unitID.."] who has a character bound horde flag ["..tostring(is_cbh).."] and a foreign land flag ["..tostring(in_foreign_land).."] ")
+    self:log("Applying Restrictions for character ["..tostring(self:command_queue_index()).."] and unit ["..unitID.."] who has a character bound horde flag ["..tostring(is_cbh).."] and a foreign land flag ["..tostring(in_foreign_land).."] ")
     if is_cbh and not in_foreign_land then
         local paths = {
             {"units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list", "listview", "list_clip", "list_box"},
@@ -909,7 +909,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         if self:manager():unit_has_pool(unitID) then
                             local xp = find_uicomponent(unitCard, "merch_type");
                             xp:SetVisible(true)
-                            --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                            --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():command_queue_index()):faction():name())).."[[/col]]")
                             xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
                             xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                             xp:SetCanResizeHeight(true)
@@ -948,7 +948,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                             if self:manager():unit_has_pool(unitID) then
                                 local xp = find_uicomponent(unitCard, "merch_type");
                                 xp:SetVisible(true)
-                                --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                                --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():command_queue_index()):faction():name())).."[[/col]]")
                                 xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
                                 xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                                 xp:SetCanResizeHeight(true)
@@ -1012,7 +1012,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                         if self:manager():unit_has_pool(unitID) then
                             local xp = find_uicomponent(unitCard, "merch_type");
                             xp:SetVisible(true)
-                            --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                            --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():command_queue_index()):faction():name())).."[[/col]]")
                             xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
                             xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                             xp:SetCanResizeHeight(true)
@@ -1051,7 +1051,7 @@ function recruiter_character.enforce_unit_restriction(self, unitID)
                             if self:manager():unit_has_pool(unitID) then
                                 local xp = find_uicomponent(unitCard, "merch_type");
                                 xp:SetVisible(true)
-                                --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():cqi()):faction():name())).."[[/col]]")
+                                --xp:SetStateText("[[col:red]]"..tostring(self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(self:manager():current_character():command_queue_index()):faction():name())).."[[/col]]")
                                 xp:SetTooltipText("Manpower \n \n this unit can only be recruited when manpower is available. ")
                                 xp:SetImage("ui/custom/pm/unit_pool_"..self:manager():get_unit_pool_of_unit_for_faction(unitID, cm:get_local_faction(true))..".png")
                                 xp:SetCanResizeHeight(true)
@@ -1773,7 +1773,7 @@ function recruiter_manager.add_pool_check(self, unitID)
     local check = function(rm --: RECRUITER_MANAGER
     ) 
     --see if the count for this unit is higher or equal to the quantity limit
-    local result = rm:get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(rm:current_character():cqi()):faction():name()) <= 0 
+    local result = rm:get_unit_pool_of_unit_for_faction(unitID, cm:get_character_by_cqi(rm:current_character():command_queue_index()):faction():name()) <= 0 
     --return the result
     rm:log("Checking quantity restriction for ["..unitID.."] resulted in ["..tostring(result).."]")
     return result, "No units of this type are currently available!"

@@ -60,7 +60,7 @@ local function limit_character(character, groupID, difference)
     local diff = difference
 
 
-    rm:log("limiting character ["..tostring(character:cqi()).."] in group ["..groupID.."] who has a difference of ["..diff.."] ")
+    rm:log("limiting character ["..tostring(character:command_queue_index()).."] in group ["..groupID.."] who has a difference of ["..diff.."] ")
     local unit_list = character:military_force():unit_list()
     for j = 0, unit_list:num_items() - 1 do
         local unit = unit_list:item_at(j):unit_key()
@@ -71,19 +71,18 @@ local function limit_character(character, groupID, difference)
                     local unit_obj = character:military_force():unit_list():item_at(l)
                     if unit_obj:unit_key() == unit then
                         cm:treasury_mod(unit_obj:faction():name(), unit_obj:get_unit_custom_battle_cost())
-                        break
                     end
                 end
-                cm:remove_unit_from_character(cm:char_lookup_str(character:cqi()), unit)
+                cm:remove_unit_from_character(cm:char_lookup_str(character:command_queue_index()), unit)
                 local subculture_default_units = rm:ai_subculture_defaults()
                 local new_unit = subculture_default_units[character:faction():subculture()][cm:random_number(#subculture_default_units[character:faction():subculture()])]
-                cm:grant_unit_to_character(cm:char_lookup_str(character:cqi()), new_unit)
+                cm:grant_unit_to_character(cm:char_lookup_str(character:command_queue_index()), new_unit)
                 rm:log("removed unit ["..unit.."] and granted ["..new_unit.."] as a replacement unit!")
-                if rm:get_weight_for_unit(unit, character:cqi()) >= diff then
+                if rm:get_weight_for_unit(unit, character:command_queue_index()) >= diff then
                     rm:log("removed unit was sufficient!")
                     return
                 end
-                diff = diff - rm:get_weight_for_unit(unit, character:cqi());
+                diff = diff - rm:get_weight_for_unit(unit, character:command_queue_index());
                 rm:log("removed unit was insufficient, repeating!")
             end
         end
@@ -105,7 +104,7 @@ local function rm_ai_character(character)
             local unit = unit_list:item_at(j):unit_key()
             local groups_list = rm:get_groups_for_unit(unit)
             for k = 1, #groups_list do
-                increment_group_total(group_totals, groups_list[k], rm:get_weight_for_unit(unit, character:cqi()))
+                increment_group_total(group_totals, groups_list[k], rm:get_weight_for_unit(unit, character:command_queue_index()))
             end
         end
         for groupID, quantity in pairs(group_totals) do

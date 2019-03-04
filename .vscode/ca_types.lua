@@ -106,6 +106,8 @@
 --# assume CA_UIC.SimulateLClick: method()
 --# assume CA_UIC.SimulateKey: method(keyString: string)
 
+--# assume CA_UIC.GetProperty: method(property: string) --> string
+
 
 -- CAMPAIGN MANAGER
 --# assume CM.get_game_interface: method() --> CA_GAME
@@ -354,7 +356,7 @@
 --# assume CA_CHAR.get_forename: method() --> string
 --# assume CA_CHAR.get_surname: method() --> string
 --# assume CA_CHAR.command_queue_index: method() --> CA_CQI
---# assume CA_CHAR.cqi: method() --> CA_CQI
+---# assume CA_CHAR.cqi: method() --> CA_CQI
 --# assume CA_CHAR.rank: method() --> int
 --# assume CA_CHAR.won_battle: method() --> boolean
 --# assume CA_CHAR.battles_fought: method() --> number

@@ -159,15 +159,15 @@ core:add_listener(
 "RecruiterManagerPlayerCharacterMoved",
 "CharacterFinishedMoving",
 function(context)
-    return context:character():faction():is_human() and rm:has_character(context:character():cqi())
+    return context:character():faction():is_human() and rm:has_character(context:character():command_queue_index())
 end,
 function(context)
     rm:log("Player Character moved!")
     local character = context:character()
     --# assume character: CA_CHAR
     --the character moved, so we're going to set both their army and their queue stale and force the script to re-evaluate them next time they are available.
-    rm:get_character_by_cqi(character:cqi()):set_army_stale()
-    rm:get_character_by_cqi(character:cqi()):set_queue_stale()
+    rm:get_character_by_cqi(character:command_queue_index()):set_army_stale()
+    rm:get_character_by_cqi(character:command_queue_index()):set_queue_stale()
 end,
 true)
 
@@ -210,7 +210,7 @@ core:add_listener(
         local character = context:character()
         --# assume character: CA_CHAR
         --tell RM which character is selected. This is core to the entire system.
-        rm:set_current_character(character:cqi()) 
+        rm:set_current_character(character:command_queue_index()) 
     end,
     true)
 --add recruit panel open listener
@@ -222,7 +222,7 @@ core:add_listener(
         if rm:current_character() == nil then
             return false
         end
-        local char = cm:get_character_by_cqi(rm:current_character():cqi())
+        local char = cm:get_character_by_cqi(rm:current_character():command_queue_index())
         local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
         local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
         return panel and ((not cbh) or in_foreign_land)
@@ -276,14 +276,14 @@ core:add_listener(
         if rm:current_character() == nil then
             return false
         end
-        local char = cm:get_character_by_cqi(rm:current_character():cqi())
+        local char = cm:get_character_by_cqi(rm:current_character():command_queue_index())
         local cbh = rm:is_subtype_char_horde(char:character_subtype_key())
         local in_foreign_land = (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
         return panel and cbh and not in_foreign_land
     end,
     function(context)
-        if cm:get_character_by_cqi(rm:current_character():cqi()):has_military_force() then
-            CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "recruiter_manager|force_stance|"..tostring(rm:current_character():cqi()))
+        if cm:get_character_by_cqi(rm:current_character():command_queue_index()):has_military_force() then
+            CampaignUI.TriggerCampaignScriptEvent(cm:get_faction(cm:get_local_faction(true)):command_queue_index(), "recruiter_manager|force_stance|"..tostring(rm:current_character():command_queue_index()))
         end
         cm:callback(function() --do this on a delay so the panel has time to fully open before the script tries to read it!
             --check every unit which has a restriction against the character's lists. This will call refresh on queue and army further upstream when necessary!
@@ -405,14 +405,14 @@ core:add_listener(
     "RecruiterManagerUnitDisbanded",
     "UnitDisbanded",
     function(context)
-        return context:unit():faction():is_human() and rm:has_character(context:unit():force_commander():cqi())
+        return context:unit():faction():is_human() and rm:has_character(context:unit():force_commander():command_queue_index())
     end,
     function(context)
         rm:log("Human character disbanded a unit!")
         local unit = context:unit()
         --# assume unit: CA_UNIT
         --remove the unit from the army
-        rm:get_character_by_cqi(unit:force_commander():cqi()):remove_unit_from_army(unit:unit_key())
+        rm:get_character_by_cqi(unit:force_commander():command_queue_index()):remove_unit_from_army(unit:unit_key())
         --check the unit (+groups) again.
         rm:check_unit_on_character(unit:unit_key())
         --if the unit has a pool, refund it
@@ -426,11 +426,11 @@ core:add_listener(
     "RecruiterManagerUnitMerged",
     "UnitMergedAndDestroyed",
     function(context)
-        return context:new_unit():faction():is_human() and rm:has_character(context:new_unit():force_commander():cqi())
+        return context:new_unit():faction():is_human() and rm:has_character(context:new_unit():force_commander():command_queue_index())
     end,
     function(context)
         local unit = context:new_unit():unit_key() --:string
-        local cqi = context:new_unit():force_commander():cqi() --:CA_CQI
+        local cqi = context:new_unit():force_commander():command_queue_index() --:CA_CQI
         --there is a lot of possibilies when a merge has happened
         --to be safe, we just set the army stale. 
         rm:get_character_by_cqi(cqi):set_army_stale()
@@ -461,7 +461,7 @@ local function find_second_army()
     for i = 0, char_list:num_items() - 1 do
         local char = char_list:item_at(i)
         if cm:char_is_mobile_general_with_army(char) then
-            if char:cqi() == first_char:cqi() then
+            if char:command_queue_index() == first_char:command_queue_index() then
 
             else
                 local dist = distance_2D(ax, ay, char:logical_position_x(), char:logical_position_y())
@@ -474,7 +474,7 @@ local function find_second_army()
     end
     if closest_char then
         --the extra call is to force load the char into the model
-        return rm:get_character_by_cqi(closest_char:cqi()):cqi()
+        return rm:get_character_by_cqi(closest_char:command_queue_index()):command_queue_index()
     else
         rm:log("failed to find the other char!")
         return nil
