@@ -709,3 +709,19 @@ core:add_listener(
     end,
     true
 )
+
+
+--[[
+if Util then
+    core:add_listener(
+        "ComponentMouseHoverRMInfo",
+        "ComponentMouseHover",
+        function(context)
+            local hoverbox = find_uicomponent()
+        end,
+    )
+
+
+
+
+end]]

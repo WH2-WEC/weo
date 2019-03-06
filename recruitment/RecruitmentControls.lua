@@ -9,7 +9,7 @@ local function RCLOG(text)
     local logTimeStamp = os.date("%d, %m %Y %X")
     local popLog = io.open("warhammer_expanded_log.txt","a")
     --# assume logTimeStamp: string
-    popLog :write("LE:  [".. logTimeStamp .. "]:  "..logText .. "  \n")
+    popLog :write("RM:  [".. logTimeStamp .. "]:  "..logText .. "  \n")
     popLog :flush()
     popLog :close()
 end
@@ -51,36 +51,23 @@ end
 --saving utility to get preserve queues between saves
 --v function(queue: map<string, number>) --> string
 local function SerializeQueueTable(queue)
-    local savestring = "RMSavedQueue|"
-    for unitID, quantity in pairs(queue) do
-        savestring = savestring.."["..unitID.."]<"..tostring(quantity)..">"
-    end
+    local savestring = cm:process_table_save(queue)
     return savestring
 end
 
 --load again from a string
 --v function(savestring: string) --> map<string, number>
 local function DeserializeSaveString(savestring)
-    if not is_string(savestring) then
-        return {}
+    RCLOG("Deserializing save string ["..savestring.."]")
+    local tab_func = loadstring("return {"..savestring.."}")
+    if is_function(tab_func) then
+        --# assume tab_func: function() --> map<string, number>
+        local queue = tab_func()
+        return queue
+    else
+        RCLOG("ERROR: The provided tab func is not a function!")
+        return nil
     end
-    local queue = {} --:map<string, number>
-    local serial = string.gsub(savestring, "RMSavedQueue|", "")
-    local start_var = 1
-    while true do
-        local unit_start = string.find(serial, "[", start_var)
-        if not unit_start then
-            break
-        end
-        local unit_end = string.find(serial, "]", start_var)
-        local q_start = string.find(serial, "<", start_var)
-        local q_end = string.find(serial, ">", start_var)
-        local unit = string.sub(serial, unit_start + 1, unit_end - 1)
-        local quantity = tonumber(string.sub(serial, q_start+1, q_end -1))
-        queue[unit] = quantity
-        start_var = q_end + 1
-    end
-    return queue
 end
 
 
@@ -132,6 +119,10 @@ function recruiter_manager.init()
     self._enforce = true --:boolean
     self._AIEnforce = true --:boolean
     self._noWeights = false --:boolean
+
+    --holds saved data
+    self._savedData = {} --:map<string, string>
+
     --place instance in _G. 
     _G.rm = self
 end
@@ -143,6 +134,7 @@ function recruiter_manager.log(self, text)
 end
 
 --fully reset the model, clearing all stored data.
+--[[
 --v function(self: RECRUITER_MANAGER)
 function recruiter_manager.full_reset(self)
     self:log("SCRIPT CALLED TO RESET THE RECRUITER MANAGER!!")
@@ -163,11 +155,16 @@ function recruiter_manager.full_reset(self)
     self._unitWeights = {} 
     --ui
     self._UIGroupNames = {} 
+
+    --holds data saved from previous sessions
+    self._savedData = {} --:map<string, string>
+
+
     --place instance in _G. 
     _G.rm = self
     self:log("RESET COMPLETE")
 end
-
+--]]
 
 
 --logs lua errors to a file after this is called.
@@ -488,6 +485,39 @@ function recruiter_manager.is_character_in_foreign_land(self, char)
         return (char:region():is_null_interface() or char:region():owning_faction():name() ~= char:faction():name())
     end
 end
+
+
+
+----loading data---
+-------------------
+
+--checks if we've saved the cqi before. Not necessary as the other returns a default!
+--v function(self: RECRUITER_MANAGER, cqi_as_string: string) --> boolean
+function recruiter_manager.has_character_in_load_data(self, cqi_as_string)
+    return not not self._savedData[cqi_as_string]
+end
+
+
+--v function(self: RECRUITER_MANAGER, cqi_as_string: string) --> map<string, number>
+function recruiter_manager.load_character(self, cqi_as_string)
+    local save_string = self._savedData[cqi_as_string]
+    if save_string then
+        self:log("Save string exists for character ["..cqi_as_string.."], loading it!")
+        return DeserializeSaveString(save_string)
+    else
+        self:log("No saved string exists for character ["..cqi_as_string.."] returning an empty table!")
+        return {}
+    end
+end
+
+
+
+
+
+
+
+
+
 ----------------------------------------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -518,13 +548,14 @@ function recruiter_character.new(manager, cqi)
     self._cqi = cqi --stores the cqi identifier of the character
     self._manager = manager  -- stores the associated rm
     self._armyCounts = {} --:map<string, number> --stores the current number of each unit in the army
-    self._queueCounts = {} --:map<string, number> --stores the current number of each unit in the queue
-    if not not cm:get_saved_value("RMSavedQueues|"..tostring(cqi)) then
-        self._queueCounts = DeserializeSaveString(cm:get_saved_value("RMSavedQueues:"..tostring(cqi)))
-    end
+    self._queueCounts = {} --:map<string, number>
+    --self._queueCounts = manager:load_character(tostring(cqi))
     self._restrictedUnits = {} --:map<string, boolean> -- stores the units currently restricted for the character
     self._UIStrings = {} --:map<string, string> --stores the string to explain why a unit is locked.
     self._staleQueueFlag = true --:boolean -- flags for the queue needing to be refreshed entirely.
+    --if cm:get_saved_value("RMSavedFreshness|"..tostring(cqi)) then
+       -- self._staleQueueFlag = cm:get_saved_value("RMSavedFreshness|"..tostring(cqi))
+    --end
     self._staleArmyFlag = true --:boolean --flags for the army needing to be refreshed entirely.
     self._rawQueueFlag = true --:boolean --flags for when the queue needing refresh needs to have refunds done
     self._UIProfileOverrides = {} --:map<string, RM_UIPROFILE> --overrides the UI profile stored in the model
@@ -622,6 +653,7 @@ function recruiter_character.set_queue_stale(self)
     end
     self._staleQueueFlag = true
     self._rawQueueFlag = false
+    cm:set_saved_value("RMSavedFreshness|"..tostring(self._cqi), true)
 end
 
 
@@ -635,6 +667,7 @@ end
 --v function(self: RECRUITER_CHARACTER)
 function recruiter_character.set_queue_fresh(self)
     self._staleQueueFlag = false
+    cm:set_saved_value("RMSavedFreshness|"..tostring(self._cqi), false)
 end
 
 --called after the refresh so it doesn't get called repeatedly.
@@ -766,8 +799,7 @@ function recruiter_character.refresh_queue(self)
             break
         end
     end
-    --save the queue
-    cm:set_saved_value("RMSavedQueues|"..tostring(self:command_queue_index()), SerializeQueueTable(self._queueCounts))
+
     --set the queue fresh
     self:set_queue_fresh()
 end
@@ -1230,6 +1262,29 @@ function recruiter_manager.set_current_character(self, cqi)
     end
 end
 
+--saving functions--
+--------------------
+
+--v function(self: RECRUITER_MANAGER) --> map<string, string>
+function recruiter_manager.save(self)
+    for cqi_as_cqi, rec_char in pairs(self._recruiterCharacters) do
+        local char_queue_string = SerializeQueueTable(rec_char._queueCounts)
+        local cqi_as_string = tostring(cqi_as_cqi)
+        self._savedData[cqi_as_string] = char_queue_string
+        self:log("Saved character queue for cqi ["..cqi_as_string.."] it was ["..char_queue_string.."] ")
+    end
+    return self._savedData
+end
+
+
+--v function(self: RECRUITER_MANAGER, loaded_data: map<string, string>)
+function recruiter_manager.load_session_data(self, loaded_data)
+    if is_table(loaded_data) then
+        self._savedData = loaded_data
+    else
+        self:log("LOADING_ERROR: Load session data recieved a non table arg!")
+    end
+end
 --unit whitelisting by subculture--
 -----------------------------------------
 --this is necessary because otherwise every single unit will be checked for every single time someone refreshes the queue of a unit, causing a noticable ~.2 second lag with a large enough groupset.
@@ -1889,3 +1944,27 @@ end
 --initialize the rm 
 recruiter_manager.init()
 
+
+--[[
+cm:add_saving_game_callback(
+    function(context)
+        local save_table_data = _G.rm:save()
+        cm:save_named_value("RECRUITER_MANAGER_SAVE_DATA", save_table_data, context)
+        RCLOG("Saved RM data!")
+    end
+)
+
+cm:add_loading_game_callback(
+    function(context)
+        local ok, err = pcall(function()
+            local saved_data = cm:load_named_value("RECRUITER_MANAGER_SAVE_DATA", {}, context)
+
+            _G.rm:load_session_data(saved_data)
+        end)
+        if not ok then 
+        RCLOG("LOADING ERROR: ".. tostring(err))
+        else
+            RCLOG("Loaded RM data!")
+        end
+    end
+)--]]

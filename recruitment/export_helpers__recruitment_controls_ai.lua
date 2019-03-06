@@ -119,7 +119,7 @@ end
 
 --v function(faction:CA_FACTION)
 local function rm_ai_evaluation(faction)
-    if faction:name() == "rebels" then
+    if (faction:name() == "rebels") or (faction:name() == "wh2_dlc10_def_blood_voyage") then
         return
     end
 
